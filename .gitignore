@@ -1,0 +1,21 @@
+# Environments and virtualenvs
+.venv/
+env/
+venv/
+ENV/
+
+# Python cache and byte-compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Local database instances
+*.db
+backend/data/*.db
+data/*.db
+
+# Personal and non-project files
+files/
+.DS_Store
+Thumbs.db
