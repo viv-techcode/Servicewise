@@ -1,0 +1,27 @@
+/* ==========================================================================
+   SERVICEWISE — HIGH-TASTE VISUAL SYSTEM & TYPOGRAPHY HIERARCHY
+   ========================================================================== */
+:root {
+  --font-heading: 'Ubuntu', -apple-system, sans-serif;
+  --font-sans: 'Open Sans', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --radius-card: 16px;
+  --radius-sm: 8px;
+  --bg-primary: #2d2722;
+  --bg-panel: #38312b;
+  --bg-card: #3c342d;
+  --text-primary: #ffffff;
+  --text-secondary: #f0e8e2;
+  --text-muted: #d6cac0;
+  --accent: #f0a858;
+  --accent-hover: #d99141;
+  --border-standard: rgba(255, 255, 255, 0.20);
+}
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  margin: 0;
+  padding: 0;
+}
+.container { max-width: 1120px; margin: 0 auto; padding: 0 2rem; }
