@@ -3,26 +3,228 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ServiceWise — Smart Vehicle Diagnostics & Cost Prediction</title>
+  <title>ServiceWise — Smart Vehicle Diagnostics &amp; Store Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Open+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Ubuntu:ital,wght@0,400;0,500;0,700;1,400;1,700&display=swap">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <!-- Lucide Icons Library -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- 100+ Symptoms Knowledge Base -->
+  <script src="{{ url_for('static', filename='js/symptoms-bank.js') }}"></script>
 </head>
 <body>
+
+  <!-- App Header with Auth Session Info -->
   <header class="app-header">
-    <div class="container" style="display:flex;justify-content:space-between;align-items:center;">
-      <div>
-        <h1>ServiceWise</h1>
-        <p>Smart Vehicle Diagnostics & Cost Prediction System</p>
+    <div class="container" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3);color:var(--accent);">
+          <i data-lucide="wrench" style="width:22px;height:22px;"></i>
+        </div>
+        <div>
+          <h1>ServiceWise</h1>
+          <p>Smart Vehicle Diagnostics &amp; Workshop Cost Analytics</p>
+        </div>
+      </div>
+      <div id="authHeaderWidget" style="display:flex;align-items:center;gap:0.75rem;">
+        <!-- Day / Night Mode Animated Toggle Button (Left side of User / Login) -->
+        <button id="themeToggleBtn" class="theme-toggle-btn" title="Toggle Light / Dark Mode" aria-label="Toggle theme">
+          <i id="themeToggleIcon" data-lucide="sun" style="width:18px;height:18px;color:#f59e0b;"></i>
+        </button>
+
+        <span id="roleBadge" class="mono" style="display:none;font-size:0.75rem;border:1px solid var(--accent);color:var(--accent);padding:0.25rem 0.75rem;border-radius:9999px;"></span>
+        <button id="authModalBtn" class="btn-secondary" style="font-size:0.81rem;padding:0.35rem 0.85rem;display:inline-flex;align-items:center;gap:0.4rem;">
+          <i data-lucide="user" style="width:14px;height:14px;"></i> Login / Sign Up
+        </button>
+        <button id="logoutBtn" class="btn-secondary" style="display:none;font-size:0.81rem;padding:0.35rem 0.85rem;display:inline-flex;align-items:center;gap:0.4rem;">
+          <i data-lucide="log-out" style="width:14px;height:14px;"></i> Logout
+        </button>
       </div>
     </div>
   </header>
+
   <main class="container app-content">
-    <nav class="tab-nav">
-      <button class="tab-btn active" data-tab="tab-assess">Diagnostics</button>
-      <button class="tab-btn" data-tab="tab-history">Service Records</button>
-      <button class="tab-btn" data-tab="tab-cost">Cost Estimator</button>
+
+    <!-- Role-aware Tab Navigation -->
+    <nav class="tab-nav" role="tablist" aria-label="App sections">
+      <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-assess" data-tab="assess" id="btn-assess">
+        <i data-lucide="activity" style="width:16px;height:16px;"></i> Diagnostic Assistant
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-history" data-tab="history" id="btn-history">
+        <i data-lucide="clipboard-list" style="width:16px;height:16px;"></i> <span id="historyTabLabel">Service Records</span>
+      </button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-cost" data-tab="cost" id="btn-cost">
+        <i data-lucide="calculator" style="width:16px;height:16px;"></i> Cost Estimator
+      </button>
+      <button class="tab-btn owner-only-tab" role="tab" aria-selected="false" aria-controls="tab-analytics" data-tab="analytics" id="btn-analytics" style="display:none;">
+        <i data-lucide="bar-chart-3" style="width:16px;height:16px;"></i> Workshop Analytics
+      </button>
+      <button class="tab-btn owner-only-tab" role="tab" aria-selected="false" aria-controls="tab-metrics" data-tab="metrics" id="btn-metrics" style="display:none;">
+        <i data-lucide="cpu" style="width:16px;height:16px;"></i> Model Health
+      </button>
     </nav>
-    <div class="split-layout">
-      <div class="card"><h2>Vehicle Diagnostics</h2></div>
+
+    <!-- TAB 1: DIAGNOSIS (Customer & Guest) -->
+    <div id="tab-assess" role="tabpanel">
+      <div class="card form-card" style="margin-bottom: 2rem;">
+        <h2>Vehicle Assessment</h2>
+        <form id="assessmentForm" novalidate>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="vehicle_type">Vehicle Type</label>
+              <select id="vehicle_type" name="vehicle_type" required aria-required="true">
+                <option value="">Select type&hellip;</option>
+                <option value="bike">Two-Wheeler (Motorcycle / Scooter)</option>
+                <option value="car">Four-Wheeler (Car / Hatchback / SUV)</option>
+                <option value="cycle">Bicycle / Cycle (Road / MTB / Standard)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="vehicle_brand">Brand</label>
+              <select id="vehicle_brand" name="vehicle_brand" required aria-required="true" disabled>
+                <option value="">Select brand&hellip;</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="vehicle_model">Model</label>
+              <select id="vehicle_model" name="vehicle_model" required aria-required="true" disabled>
+                <option value="">Select model&hellip;</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="vehicle_age">Vehicle Age (Years)</label>
+              <input id="vehicle_age" type="number" name="vehicle_age" min="0" max="30" placeholder="e.g. 3" required aria-required="true">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="km_driven">Kilometres Driven</label>
+            <input id="km_driven" type="number" name="km_driven" min="0" max="500000" step="500" placeholder="e.g. 35000" required aria-required="true">
+          </div>
+
+          <div class="form-group">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem;">
+              <label>Common Symptoms (click to fill)</label>
+              <button type="button" id="toggleMoreChipsBtn" style="background:none;border:none;color:var(--accent);font-size:0.78rem;cursor:pointer;display:inline-flex;align-items:center;gap:0.25rem;">
+                <span id="moreChipsLabel">Show More Shortcuts</span> <i data-lucide="chevron-down" style="width:12px;height:12px;" id="moreChipsIcon"></i>
+              </button>
+            </div>
+
+            <!-- Primary & Expandable Shortcuts in Unified Flow -->
+            <div class="symptom-chips" role="group" aria-label="Common symptom shortcuts" id="primaryChips">
+              <button type="button" class="chip" data-symptom="Tyre puncture and vehicle pulling sideways on low air">
+                <i data-lucide="circle-dot" style="width:13px;height:13px;color:#38bdf8;"></i> Tyre Puncture
+              </button>
+              <button type="button" class="chip" data-symptom="Low tyre pressure losing air frequently every 2 days">
+                <i data-lucide="gauge" style="width:13px;height:13px;color:#f59e0b;"></i> Low Air
+              </button>
+              <button type="button" class="chip" data-symptom="Headlight dim and indicator lights not glowing properly">
+                <i data-lucide="lightbulb" style="width:13px;height:13px;color:#facc15;"></i> Light Issue
+              </button>
+              <button type="button" class="chip" data-symptom="Engine overheating and heavy smoke from exhaust">
+                <i data-lucide="flame" style="width:13px;height:13px;color:#f87171;"></i> Overheating
+              </button>
+              <button type="button" class="chip" data-symptom="Clicking sound when starting, starter not working">
+                <i data-lucide="zap" style="width:13px;height:13px;color:#fbbf24;"></i> Won't Start
+              </button>
+              <button type="button" class="chip" data-symptom="Brakes screeching and pedal feels spongy">
+                <i data-lucide="disc" style="width:13px;height:13px;color:#f43f5e;"></i> Brake Noise
+              </button>
+              <button type="button" class="chip" data-symptom="Vibrating handlebars and wobbling at high speed">
+                <i data-lucide="radio" style="width:13px;height:13px;color:#38bdf8;"></i> Vibration
+              </button>
+              <button type="button" class="chip" data-symptom="Black smoke from exhaust and poor mileage">
+                <i data-lucide="wind" style="width:13px;height:13px;color:#94a3b8;"></i> Smoke/Exhaust
+              </button>
+              <button type="button" class="chip" data-symptom="Gears slipping and hard to shift, grinding noise">
+                <i data-lucide="settings-2" style="width:13px;height:13px;color:#a78bfa;"></i> Gearbox
+              </button>
+              <button type="button" class="chip" data-symptom="Car AC not cooling vents blowing normal hot air">
+                <i data-lucide="snowflake" style="width:13px;height:13px;color:#67e8f9;"></i> AC Not Cooling
+              </button>
+              <!-- Secondary Category Chips (Seamless inline flow when toggled) -->
+              <button type="button" class="chip extra-chip" data-symptom="Battery dead vehicle horn weak self start silent" style="display:none;">
+                <i data-lucide="battery-warning" style="width:13px;height:13px;color:#fbbf24;"></i> Dead Battery
+              </button>
+              <button type="button" class="chip extra-chip" data-symptom="Chain slipping off bicycle or motorcycle sprocket" style="display:none;">
+                <i data-lucide="link" style="width:13px;height:13px;color:#a78bfa;"></i> Loose Chain
+              </button>
+              <button type="button" class="chip extra-chip" data-symptom="Oil leaking from under engine leaves black stains" style="display:none;">
+                <i data-lucide="droplet" style="width:13px;height:13px;color:#f87171;"></i> Engine Oil Leak
+              </button>
+              <button type="button" class="chip extra-chip" data-symptom="Vehicle alignment out pulling to left or right" style="display:none;">
+                <i data-lucide="compass" style="width:13px;height:13px;color:#38bdf8;"></i> Wheel Alignment
+              </button>
+              <button type="button" class="chip extra-chip" data-symptom="Suspension thumping hard over potholes and bumps" style="display:none;">
+                <i data-lucide="activity" style="width:13px;height:13px;color:#4ade80;"></i> Shock Absorber
+              </button>
+              <button type="button" class="chip extra-chip" data-symptom="Radiator coolant leaking green fluid temperature high" style="display:none;">
+                <i data-lucide="thermometer-snowflake" style="width:13px;height:13px;color:#60a5fa;"></i> Coolant Leak
+              </button>
+              <button type="button" class="chip extra-chip" data-symptom="Clutch pedal feels tight hard to engage gears" style="display:none;">
+                <i data-lucide="sliders" style="width:13px;height:13px;color:#cbd5e1;"></i> Hard Clutch
+              </button>
+              <button type="button" class="chip extra-chip" data-symptom="Spark plug fouled engine misfiring on acceleration" style="display:none;">
+                <i data-lucide="sparkles" style="width:13px;height:13px;color:#fbbf24;"></i> Engine Misfire
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="symptoms">Describe the Problem <span style="color:var(--text-muted);font-weight:400;">(or type keyword for 100+ smart suggestions)</span></label>
+            <div class="symptom-input-wrapper">
+              <textarea id="symptoms" name="symptoms" rows="3"
+                        placeholder="e.g. Type 'tyre', 'light', 'starting', 'brakes' to search 100+ common vehicle issues..."
+                        required aria-required="true" autocomplete="off"></textarea>
+              <div id="symptomSuggestionsDropdown" class="symptom-dropdown" style="display:none;"></div>
+            </div>
+          </div>
+
+          <div id="formError" role="alert" style="display:none;color:var(--danger);font-size:0.88rem;margin-bottom:1rem;"></div>
+
+          <button type="submit" class="btn-primary" id="submitBtn">
+            <i data-lucide="search-check" style="width:16px;height:16px;"></i> Analyze Problem
+          </button>
+
+          <div id="loadingIndicator" class="loading" style="display:none;" aria-live="polite">
+            <i data-lucide="loader-2" style="display:inline-block;animation:spin 1s linear infinite;width:16px;height:16px;vertical-align:middle;"></i> Analyzing symptoms…
+          </div>
+        </form>
+      </div>
+
+      <div id="resultArea" class="card result-card" role="region" aria-label="Diagnostic results" aria-live="polite" style="display:none;opacity:0;transition:opacity 0.3s ease;">
+        <h2>Diagnostic Result</h2>
+        <div id="urgencyBadge" class="badge"></div>
+
+        <div class="result-grid">
+          <div class="result-box">
+            <span class="result-label">Problem System</span>
+            <div class="result-value mono" id="resCategory">—</div>
+          </div>
+          <div class="result-box cost-box">
+            <span class="result-label">Est. Repair Cost</span>
+            <div class="result-value mono" id="resCost">₹—</div>
+          </div>
+        </div>
+
+        <div class="disclaimer-box" role="note">
+          <strong style="display:flex;align-items:center;gap:0.4rem;">
+            <i data-lucide="alert-triangle" style="width:16px;height:16px;color:#fcd34d;"></i> Recommendation
+          </strong>
+          <p id="resRecommendation"></p>
+          <small>Disclaimer: This is an ML-generated preliminary estimate. Verified by workshop technicians.</small>
+        </div>
+
+        <!-- Feedback Modal Trigger / Inline Status removed (now handled via center prompt popup on reload / revisit) -->
+      </div>
     </div>
+
+        </div>
   </main>
 </body>
 </html>
