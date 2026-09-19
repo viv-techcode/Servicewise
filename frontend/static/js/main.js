@@ -10,3 +10,12 @@ document.addEventListener('DOMContentLoaded', () => {
     `).join('');
   }
 });
+
+// Theme switcher
+const themeToggleBtn = document.getElementById('themeToggleBtn');
+if (themeToggleBtn) {
+  themeToggleBtn.addEventListener('click', () => {
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    document.documentElement.setAttribute('data-theme', isLight ? 'dark' : 'light');
+  });
+}

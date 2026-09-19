@@ -1062,7 +1062,3 @@ input:disabled, select:disabled {
     font-size: 1.25rem;
   }
 }
-@media (max-width: 860px) {
-  .split-layout { grid-template-columns: 1fr; }
-  .form-row { grid-template-columns: 1fr; }
-}
