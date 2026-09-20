@@ -1,0 +1,166 @@
+record_id,vehicle_type,vehicle_brand,vehicle_model,vehicle_age,km_driven,last_service_date,previous_repair_history,symptoms,engine_warning_indicator,recent_maintenance,parts_replaced,problem_category,actual_repair_cost,service_date
+1,bike,Hero,Passion Pro,4,32256,2 months ago,battery replacement,Self starter clicking sound but engine will not crank battery drained,yes,oil change,battery jump/relay,Starting System,2000,2026-09-17
+2,cycle,Atlas,Atlas Motion,5,517,7 months ago,general service,Handlebars misaligned handlebar turned sideways while going straight,no,none,fork alignment / T-stem adjustment,Suspension,50,2026-09-17
+3,bike,Suzuki,Access 125,3,58392,6 months ago,none,Drop in fuel mileage running very rich with strong petrol smell from exhaust,no,oil change,carburettor/injector clean,Fuel System,500,2026-09-17
+4,bike,Bajaj,Platina 100,10,37671,2 months ago,oil change,Vehicle pulling to left uneven tyre tread wear wheel alignment needed,no,oil change,alignment balancing weight,Tyres/Wheels,500,2026-09-17
+5,bike,Suzuki,Gixxer 150,10,50400,11 months ago,general service,Brakes screeching loud metallic grinding noise brake pads worn down,no,filters,brake pads/brake shoes,Brake System,750,2026-09-17
+6,car,Renault,Kwid,2,107647,3 months ago,brake pads,Engine knocking and metallic pinging sound under load tappet clearance loose,no,filters,tappet adjustment / oil flush,Engine,3350,2026-09-17
+7,car,Toyota,Innova Crysta,10,52862,5 months ago,battery replacement,Handbrake parking brake not holding vehicle on slope loose brake cable,no,brake tune,handbrake cable adjustment,Brake System,450,2026-09-17
+8,car,Renault,Kwid,4,16414,4 months ago,battery replacement,Check engine light glowing loss of pickup and engine stuttering at idle,yes,filters,sensor cleaning / OBD scan,Engine,1500,2026-09-17
+9,bike,TVS,XL 100 Heavy Duty,8,21726,9 months ago,brake pads,Engine overheating rapidly temperature gauge in red steam from bonnet,yes,none,thermostat / head gasket check,Engine,1900,2026-09-17
+10,car,Mahindra,XUV700,4,44262,2 months ago,general service,Vehicle horn switch and pass light switch stuck with dust grime,no,brake tune,switch cleaning / WD40 service,General Maintenance,400,2026-09-17
+11,car,Mahindra,XUV300,2,108864,9 months ago,brake pads,Gears slipping hard to shift into gear grinding gear noise,no,greasing,clutch plates / gear oil,Transmission,7100,2026-09-17
+12,car,Maruti Suzuki,Ertiga,12,38029,2 months ago,brake pads,Engine knocking and metallic pinging sound under load tappet clearance loose,yes,none,tappet adjustment / oil flush,Engine,4400,2026-09-17
+13,cycle,Firefox,Firefox Cyclone,3,4400,11 months ago,brake pads,Headlight beam very dim and indicator flasher blinking too fast,no,greasing,headlight bulb/relay,Battery/Electrical,100,2026-09-17
+14,bike,Honda,SP 125,3,73697,8 months ago,none,Periodic periodic general servicing engine oil filter chain and brake tune,no,oil change,engine oil / filters,General Maintenance,1300,2026-09-17
+15,car,Renault,Triber,4,23184,2 months ago,oil change,Handbrake parking brake not holding vehicle on slope loose brake cable,no,oil change,handbrake cable adjustment,Brake System,850,2026-09-17
+16,car,Kia,Seltos,3,132592,4 months ago,battery replacement,Self starter clicking sound but engine will not crank battery drained,yes,brake tune,battery jump/relay,Starting System,2500,2026-09-18
+17,car,Mahindra,XUV700,8,126354,6 months ago,none,Car AC not cooling vents throwing warm air AC gas low compressor cut off,no,greasing,AC gas topup / cabin filter,Battery/Electrical,2050,2026-09-18
+18,bike,Royal Enfield,Bullet 350,1,12305,6 months ago,none,Steering wheel and handlebar vibrating heavily at high speed bent rim,no,greasing,rim trueing / wheel balancing,Tyres/Wheels,450,2026-09-18
+19,bike,Yamaha,RayZR 125,4,73678,10 months ago,oil change,Self starter clicking sound but engine will not crank battery drained,no,none,battery jump/relay,Starting System,1950,2026-09-18
+20,car,Hyundai,i20,2,120997,12 months ago,none,Fuel pipe leaking petrol near fuel pump filter cracked,no,oil change,fuel pipe / fuel filter,Fuel System,750,2026-09-18
+21,cycle,Firefox,Firefox Grunge,1,2336,3 months ago,oil change,Vehicle horn completely dead or making weak croaking sound,no,brake tune,horn/horn switch,Battery/Electrical,100,2026-09-18
+22,bike,Honda,Activa 6G,8,75132,1 months ago,none,Vehicle horn completely dead or making weak croaking sound,no,brake tune,horn/horn switch,Battery/Electrical,200,2026-09-18
+23,cycle,Hercules,Hercules Streetcat,2,3585,7 months ago,brake pads,Low tyre pressure losing air frequently every 2 days valve leaking,no,none,valve pin/air valve,Tyres/Wheels,50,2026-09-18
+24,bike,Yamaha,RayZR 125,3,27890,10 months ago,battery replacement,Engine misfiring jerking severely during acceleration fouled spark plugs,no,filters,spark plugs / ignition coil,Engine,500,2026-09-18
+25,cycle,BSA,BSA Mach,5,1589,3 months ago,none,Low tyre pressure losing air frequently every 2 days valve leaking,no,greasing,valve pin/air valve,Tyres/Wheels,100,2026-09-18
+26,cycle,Leader,Leader Scout,4,1282,10 months ago,none,Periodic periodic general servicing engine oil filter chain and brake tune,no,none,engine oil / filters,General Maintenance,150,2026-09-18
+27,car,Kia,Carens,6,76358,4 months ago,brake pads,Brake pedal going deep down spongy feel without stopping power air in lines,no,none,brake fluid flush/bleeding,Brake System,1250,2026-09-18
+28,cycle,Firefox,Firefox Grunge,4,2890,2 months ago,none,Vehicle pulling to left uneven tyre tread wear wheel alignment needed,no,greasing,alignment balancing weight,Tyres/Wheels,60,2026-09-18
+29,bike,Bajaj,Pulsar NS200,6,12016,8 months ago,battery replacement,Handbrake parking brake not holding vehicle on slope loose brake cable,no,filters,handbrake cable adjustment,Brake System,200,2026-09-18
+30,bike,Suzuki,Gixxer 150,9,4025,3 months ago,brake pads,Heavy white or bluish smoke coming continuously from exhaust burning engine oil,no,oil change,piston rings / valve seals,Engine,7200,2026-09-18
+31,car,Hyundai,Venue,5,63215,9 months ago,oil change,Drop in fuel mileage running very rich with strong petrol smell from exhaust,no,filters,carburettor/injector clean,Fuel System,1200,2026-09-18
+32,car,Renault,Kwid,2,119037,3 months ago,brake pads,Engine knocking and metallic pinging sound under load tappet clearance loose,no,none,tappet adjustment / oil flush,Engine,1950,2026-09-18
+33,bike,TVS,NTorq 125,1,17663,9 months ago,none,Tyre sidewall bulge after hitting pothole tyre replacement needed,no,filters,new tyre/tube,Tyres/Wheels,2350,2026-09-18
+34,bike,Honda,Dio,3,8482,6 months ago,general service,Heavy white or bluish smoke coming continuously from exhaust burning engine oil,yes,oil change,piston rings / valve seals,Engine,4650,2026-09-18
+35,bike,Royal Enfield,Meteor 350,10,23257,7 months ago,none,Handbrake parking brake not holding vehicle on slope loose brake cable,no,brake tune,handbrake cable adjustment,Brake System,300,2026-09-18
+36,car,Tata,Tiago,11,73055,7 months ago,none,Engine knocking and metallic pinging sound under load tappet clearance loose,yes,brake tune,tappet adjustment / oil flush,Engine,2350,2026-09-18
+37,cycle,Hercules,Hercules Streetcat,3,2164,7 months ago,brake pads,Kick starter slipping or jammed no compression on bike,no,filters,kick ratchet gear,Starting System,100,2026-09-18
+38,car,Renault,Triber,6,112773,5 months ago,general service,Drop in fuel mileage running very rich with strong petrol smell from exhaust,no,greasing,carburettor/injector clean,Fuel System,2300,2026-09-19
+39,car,Tata,Nexon,2,121918,7 months ago,battery replacement,Fuel pipe leaking petrol near fuel pump filter cracked,no,greasing,fuel pipe / fuel filter,Fuel System,1000,2026-09-19
+40,cycle,BSA,BSA SLR,3,663,11 months ago,general service,Bicycle or motorcycle chain loose slipping off teeth dry squeaking,no,filters,chain adjustment / sprocket kit,Transmission,60,2026-09-19
+41,bike,Yamaha,R15 V4,10,44145,9 months ago,brake pads,Battery warning light glowing alternator charging issue cluster flickering,no,none,alternator relay/fuse,Battery/Electrical,1150,2026-09-19
+42,bike,Yamaha,R15 V4,9,19683,11 months ago,general service,Brakes screeching loud metallic grinding noise brake pads worn down,no,greasing,brake pads/brake shoes,Brake System,600,2026-09-19
+43,bike,TVS,NTorq 125,1,42829,10 months ago,brake pads,Engine misfiring jerking severely during acceleration fouled spark plugs,yes,none,spark plugs / ignition coil,Engine,500,2026-09-19
+44,car,Kia,Sonet,12,52483,2 months ago,general service,Headlight beam very dim and indicator flasher blinking too fast,no,filters,headlight bulb/relay,Battery/Electrical,500,2026-09-19
+45,bike,Honda,Shine 125,1,9057,8 months ago,oil change,Handbrake parking brake not holding vehicle on slope loose brake cable,no,greasing,handbrake cable adjustment,Brake System,350,2026-09-19
+46,cycle,Firefox,Firefox Grunge,4,3573,2 months ago,oil change,Kick starter slipping or jammed no compression on bike,no,brake tune,kick ratchet gear,Starting System,100,2026-09-19
+47,cycle,Firefox,Firefox Cyclone,4,711,8 months ago,general service,Handlebars misaligned handlebar turned sideways while going straight,no,none,fork alignment / T-stem adjustment,Suspension,50,2026-09-19
+48,car,Kia,Carens,6,124017,8 months ago,general service,Vehicle horn switch and pass light switch stuck with dust grime,no,none,switch cleaning / WD40 service,General Maintenance,400,2026-09-19
+49,bike,Suzuki,Access 125,5,71327,8 months ago,none,Radiator coolant leaking green fluid pooling under engine bay,yes,brake tune,radiator hose / coolant topup,Cooling System,1050,2026-09-19
+50,bike,Bajaj,Avenger 220,2,21136,12 months ago,general service,Engine cranking very slowly for 10 seconds before starting cold start issue,no,none,spark plug/starter carbon,Starting System,500,2026-09-19
+51,bike,TVS,XL 100 Heavy Duty,1,30110,12 months ago,none,Clutch lever extremely tight and hard to press stiff clutch cable,no,greasing,clutch cable replacement,Transmission,250,2026-09-19
+52,bike,Hero,Passion Pro,5,54116,10 months ago,general service,Clutch lever extremely tight and hard to press stiff clutch cable,no,none,clutch cable replacement,Transmission,300,2026-09-19
+53,bike,TVS,XL 100 Heavy Duty,1,53968,12 months ago,general service,Drop in fuel mileage running very rich with strong petrol smell from exhaust,no,none,carburettor/injector clean,Fuel System,750,2026-09-19
+54,car,Kia,Carens,1,111290,3 months ago,oil change,Low tyre pressure losing air frequently every 2 days valve leaking,no,brake tune,valve pin/air valve,Tyres/Wheels,100,2026-09-19
+55,cycle,Hercules,Hercules Streetcat,2,4024,5 months ago,oil change,Brake pedal going deep down spongy feel without stopping power air in lines,no,filters,brake fluid flush/bleeding,Brake System,50,2026-09-19
+56,car,Mahindra,Bolero,12,21653,11 months ago,none,Fuel pipe leaking petrol near fuel pump filter cracked,no,oil change,fuel pipe / fuel filter,Fuel System,600,2026-09-19
+57,car,Hyundai,i20,10,47946,10 months ago,general service,Handbrake parking brake not holding vehicle on slope loose brake cable,no,none,handbrake cable adjustment,Brake System,400,2026-09-19
+58,car,Renault,Triber,3,38024,10 months ago,none,Self starter clicking sound but engine will not crank battery drained,yes,greasing,battery jump/relay,Starting System,4400,2026-09-19
+59,car,Mahindra,Thar,12,59990,2 months ago,brake pads,Tyre sidewall bulge after hitting pothole tyre replacement needed,no,greasing,new tyre/tube,Tyres/Wheels,4400,2026-09-19
+60,car,Renault,Kiger,1,99017,9 months ago,brake pads,Rear shock absorber squeaking and vehicle bouncing excessively,no,oil change,shock absorber replacement,Suspension,4600,2026-09-20
+61,car,Renault,Triber,2,121645,12 months ago,general service,Black soot smoke during sudden acceleration clogged air filter,no,none,air filter / choke clean,Fuel System,850,2026-09-20
+62,cycle,BSA,BSA Champ,3,4260,6 months ago,general service,Clutch lever extremely tight and hard to press stiff clutch cable,no,oil change,clutch cable replacement,Transmission,50,2026-09-20
+63,bike,TVS,Apache RTR 160,8,77691,6 months ago,general service,Gears slipping hard to shift into gear grinding gear noise,no,none,clutch plates / gear oil,Transmission,1850,2026-09-20
+64,bike,Suzuki,Burgman Street,6,39655,4 months ago,none,Engine knocking and metallic pinging sound under load tappet clearance loose,no,none,tappet adjustment / oil flush,Engine,1250,2026-09-20
+65,bike,Suzuki,Access 125,8,67332,5 months ago,general service,Front suspension fork leaking oil bottoming out over potholes,no,none,fork oil seals / fork oil,Suspension,1550,2026-09-20
+66,car,Tata,Harrier,6,132062,6 months ago,brake pads,Fuel pipe leaking petrol near fuel pump filter cracked,no,none,fuel pipe / fuel filter,Fuel System,750,2026-09-20
+67,bike,Bajaj,Pulsar NS200,2,28242,12 months ago,general service,Check engine light glowing loss of pickup and engine stuttering at idle,no,none,sensor cleaning / OBD scan,Engine,500,2026-09-20
+68,bike,Royal Enfield,Himalayan,10,40093,4 months ago,brake pads,Vehicle horn completely dead or making weak croaking sound,no,brake tune,horn/horn switch,Battery/Electrical,400,2026-09-20
+69,bike,Yamaha,MT-15 V2,5,8965,11 months ago,oil change,Steering wheel and handlebar vibrating heavily at high speed bent rim,no,oil change,rim trueing / wheel balancing,Tyres/Wheels,600,2026-09-20
+70,car,Kia,Sonet,8,133492,5 months ago,oil change,Handlebars misaligned handlebar turned sideways while going straight,no,oil change,fork alignment / T-stem adjustment,Suspension,700,2026-09-20
+71,car,Mahindra,Thar,2,22053,5 months ago,none,Power window not rolling up central locking key remote unresponsive,no,brake tune,window motor/key battery,Battery/Electrical,700,2026-09-20
+72,cycle,Leader,Leader Beast,5,2148,5 months ago,battery replacement,Rear shock absorber squeaking and vehicle bouncing excessively,no,none,shock absorber replacement,Suspension,200,2026-09-20
+73,bike,Royal Enfield,Classic 350,10,16006,11 months ago,none,Brake pedal going deep down spongy feel without stopping power air in lines,no,brake tune,brake fluid flush/bleeding,Brake System,500,2026-09-20
+74,bike,Royal Enfield,Classic 350,3,3350,5 months ago,none,Clutch lever extremely tight and hard to press stiff clutch cable,no,brake tune,clutch cable replacement,Transmission,300,2026-09-20
+75,bike,Bajaj,CT 100,2,33595,7 months ago,none,Engine overheating rapidly temperature gauge in red steam from bonnet,yes,brake tune,thermostat / head gasket check,Engine,3850,2026-09-20
+76,car,Renault,Kwid,2,23633,5 months ago,oil change,Self starter clicking sound but engine will not crank battery drained,no,filters,battery jump/relay,Starting System,3950,2026-09-20
+77,car,Tata,Harrier,9,137445,7 months ago,brake pads,Handlebars misaligned handlebar turned sideways while going straight,no,greasing,fork alignment / T-stem adjustment,Suspension,500,2026-09-20
+78,bike,Hero,HF Deluxe,10,79955,10 months ago,none,Low tyre pressure losing air frequently every 2 days valve leaking,no,brake tune,valve pin/air valve,Tyres/Wheels,150,2026-09-20
+79,bike,Yamaha,RayZR 125,5,26788,2 months ago,oil change,Scooter drive belt and variator rollers worn vibrating on acceleration,no,filters,drive belt / variator rollers,Transmission,1500,2026-09-20
+80,bike,Bajaj,Pulsar 150,3,46228,11 months ago,oil change,Clutch lever extremely tight and hard to press stiff clutch cable,no,greasing,clutch cable replacement,Transmission,350,2026-09-20
+81,cycle,Hero Cycles,Hero Ranger,3,2948,9 months ago,none,Steering wheel and handlebar vibrating heavily at high speed bent rim,no,greasing,rim trueing / wheel balancing,Tyres/Wheels,250,2026-09-20
+82,bike,Hero,HF Deluxe,9,50419,4 months ago,brake pads,Radiator coolant leaking green fluid pooling under engine bay,yes,filters,radiator hose / coolant topup,Cooling System,1050,2026-09-21
+83,bike,Yamaha,RayZR 125,2,6783,9 months ago,none,Handbrake parking brake not holding vehicle on slope loose brake cable,no,greasing,handbrake cable adjustment,Brake System,300,2026-09-21
+84,bike,Honda,Activa 6G,8,18396,9 months ago,brake pads,Engine cranking very slowly for 10 seconds before starting cold start issue,yes,none,spark plug/starter carbon,Starting System,650,2026-09-21
+85,car,Hyundai,Grand i10 Nios,9,45917,12 months ago,general service,Gears slipping hard to shift into gear grinding gear noise,no,oil change,clutch plates / gear oil,Transmission,4650,2026-09-21
+86,bike,Suzuki,Burgman Street,6,69550,12 months ago,brake pads,Engine knocking and metallic pinging sound under load tappet clearance loose,yes,greasing,tappet adjustment / oil flush,Engine,1600,2026-09-21
+87,car,Mahindra,Scorpio-N,8,134967,7 months ago,oil change,Fuel pipe leaking petrol near fuel pump filter cracked,no,filters,fuel pipe / fuel filter,Fuel System,700,2026-09-21
+88,car,Toyota,Fortuner,10,108393,1 months ago,brake pads,Disc brake lever vibrating violently disc rotor warped or glazed,no,none,disc rotor machining/pads,Brake System,3450,2026-09-21
+89,car,Renault,Triber,7,47873,9 months ago,battery replacement,Periodic periodic general servicing engine oil filter chain and brake tune,no,filters,engine oil / filters,General Maintenance,4100,2026-09-21
+90,car,Renault,Triber,2,127780,11 months ago,general service,Tyre puncture with visible nail and rapid loss of air pressure,no,oil change,tyre tube/puncture strip,Tyres/Wheels,300,2026-09-21
+91,bike,Bajaj,Platina 100,10,55098,7 months ago,brake pads,Headlight beam very dim and indicator flasher blinking too fast,no,none,headlight bulb/relay,Battery/Electrical,400,2026-09-21
+92,car,Maruti Suzuki,Brezza,2,69543,7 months ago,none,Engine misfiring jerking severely during acceleration fouled spark plugs,yes,oil change,spark plugs / ignition coil,Engine,2600,2026-09-21
+93,bike,Yamaha,R15 V4,1,9028,6 months ago,brake pads,Check engine light glowing loss of pickup and engine stuttering at idle,yes,brake tune,sensor cleaning / OBD scan,Engine,1050,2026-09-21
+94,bike,Royal Enfield,Bullet 350,3,25946,10 months ago,general service,Headlight beam very dim and indicator flasher blinking too fast,no,none,headlight bulb/relay,Battery/Electrical,350,2026-09-21
+95,car,Hyundai,Creta,8,74578,8 months ago,brake pads,Radiator coolant leaking green fluid pooling under engine bay,yes,brake tune,radiator hose / coolant topup,Cooling System,1400,2026-09-21
+96,cycle,Avon,Avon Star,6,3775,4 months ago,oil change,Electric e-bike cycle throttle not engaging battery cut off,no,none,throttle switch/bldc fuse,Starting System,450,2026-09-21
+97,cycle,Hercules,Hercules Captain,3,2723,5 months ago,none,Brakes screeching loud metallic grinding noise brake pads worn down,no,greasing,brake pads/brake shoes,Brake System,60,2026-09-21
+98,car,Renault,Kiger,1,138214,10 months ago,brake pads,Engine misfiring jerking severely during acceleration fouled spark plugs,no,brake tune,spark plugs / ignition coil,Engine,2200,2026-09-21
+99,bike,Yamaha,MT-15 V2,2,8167,10 months ago,brake pads,Heavy white or bluish smoke coming continuously from exhaust burning engine oil,yes,oil change,piston rings / valve seals,Engine,6550,2026-09-21
+100,car,Tata,Tiago,3,60637,9 months ago,battery replacement,Battery warning light glowing alternator charging issue cluster flickering,no,filters,alternator relay/fuse,Battery/Electrical,3000,2026-09-21
+101,car,Tata,Tiago,5,96792,3 months ago,general service,Car AC not cooling vents throwing warm air AC gas low compressor cut off,no,none,AC gas topup / cabin filter,Battery/Electrical,2600,2026-09-21
+102,car,Renault,Kiger,6,31672,2 months ago,oil change,Clutch lever extremely tight and hard to press stiff clutch cable,no,filters,clutch cable replacement,Transmission,350,2026-09-21
+103,car,Toyota,Urban Cruiser Hyryder,10,107883,8 months ago,none,Black soot smoke during sudden acceleration clogged air filter,no,greasing,air filter / choke clean,Fuel System,500,2026-09-21
+104,car,Kia,Sonet,10,66030,12 months ago,brake pads,Tyre sidewall bulge after hitting pothole tyre replacement needed,no,none,new tyre/tube,Tyres/Wheels,4500,2026-09-22
+105,cycle,Hero Cycles,Hero Jet,3,4335,3 months ago,oil change,Steering wheel and handlebar vibrating heavily at high speed bent rim,no,none,rim trueing / wheel balancing,Tyres/Wheels,100,2026-09-22
+106,bike,Yamaha,RayZR 125,10,23253,10 months ago,oil change,Clutch lever extremely tight and hard to press stiff clutch cable,no,filters,clutch cable replacement,Transmission,350,2026-09-22
+107,cycle,Avon,Avon Element,4,3942,11 months ago,brake pads,Kick starter slipping or jammed no compression on bike,no,greasing,kick ratchet gear,Starting System,200,2026-09-22
+108,car,Toyota,Urban Cruiser Hyryder,1,112369,8 months ago,none,Engine knocking and metallic pinging sound under load tappet clearance loose,yes,greasing,tappet adjustment / oil flush,Engine,2450,2026-09-22
+109,car,Maruti Suzuki,Alto K10,6,71850,2 months ago,battery replacement,Battery warning light glowing alternator charging issue cluster flickering,no,brake tune,alternator relay/fuse,Battery/Electrical,3000,2026-09-22
+110,bike,Suzuki,Access 125,6,22340,3 months ago,battery replacement,Tyre puncture with visible nail and rapid loss of air pressure,no,filters,tyre tube/puncture strip,Tyres/Wheels,100,2026-09-22
+111,car,Maruti Suzuki,Ertiga,1,42551,10 months ago,brake pads,Tyre puncture with visible nail and rapid loss of air pressure,no,oil change,tyre tube/puncture strip,Tyres/Wheels,200,2026-09-22
+112,cycle,Hero Cycles,Hero Sprint,6,3748,8 months ago,oil change,Rear shock absorber squeaking and vehicle bouncing excessively,no,filters,shock absorber replacement,Suspension,100,2026-09-22
+113,bike,Hero,Glamour,9,32038,5 months ago,oil change,Vehicle pulling to left uneven tyre tread wear wheel alignment needed,no,oil change,alignment balancing weight,Tyres/Wheels,500,2026-09-22
+114,cycle,Hercules,Hercules Streetcat,4,1184,2 months ago,none,Front suspension fork leaking oil bottoming out over potholes,no,filters,fork oil seals / fork oil,Suspension,200,2026-09-22
+115,bike,Hero,HF Deluxe,5,84830,5 months ago,oil change,Check engine light glowing loss of pickup and engine stuttering at idle,yes,none,sensor cleaning / OBD scan,Engine,700,2026-09-22
+116,cycle,Firefox,Firefox Target,6,2061,7 months ago,brake pads,Bicycle or motorcycle chain loose slipping off teeth dry squeaking,no,none,chain adjustment / sprocket kit,Transmission,100,2026-09-22
+117,bike,Yamaha,FZ-S V3,6,58936,3 months ago,oil change,Check engine light glowing loss of pickup and engine stuttering at idle,no,oil change,sensor cleaning / OBD scan,Engine,950,2026-09-22
+118,cycle,Hero Cycles,Hero Ranger,2,791,6 months ago,none,Periodic periodic general servicing engine oil filter chain and brake tune,no,none,engine oil / filters,General Maintenance,250,2026-09-22
+119,bike,Yamaha,RayZR 125,1,40700,9 months ago,general service,Heavy white or bluish smoke coming continuously from exhaust burning engine oil,no,none,piston rings / valve seals,Engine,4600,2026-09-22
+120,bike,Hero,Passion Pro,9,51176,4 months ago,oil change,Battery warning light glowing alternator charging issue cluster flickering,no,greasing,alternator relay/fuse,Battery/Electrical,1150,2026-09-22
+121,car,Renault,Kiger,10,14882,12 months ago,brake pads,Engine knocking and metallic pinging sound under load tappet clearance loose,yes,filters,tappet adjustment / oil flush,Engine,1900,2026-09-22
+122,cycle,Leader,Leader Scout,5,3583,2 months ago,battery replacement,Vehicle pulling to left uneven tyre tread wear wheel alignment needed,no,brake tune,alignment balancing weight,Tyres/Wheels,60,2026-09-22
+123,bike,TVS,Raider 125,3,51503,10 months ago,none,Heavy white or bluish smoke coming continuously from exhaust burning engine oil,yes,brake tune,piston rings / valve seals,Engine,6250,2026-09-22
+124,cycle,BSA,BSA SLR,6,968,8 months ago,battery replacement,Electric e-bike cycle throttle not engaging battery cut off,no,none,throttle switch/bldc fuse,Starting System,450,2026-09-22
+125,bike,Honda,Unicorn,2,48242,9 months ago,brake pads,Scooter drive belt and variator rollers worn vibrating on acceleration,no,oil change,drive belt / variator rollers,Transmission,900,2026-09-22
+126,bike,Royal Enfield,Classic 350,1,29794,5 months ago,brake pads,Heavy white or bluish smoke coming continuously from exhaust burning engine oil,no,oil change,piston rings / valve seals,Engine,7250,2026-09-22
+127,bike,TVS,Apache RTR 160,3,52834,9 months ago,brake pads,Vehicle horn switch and pass light switch stuck with dust grime,no,oil change,switch cleaning / WD40 service,General Maintenance,200,2026-09-23
+128,bike,Yamaha,FZ-S V3,7,5456,10 months ago,oil change,Rear shock absorber squeaking and vehicle bouncing excessively,no,greasing,shock absorber replacement,Suspension,2650,2026-09-23
+129,bike,Yamaha,RayZR 125,5,18096,3 months ago,battery replacement,Bicycle or motorcycle chain loose slipping off teeth dry squeaking,no,none,chain adjustment / sprocket kit,Transmission,350,2026-09-23
+130,car,Tata,Nexon,7,35751,9 months ago,none,Handbrake parking brake not holding vehicle on slope loose brake cable,no,none,handbrake cable adjustment,Brake System,600,2026-09-23
+131,car,Toyota,Urban Cruiser Hyryder,4,95311,9 months ago,battery replacement,Self starter clicking sound but engine will not crank battery drained,no,filters,battery jump/relay,Starting System,2000,2026-09-23
+132,bike,Suzuki,Gixxer 150,3,33968,3 months ago,battery replacement,Vehicle horn completely dead or making weak croaking sound,no,brake tune,horn/horn switch,Battery/Electrical,200,2026-09-23
+133,car,Toyota,Innova Crysta,3,137529,8 months ago,battery replacement,Radiator coolant leaking green fluid pooling under engine bay,yes,greasing,radiator hose / coolant topup,Cooling System,2350,2026-09-23
+134,bike,Yamaha,R15 V4,3,60640,5 months ago,battery replacement,Tyre sidewall bulge after hitting pothole tyre replacement needed,no,oil change,new tyre/tube,Tyres/Wheels,1750,2026-09-23
+135,bike,Hero,Passion Pro,8,62233,2 months ago,none,Vehicle pulling to left uneven tyre tread wear wheel alignment needed,no,greasing,alignment balancing weight,Tyres/Wheels,250,2026-09-23
+136,bike,TVS,XL 100 Heavy Duty,10,75655,11 months ago,general service,Vehicle pulling to left uneven tyre tread wear wheel alignment needed,no,filters,alignment balancing weight,Tyres/Wheels,400,2026-09-23
+137,bike,Royal Enfield,Bullet 350,1,62050,12 months ago,none,Vehicle horn completely dead or making weak croaking sound,no,greasing,horn/horn switch,Battery/Electrical,400,2026-09-23
+138,bike,Hero,HF Deluxe,8,60595,6 months ago,brake pads,Periodic periodic general servicing engine oil filter chain and brake tune,no,filters,engine oil / filters,General Maintenance,950,2026-09-23
+139,bike,Suzuki,Burgman Street,10,9863,9 months ago,oil change,Drop in fuel mileage running very rich with strong petrol smell from exhaust,no,filters,carburettor/injector clean,Fuel System,400,2026-09-23
+140,bike,Suzuki,Gixxer 150,10,22709,6 months ago,brake pads,Drop in fuel mileage running very rich with strong petrol smell from exhaust,no,none,carburettor/injector clean,Fuel System,400,2026-09-23
+141,cycle,Firefox,Firefox Target,3,3385,11 months ago,battery replacement,Vehicle horn switch and pass light switch stuck with dust grime,no,oil change,switch cleaning / WD40 service,General Maintenance,50,2026-09-23
+142,bike,TVS,NTorq 125,6,5389,6 months ago,oil change,Black soot smoke during sudden acceleration clogged air filter,no,brake tune,air filter / choke clean,Fuel System,300,2026-09-23
+143,bike,Honda,Shine 125,2,41770,12 months ago,battery replacement,Vehicle horn completely dead or making weak croaking sound,no,oil change,horn/horn switch,Battery/Electrical,300,2026-09-23
+144,car,Renault,Kiger,3,106754,12 months ago,oil change,Power window not rolling up central locking key remote unresponsive,no,oil change,window motor/key battery,Battery/Electrical,700,2026-09-23
+145,bike,Yamaha,MT-15 V2,8,83031,4 months ago,battery replacement,Engine misfiring jerking severely during acceleration fouled spark plugs,no,none,spark plugs / ignition coil,Engine,900,2026-09-23
+146,car,Hyundai,Venue,11,123499,9 months ago,battery replacement,Radiator coolant leaking green fluid pooling under engine bay,yes,brake tune,radiator hose / coolant topup,Cooling System,2350,2026-09-23
+147,car,Renault,Kiger,3,73536,9 months ago,none,Steering wheel and handlebar vibrating heavily at high speed bent rim,no,greasing,rim trueing / wheel balancing,Tyres/Wheels,1400,2026-09-23
+148,car,Tata,Nexon,3,79510,7 months ago,none,Handlebars misaligned handlebar turned sideways while going straight,no,brake tune,fork alignment / T-stem adjustment,Suspension,1150,2026-09-23
+149,car,Tata,Nexon,7,21960,7 months ago,none,Clutch lever extremely tight and hard to press stiff clutch cable,no,filters,clutch cable replacement,Transmission,650,2026-09-24
+150,bike,Bajaj,Pulsar 150,6,22142,12 months ago,general service,Self starter clicking sound but engine will not crank battery drained,yes,none,battery jump/relay,Starting System,850,2026-09-24
+151,bike,Hero,Splendor Plus,1,36544,12 months ago,battery replacement,Brake pedal going deep down spongy feel without stopping power air in lines,no,greasing,brake fluid flush/bleeding,Brake System,600,2026-09-24
+152,bike,Suzuki,Burgman Street,4,42472,11 months ago,battery replacement,Battery warning light glowing alternator charging issue cluster flickering,no,none,alternator relay/fuse,Battery/Electrical,500,2026-09-24
+153,cycle,Leader,Leader Beast,5,434,12 months ago,general service,Vehicle horn switch and pass light switch stuck with dust grime,no,filters,switch cleaning / WD40 service,General Maintenance,50,2026-09-24
+154,bike,Royal Enfield,Hunter 350,4,77798,9 months ago,brake pads,Clutch lever extremely tight and hard to press stiff clutch cable,no,oil change,clutch cable replacement,Transmission,200,2026-09-24
+155,car,Kia,Carens,9,13330,11 months ago,oil change,Gears slipping hard to shift into gear grinding gear noise,no,filters,clutch plates / gear oil,Transmission,8750,2026-09-24
+156,bike,Hero,Passion Pro,2,48193,10 months ago,brake pads,Handbrake parking brake not holding vehicle on slope loose brake cable,no,brake tune,handbrake cable adjustment,Brake System,300,2026-09-24
+157,cycle,BSA,BSA Mach,6,1734,11 months ago,general service,Clutch lever extremely tight and hard to press stiff clutch cable,no,brake tune,clutch cable replacement,Transmission,100,2026-09-24
+158,cycle,Leader,Leader Beast,1,2703,1 months ago,brake pads,Vehicle horn completely dead or making weak croaking sound,no,filters,horn/horn switch,Battery/Electrical,60,2026-09-24
+159,bike,Suzuki,Gixxer 150,8,36202,5 months ago,brake pads,Vehicle pulling to left uneven tyre tread wear wheel alignment needed,no,oil change,alignment balancing weight,Tyres/Wheels,500,2026-09-24
+160,car,Tata,Altroz,2,104474,7 months ago,brake pads,Rear shock absorber squeaking and vehicle bouncing excessively,no,brake tune,shock absorber replacement,Suspension,5400,2026-09-24
+161,bike,TVS,Raider 125,9,37959,7 months ago,battery replacement,Headlight beam very dim and indicator flasher blinking too fast,no,brake tune,headlight bulb/relay,Battery/Electrical,350,2026-09-24
+162,bike,Bajaj,Pulsar 150,2,45981,3 months ago,oil change,Engine misfiring jerking severely during acceleration fouled spark plugs,no,oil change,spark plugs / ignition coil,Engine,600,2026-09-24
+163,car,Tata,Harrier,7,79973,6 months ago,battery replacement,Steering wheel and handlebar vibrating heavily at high speed bent rim,no,brake tune,rim trueing / wheel balancing,Tyres/Wheels,800,2026-09-24
+164,car,Hyundai,Verna,11,122864,11 months ago,brake pads,Vehicle pulling to left uneven tyre tread wear wheel alignment needed,no,filters,alignment balancing weight,Tyres/Wheels,550,2026-09-24
+165,bike,Royal Enfield,Classic 350,10,23111,8 months ago,none,Front suspension fork leaking oil bottoming out over potholes,no,greasing,fork oil seals / fork oil,Suspension,1750,2026-09-24
