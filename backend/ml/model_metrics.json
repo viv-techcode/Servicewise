@@ -1,0 +1,24 @@
+{
+  "classifier": {
+    "accuracy": 0.7742,
+    "f1_weighted": 0.7685,
+    "categories": [
+      "Battery/Electrical",
+      "Brake System",
+      "Cooling System",
+      "Engine",
+      "Fuel System",
+      "General Maintenance",
+      "Starting System",
+      "Suspension",
+      "Transmission",
+      "Tyres/Wheels"
+    ]
+  },
+  "regressor": {
+    "mae": 1204.5,
+    "r2_score": -0.0986
+  },
+  "training_samples": 165,
+  "trained_at": "2026-09-24T10:10:15.729557"
+}
