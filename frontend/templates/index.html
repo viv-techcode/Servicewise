@@ -224,7 +224,356 @@
       </div>
     </div>
 
+    <!-- TAB 2: SERVICE RECORDS -->
+    <div id="tab-history" role="tabpanel" style="display:none;">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:0.75rem;">
+          <div>
+            <h2 style="margin:0;" id="recordsTableTitle">Service Records</h2>
+            <small style="color:var(--text-muted);" id="recordsSubtitle">Showing diagnostic history</small>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:0.4rem;font-size:0.84rem;color:var(--text-secondary);">
+              <label for="historyPageSizeSelect" style="font-size:0.81rem;">Per Page:</label>
+              <select id="historyPageSizeSelect" style="padding:0.3rem 0.6rem;font-size:0.81rem;border-radius:6px;width:auto;">
+                <option value="10">10</option>
+                <option value="20" selected>20</option>
+                <option value="30">30</option>
+                <option value="50">50</option>
+              </select>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.4rem;font-size:0.84rem;color:var(--text-secondary);">
+              <label for="historySortSelect" style="font-size:0.81rem;">Sort:</label>
+              <select id="historySortSelect" style="padding:0.3rem 0.6rem;font-size:0.81rem;border-radius:6px;width:auto;">
+                <option value="desc" selected>Newest First (Latest → #1)</option>
+                <option value="asc">Oldest First (#1 → Latest)</option>
+              </select>
+            </div>
+            <button class="btn-primary" id="refreshHistoryBtn" style="width:auto;padding:0.45rem 0.9rem;font-size:0.84rem;display:inline-flex;align-items:center;gap:0.4rem;">
+              <i data-lucide="rotate-cw" style="width:14px;height:14px;"></i> Refresh
+            </button>
+          </div>
         </div>
+        <div id="historyTableWrapper" style="overflow-x:auto;">
+          <table class="data-table" aria-label="Service history records">
+            <thead>
+              <tr>
+                <th>S.no</th>
+                <th>Vehicle</th>
+                <th>Symptoms</th>
+                <th>Predicted System</th>
+                <th>Predicted Cost</th>
+                <th>Actual Cost</th>
+                <th>Urgency</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody">
+              <tr><td colspan="8" style="color:var(--text-muted);text-align:center;padding:2rem;">Loading records…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination-container" id="historyPagination" style="display:none;">
+          <div class="page-info" id="historyPageInfo">Showing page 1 of 1</div>
+          <div class="pagination-controls">
+            <button class="page-btn" id="firstPageBtn" title="First Page">
+              <i data-lucide="chevrons-left" style="width:14px;height:14px;"></i> First
+            </button>
+            <button class="page-btn" id="prevPageBtn" title="Previous Page">
+              <i data-lucide="chevron-left" style="width:14px;height:14px;"></i> Prev
+            </button>
+            <span class="mono" id="currentPageNumber" style="padding:0 0.5rem;font-size:0.9rem;font-weight:600;color:var(--accent);">1</span>
+            <button class="page-btn" id="nextPageBtn" title="Next Page">
+              Next <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+            </button>
+            <button class="page-btn" id="lastPageBtn" title="Last Page">
+              Last <i data-lucide="chevrons-right" style="width:14px;height:14px;"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: WORKSHOP ANALYTICS (Store Owner & Summary) -->
+    <div id="tab-analytics" role="tabpanel" style="display:none;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:1rem;margin-bottom:1.5rem;">
+        <div class="card" style="text-align:center;padding:1.25rem;">
+          <div style="font-size:0.81rem;color:var(--text-secondary);text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:0.35rem;">
+            <i data-lucide="clipboard-check" style="width:14px;height:14px;color:var(--accent);"></i> Total Diagnoses
+          </div>
+          <div class="mono" id="statTotalDiagnoses" style="font-size:1.75rem;font-weight:700;color:var(--accent);margin-top:0.25rem;">0</div>
+        </div>
+        <div class="card" style="text-align:center;padding:1.25rem;">
+          <div style="font-size:0.81rem;color:var(--text-secondary);text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:0.35rem;">
+            <i data-lucide="banknote" style="width:14px;height:14px;color:var(--success);"></i> Avg Estimated Cost
+          </div>
+          <div class="mono" id="statAvgCost" style="font-size:1.75rem;font-weight:700;color:var(--success);margin-top:0.25rem;">₹0</div>
+        </div>
+        <div class="card" style="text-align:center;padding:1.25rem;">
+          <div style="font-size:0.81rem;color:var(--text-secondary);text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:0.35rem;">
+            <i data-lucide="star" style="width:14px;height:14px;color:var(--warning);"></i> Avg Accuracy Rating
+          </div>
+          <div class="mono" id="statAvgRating" style="font-size:1.75rem;font-weight:700;color:var(--warning);margin-top:0.25rem;">0.0 / 5</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:1.5rem;">
+        <div class="card">
+          <h3 style="font-size:1rem;margin-bottom:1rem;">Problem Systems Distribution</h3>
+          <div style="height:260px;position:relative;">
+            <canvas id="chartCategory"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <h3 style="font-size:1rem;margin-bottom:1rem;">Urgency Breakdown</h3>
+          <div style="height:260px;position:relative;">
+            <canvas id="chartUrgency"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: MODEL HEALTH & METRICS (Workshop Owner) -->
+    <div id="tab-metrics" role="tabpanel" style="display:none;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(340px, 1fr));gap:1.5rem;align-items:start;">
+
+        <!-- Left: Model KPIs & Telemetry -->
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;">
+            <div style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:rgba(99,102,241,0.12);color:var(--accent);">
+              <i data-lucide="cpu" style="width:18px;height:18px;"></i>
+            </div>
+            <h2 style="margin:0;">Model Health &amp; Evaluation Metrics</h2>
+          </div>
+          <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:1.5rem;">
+            Live evaluation metrics computed against held-out validation dataset partitions.
+          </p>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+            <div class="result-box" style="padding:1.15rem 1rem;">
+              <span class="result-label">Classifier Accuracy</span>
+              <div class="result-value mono" id="metricClassifierAcc" style="font-size:1.5rem;">—</div>
+              <small style="color:var(--text-muted);display:block;margin-top:0.25rem;">Weighted F1: <span id="metricClassifierF1" class="mono">—</span></small>
+            </div>
+            <div class="result-box cost-box" style="padding:1.15rem 1rem;">
+              <span class="result-label">Cost Regressor MAE</span>
+              <div class="result-value mono" id="metricRegressorMae" style="font-size:1.5rem;">—</div>
+              <small style="color:var(--text-muted);display:block;margin-top:0.25rem;">R² Score: <span id="metricRegressorR2" class="mono">—</span></small>
+            </div>
+          </div>
+
+          <div style="border-top:1px solid var(--border-subtle);padding-top:1.25rem;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1rem;">
+              <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle);border-radius:8px;padding:0.75rem;">
+                <div style="font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;">Training Corpus</div>
+                <div class="mono" style="font-size:1.1rem;font-weight:600;margin-top:2px;" id="metricSamples">— records</div>
+              </div>
+              <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle);border-radius:8px;padding:0.75rem;">
+                <div style="font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;">Last Checkpoint</div>
+                <div class="mono" style="font-size:1.1rem;font-weight:600;margin-top:2px;" id="metricTrainedAt">—</div>
+              </div>
+            </div>
+
+            <div>
+              <span style="font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;display:block;margin-bottom:0.5rem;font-weight:600;">Recognized System Taxonomies</span>
+              <div id="metricCategoriesBadges" style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+                <!-- Filled dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Pipeline Architecture & Health Diagnostics -->
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;">
+            <div style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:rgba(16,185,129,0.12);color:var(--success);">
+              <i data-lucide="git-branch" style="width:18px;height:18px;"></i>
+            </div>
+            <h2 style="margin:0;">Active ML Architecture</h2>
+          </div>
+          <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:1.5rem;">
+            Dual-stage natural language symptom classifier + Random Forest multi-factor regressor.
+          </p>
+
+          <div style="display:flex;flex-direction:column;gap:0.85rem;margin-bottom:1.5rem;">
+            <div style="display:flex;gap:0.85rem;padding:0.85rem;background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle);border-radius:8px;">
+              <div style="color:var(--accent);padding-top:2px;"><i data-lucide="binary" style="width:20px;height:20px;"></i></div>
+              <div>
+                <strong style="font-size:0.9rem;display:block;">TF-IDF + SGD Linear Classifier</strong>
+                <span style="font-size:0.8rem;color:var(--text-muted);">Calibrated linear support vector machine with 1-2 gram text extraction for vehicle fault classification.</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:0.85rem;padding:0.85rem;background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle);border-radius:8px;">
+              <div style="color:var(--success);padding-top:2px;"><i data-lucide="trending-up" style="width:20px;height:20px;"></i></div>
+              <div>
+                <strong style="font-size:0.9rem;display:block;">Random Forest Regressor (100 Trees)</strong>
+                <span style="font-size:0.8rem;color:var(--text-muted);">Encodes vehicle type, brand, odometer km, age, and predicted subsystem to compute regional repair brackets.</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:rgba(99,102,241,0.05);border:1px solid rgba(99,102,241,0.2);border-radius:8px;padding:1rem;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.35rem;">
+              <span style="font-size:0.82rem;font-weight:600;color:var(--text-primary);"><i data-lucide="shield-check" style="width:14px;height:14px;display:inline-block;vertical-align:middle;color:var(--success);"></i> Continuous Training Loop</span>
+              <span class="badge badge-Low" style="margin:0;padding:0.1rem 0.5rem;font-size:0.72rem;">ACTIVE</span>
+            </div>
+            <p style="font-size:0.78rem;color:var(--text-secondary);margin:0;">
+              Every user feedback rating and actual workshop bill submitted automatically feeds into the database verification queue for periodic batch retraining.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 5: QUICK ESTIMATOR -->
+    <div id="tab-cost" role="tabpanel" style="display:none;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(340px, 1fr));gap:1.5rem;align-items:start;">
+
+        <!-- Left: Estimator Form -->
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;">
+            <div style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:rgba(99,102,241,0.12);color:var(--accent);">
+              <i data-lucide="calculator" style="width:18px;height:18px;"></i>
+            </div>
+            <h2 style="margin:0;">Quick Cost Estimator</h2>
+          </div>
+          <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:1.5rem;">
+            Instant average cost calculation for vehicle subsystems based on Indian regional benchmark data.
+          </p>
+          <div class="form-group">
+            <label for="est_type">Vehicle Type</label>
+            <select id="est_type">
+              <option value="bike">Two-Wheeler (Motorcycle / Scooter)</option>
+              <option value="car">Four-Wheeler (Car / SUV)</option>
+              <option value="cycle">Bicycle / Cycle (Road / MTB / Standard)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="est_system">Problem Category / Subsystem</label>
+            <select id="est_system">
+              <option value="Starting System">Starting System (Starter, Relay, Battery)</option>
+              <option value="Brake System">Brake System (Pads, Shoes, Calipers, Wire)</option>
+              <option value="Engine">Engine (Misfires, Gaskets, Cylinder)</option>
+              <option value="Battery/Electrical">Battery / Electrical &amp; Wiring</option>
+              <option value="Suspension">Suspension &amp; Shock Absorbers</option>
+              <option value="Cooling System">Cooling System &amp; Radiator</option>
+              <option value="Fuel System">Fuel System (Carb, Injectors, Lines)</option>
+              <option value="Transmission">Transmission &amp; Gearbox / Chain</option>
+              <option value="Tyres/Wheels">Tyres / Wheels &amp; Alignment</option>
+              <option value="General Maintenance">General Maintenance &amp; Servicing</option>
+            </select>
+          </div>
+          <button class="btn-primary" id="estBtn" style="margin-top:0.5rem;display:inline-flex;align-items:center;gap:0.4rem;">
+            <i data-lucide="calculator" style="width:16px;height:16px;"></i> Calculate Cost Bracket
+          </button>
+        </div>
+
+        <!-- Right: Cost Result & Breakdown Insights -->
+        <div class="card" id="estResultCard">
+          <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;">
+            <div style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:rgba(16,185,129,0.12);color:var(--success);">
+              <i data-lucide="receipt" style="width:18px;height:18px;"></i>
+            </div>
+            <h2 style="margin:0;">Cost Breakdown &amp; Benchmark</h2>
+          </div>
+          <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:1.5rem;">
+            Estimated labor, parts replacement, and time requirements.
+          </p>
+
+          <div class="result-box cost-box" style="text-align:left;padding:1.25rem;margin-bottom:1.25rem;">
+            <span class="result-label">Estimated Range for <strong id="estSystemLabel" style="color:var(--text-primary);">Starting System</strong></span>
+            <div class="result-value mono" id="estCostValue">₹800 – ₹1,600</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1.25rem;">
+            <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle);border-radius:8px;padding:0.75rem;">
+              <div style="font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;">Estimated Parts Split</div>
+              <div class="mono" id="estPartsSplit" style="font-size:0.95rem;font-weight:600;color:var(--text-primary);margin-top:2px;">~65% Parts</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle);border-radius:8px;padding:0.75rem;">
+              <div style="font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;">Estimated Labor Split</div>
+              <div class="mono" id="estLaborSplit" style="font-size:0.95rem;font-weight:600;color:var(--text-primary);margin-top:2px;">~35% Labor</div>
+            </div>
+          </div>
+
+          <div class="disclaimer-box" style="margin-top:0;padding:1rem;">
+            <strong style="display:flex;align-items:center;gap:0.35rem;font-size:0.85rem;">
+              <i data-lucide="info" style="width:14px;height:14px;color:#fcd34d;"></i> Benchmark Notice
+            </strong>
+            <p style="font-size:0.8rem;margin:0.25rem 0 0.5rem 0;">Based on aggregated data for North Indian authorized &amp; independent multi-brand workshops. OEM parts pricing may vary.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
   </main>
+
+  <!-- Auth Modal -->
+  <div id="authModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:999;align-items:center;justify-content:center;">
+    <div class="card" style="max-width:380px;width:90%;margin:auto;position:relative;">
+      <button id="closeAuthModal" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--text-muted);font-size:1.25rem;cursor:pointer;">&times;</button>
+      <h2 id="authModalTitle" style="margin-bottom:1rem;">Account Login</h2>
+      
+      <div style="display:flex;gap:0.5rem;margin-bottom:1rem;">
+        <button id="authToggleLogin" class="btn-primary" style="flex:1;font-size:0.81rem;padding:0.4rem;">Sign In</button>
+        <button id="authToggleSignup" class="btn-secondary" style="flex:1;font-size:0.81rem;padding:0.4rem;">Register</button>
+      </div>
+
+      <form id="authForm">
+        <div class="form-group">
+          <label for="authUsername">Username</label>
+          <input type="text" id="authUsername" required placeholder="Enter username">
+        </div>
+        <div class="form-group">
+          <label for="authPassword">Password</label>
+          <input type="password" id="authPassword" required placeholder="Enter password (min 6 chars)">
+        </div>
+        <div class="form-group" id="authRoleGroup" style="display:none;">
+          <label for="authRole">Account Type / Role</label>
+          <select id="authRole">
+            <option value="customer">Vehicle Owner / Customer</option>
+            <option value="store_owner">Store Owner / Workshop</option>
+          </select>
+        </div>
+        <div id="authError" style="display:none;color:var(--danger);font-size:0.85rem;margin-bottom:0.75rem;"></div>
+        <button type="submit" class="btn-primary" id="authSubmitBtn">Sign In</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Auth Notification Toast Popup -->
+  <div id="authToast" class="toast-popup" role="status" aria-live="polite">
+    <div class="toast-icon-wrapper" id="toastIcon">
+      <i data-lucide="check-circle" style="width:20px;height:20px;"></i>
+    </div>
+    <div>
+      <div class="toast-title" id="toastTitle">Welcome Back</div>
+      <div class="toast-message" id="toastMessage">You have successfully logged in.</div>
+    </div>
+  </div>
+
+  <footer style="text-align:center;padding:2.5rem 1rem;color:var(--text-muted);font-size:0.81rem;border-top:1px solid var(--border);margin-top:3rem;">
+    <p>ServiceWise &bull; Smart Vehicle Diagnostics &amp; Cost Prediction &bull; Academic Prototype</p>
+  </footer>
+
+  <style>
+    @keyframes spin { 100% { transform:rotate(360deg); } }
+    .star { color: #555; transition: color 0.2s; }
+    .star.active { color: #f59e0b; }
+    .btn-secondary {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.05);
+    }
+  </style>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
