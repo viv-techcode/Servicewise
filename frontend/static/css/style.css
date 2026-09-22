@@ -1062,6 +1062,3 @@ input:disabled, select:disabled {
     font-size: 1.25rem;
   }
 }
-
-/* Refined text glow enhancement */
-h1, h2 { text-rendering: optimizeLegibility; }
