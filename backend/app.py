@@ -222,52 +222,5 @@ def model_metrics():
     except FileNotFoundError:
         return jsonify({"error": "Model metrics not available."}), 404
 
-# --- Analytics Route ---
-@app.route('/api/analytics', methods=['GET'])
-def get_analytics():
-    try:
-        conn = db.get_db()
-        # 1. Total diagnoses count
-        total_row = conn.execute('SELECT COUNT(*) as total FROM service_records').fetchone()
-        total_diagnoses = total_row['total'] if total_row else 0
-
-        # 2. Problem category distribution
-        cat_rows = conn.execute('SELECT predicted_category, COUNT(*) as count FROM service_records GROUP BY predicted_category').fetchall()
-        category_distribution = {row['predicted_category'] or 'Unknown': row['count'] for row in cat_rows}
-
-        # 3. Urgency distribution
-        urg_rows = conn.execute('SELECT urgency, COUNT(*) as count FROM service_records GROUP BY urgency').fetchall()
-        urgency_distribution = {row['urgency'] or 'Unknown': row['count'] for row in urg_rows}
-
-        # 4. Vehicle type split
-        vt_rows = conn.execute('SELECT vehicle_type, COUNT(*) as count FROM service_records GROUP BY vehicle_type').fetchall()
-        vehicle_type_split = {row['vehicle_type'] or 'other': row['count'] for row in vt_rows}
-
-        # 5. Average repair cost
-        cost_row = conn.execute('SELECT AVG(actual_cost) as avg_cost FROM service_records WHERE actual_cost IS NOT NULL').fetchone()
-        avg_estimated_cost = round(cost_row['avg_cost'], 2) if (cost_row and cost_row['avg_cost'] is not None) else 0.0
-
-        # 6. Feedback stats
-        fb_row = conn.execute('SELECT AVG(accuracy_rating) as avg_rating, COUNT(*) as total_reviews FROM feedback').fetchone()
-        feedback_stats = {
-            "avg_rating": round(fb_row['avg_rating'], 2) if (fb_row and fb_row['avg_rating'] is not None) else 0.0,
-            "total_reviews": fb_row['total_reviews'] if fb_row else 0
-        }
-
-        conn.close()
-
-        return jsonify({
-            "total_diagnoses": total_diagnoses,
-            "category_distribution": category_distribution,
-            "urgency_distribution": urgency_distribution,
-            "vehicle_type_split": vehicle_type_split,
-            "avg_estimated_cost": avg_estimated_cost,
-            "feedback_stats": feedback_stats
-        })
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
 if __name__ == '__main__':
-    db.init_db()
-    app.run(debug=True, host='127.0.0.1', port=5000, use_reloader=False)if __name__ == '__main__':
     app.run(debug=True, port=5000)
