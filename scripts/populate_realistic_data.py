@@ -219,8 +219,15 @@ csv_cols = ['record_id', 'vehicle_type', 'vehicle_brand', 'vehicle_model', 'vehi
 df[csv_cols].to_csv('backend/data/sample_service_records.csv', index=False)
 print(f'Successfully generated {len(df)} records in sample_service_records.csv')
 
-# Rewrite SQLite service_center.db
-conn = sqlite3.connect('backend/data/service_center.db')
+# Ensure database tables exist before updating SQLite service_center.db
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from backend import db
+
+db.init_db()
+
+conn = db.get_db()
 cursor = conn.cursor()
 
 cursor.execute('DELETE FROM service_records')
