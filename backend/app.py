@@ -177,15 +177,47 @@ def predict():
 def get_records():
     try:
         user = session.get('user')
+        page = request.args.get('page', default=1, type=int)
+        per_page = request.args.get('per_page', default=20, type=int)
+        page = max(1, page)
+        per_page = min(max(1, per_page), 100)
+        offset = (page - 1) * per_page
+        sort_order = request.args.get('sort', default='desc', type=str).lower()
+        order_sql = 'ASC' if sort_order == 'asc' else 'DESC'
+
         conn = db.get_db()
         if user and user.get('role') == 'store_owner':
-            cursor = conn.execute('SELECT id, user_id, vehicle_type, vehicle_brand, vehicle_model, symptoms, predicted_category, urgency, timestamp FROM service_records ORDER BY id DESC LIMIT 50')
+            count_cur = conn.execute('SELECT COUNT(*) as total FROM service_records')
+            total = count_cur.fetchone()['total']
+            cursor = conn.execute(
+                f'SELECT id, user_id, vehicle_type, vehicle_brand, vehicle_model, symptoms, predicted_category, urgency, actual_cost, timestamp FROM service_records ORDER BY id {order_sql} LIMIT ? OFFSET ?',
+                (per_page, offset)
+            )
         elif user and user.get('role') == 'customer':
-            cursor = conn.execute('SELECT id, user_id, vehicle_type, vehicle_brand, vehicle_model, symptoms, predicted_category, urgency, timestamp FROM service_records WHERE user_id = ? ORDER BY id DESC LIMIT 50', (user['id'],))
+            count_cur = conn.execute('SELECT COUNT(*) as total FROM service_records WHERE user_id = ?', (user['id'],))
+            total = count_cur.fetchone()['total']
+            cursor = conn.execute(
+                f'SELECT id, user_id, vehicle_type, vehicle_brand, vehicle_model, symptoms, predicted_category, urgency, actual_cost, timestamp FROM service_records WHERE user_id = ? ORDER BY id {order_sql} LIMIT ? OFFSET ?',
+                (user['id'], per_page, offset)
+            )
         else:
-            cursor = conn.execute('SELECT id, user_id, vehicle_type, vehicle_brand, vehicle_model, symptoms, predicted_category, urgency, timestamp FROM service_records ORDER BY id DESC LIMIT 20')
+            count_cur = conn.execute('SELECT COUNT(*) as total FROM service_records')
+            total = count_cur.fetchone()['total']
+            cursor = conn.execute(
+                f'SELECT id, user_id, vehicle_type, vehicle_brand, vehicle_model, symptoms, predicted_category, urgency, actual_cost, timestamp FROM service_records ORDER BY id {order_sql} LIMIT ? OFFSET ?',
+                (per_page, offset)
+            )
         rows = [dict(row) for row in cursor.fetchall()]
         conn.close()
+
+        if 'page' in request.args or 'per_page' in request.args:
+            return jsonify({
+                "records": rows,
+                "total": total,
+                "page": page,
+                "per_page": per_page,
+                "total_pages": max(1, (total + per_page - 1) // per_page)
+            })
         return jsonify(rows)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
