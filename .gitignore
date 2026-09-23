@@ -19,3 +19,4 @@ data/*.db
 files/
 .DS_Store
 Thumbs.db
+render.yaml

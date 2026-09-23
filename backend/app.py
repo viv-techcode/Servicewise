@@ -12,6 +12,9 @@ static_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'fron
 app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 app.secret_key = os.environ.get('SECRET_KEY', 'servicewise_dev_secret_key_2026')
 
+# Initialize SQLite database tables automatically at startup (for Gunicorn & Render deployments)
+db.init_db()
+
 predictor = Predictor()
 
 def login_required(f):
