@@ -1,24 +1,572 @@
 {
+  "training_samples": 3000,
+  "trained_at": "2026-10-29T16:19:41.885890+00:00",
   "classifier": {
-    "accuracy": 0.7742,
-    "f1_weighted": 0.7685,
-    "categories": [
-      "Battery/Electrical",
-      "Brake System",
-      "Cooling System",
-      "Engine",
-      "Fuel System",
-      "General Maintenance",
-      "Starting System",
-      "Suspension",
-      "Transmission",
-      "Tyres/Wheels"
-    ]
+    "accuracy": 0.8204,
+    "f1_weighted": 0.9379,
+    "micro_f1": 0.9379,
+    "macro_f1": 0.9331,
+    "weighted_f1": 0.9379,
+    "exact_match_accuracy": 0.8883,
+    "primary_fault_in_predicted_list_rate": 0.9343,
+    "top1_accuracy_single_fault_rows": 0.8204,
+    "primary_fault_accuracy": 0.8204,
+    "single_fault_test_rows": 362,
+    "per_category": {
+      "Battery/Electrical": {
+        "precision": 0.9426,
+        "recall": 0.9504,
+        "f1": 0.9465,
+        "support": 121
+      },
+      "Brake System": {
+        "precision": 0.875,
+        "recall": 0.875,
+        "f1": 0.875,
+        "support": 80
+      },
+      "Cooling System": {
+        "precision": 0.859,
+        "recall": 0.971,
+        "f1": 0.9116,
+        "support": 69
+      },
+      "Engine": {
+        "precision": 0.9375,
+        "recall": 0.9722,
+        "f1": 0.9545,
+        "support": 108
+      },
+      "Fuel System": {
+        "precision": 0.9634,
+        "recall": 0.9875,
+        "f1": 0.9753,
+        "support": 80
+      },
+      "General Maintenance": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 119
+      },
+      "Starting System": {
+        "precision": 0.9718,
+        "recall": 0.9583,
+        "f1": 0.965,
+        "support": 72
+      },
+      "Suspension": {
+        "precision": 0.9104,
+        "recall": 0.8243,
+        "f1": 0.8652,
+        "support": 74
+      },
+      "Transmission": {
+        "precision": 0.8642,
+        "recall": 0.9859,
+        "f1": 0.9211,
+        "support": 71
+      },
+      "Tyres/Wheels": {
+        "precision": 0.8557,
+        "recall": 0.9881,
+        "f1": 0.9171,
+        "support": 84
+      }
+    },
+    "headline_metric": "micro_f1",
+    "selected_model": "balanced_logistic_C_8.0_unigram_domain_cues",
+    "decision_thresholds": {
+      "Battery/Electrical": 0.8,
+      "Brake System": 0.75,
+      "Cooling System": 0.4,
+      "Engine": 0.55,
+      "Fuel System": 0.6,
+      "General Maintenance": 0.55,
+      "Starting System": 0.7,
+      "Suspension": 0.9,
+      "Transmission": 0.5,
+      "Tyres/Wheels": 0.45
+    },
+    "validation_micro_f1": 0.9405,
+    "most_common_top1_confusions": [
+      {
+        "actual_primary": "Engine",
+        "predicted_top1": "Fuel System",
+        "count": 11
+      },
+      {
+        "actual_primary": "Cooling System",
+        "predicted_top1": "Tyres/Wheels",
+        "count": 10
+      },
+      {
+        "actual_primary": "General Maintenance",
+        "predicted_top1": "Tyres/Wheels",
+        "count": 10
+      },
+      {
+        "actual_primary": "Starting System",
+        "predicted_top1": "Engine",
+        "count": 9
+      },
+      {
+        "actual_primary": "Transmission",
+        "predicted_top1": "General Maintenance",
+        "count": 9
+      },
+      {
+        "actual_primary": "Brake System",
+        "predicted_top1": "Transmission",
+        "count": 7
+      },
+      {
+        "actual_primary": "Engine",
+        "predicted_top1": "Battery/Electrical",
+        "count": 7
+      },
+      {
+        "actual_primary": "Fuel System",
+        "predicted_top1": "General Maintenance",
+        "count": 7
+      },
+      {
+        "actual_primary": "General Maintenance",
+        "predicted_top1": "Battery/Electrical",
+        "count": 7
+      },
+      {
+        "actual_primary": "Starting System",
+        "predicted_top1": "Battery/Electrical",
+        "count": 7
+      }
+    ],
+    "misclassified_test_rows_saved": 68
   },
   "regressor": {
-    "mae": 1204.5,
-    "r2_score": -0.0986
+    "mae": 80.42,
+    "rmse": 519.18,
+    "r2": 0.1984,
+    "selected_model": "extra_trees_leaf1",
+    "validation_per_fault_mae": 68.35,
+    "test_fault_targets": 878,
+    "combined_multi_fault_totals": {
+      "mae": 60.01,
+      "rmse": 349.67,
+      "r2": 0.8247,
+      "test_rows": 247
+    }
   },
-  "training_samples": 165,
-  "trained_at": "2026-09-24T10:10:15.729557"
+  "evaluation": {
+    "dataset": "service_records_balanced_3000.csv",
+    "split_method": "Two-stage GroupShuffleSplit by normalized symptom family and primary class; test split drawn once with a fresh fixed seed.",
+    "split_rows": {
+      "train": 1946,
+      "validation": 445,
+      "test": 609
+    },
+    "split_family_groups": {
+      "train": 1865,
+      "validation": 431,
+      "test": 575
+    },
+    "split_group_overlap": 0,
+    "split_seed": 104729,
+    "validation_classifier_trials": [
+      {
+        "name": "ovr_multinomial_nb_alpha_0.5_ngram_2",
+        "thresholds": {
+          "Battery/Electrical": 0.5,
+          "Brake System": 0.8,
+          "Cooling System": 0.9,
+          "Engine": 0.55,
+          "Fuel System": 0.45,
+          "General Maintenance": 0.35,
+          "Starting System": 0.65,
+          "Suspension": 0.8,
+          "Transmission": 0.55,
+          "Tyres/Wheels": 0.85
+        },
+        "validation_micro_f1": 0.86092
+      },
+      {
+        "name": "ovr_multinomial_nb_alpha_1.0_ngram_2",
+        "thresholds": {
+          "Battery/Electrical": 0.45,
+          "Brake System": 0.65,
+          "Cooling System": 0.7,
+          "Engine": 0.35,
+          "Fuel System": 0.3,
+          "General Maintenance": 0.2,
+          "Starting System": 0.4,
+          "Suspension": 0.6,
+          "Transmission": 0.25,
+          "Tyres/Wheels": 0.7
+        },
+        "validation_micro_f1": 0.86247
+      },
+      {
+        "name": "ovr_logistic_C_0.5_ngram_1",
+        "thresholds": {
+          "Battery/Electrical": 0.4,
+          "Brake System": 0.35,
+          "Cooling System": 0.3,
+          "Engine": 0.3,
+          "Fuel System": 0.4,
+          "General Maintenance": 0.35,
+          "Starting System": 0.35,
+          "Suspension": 0.35,
+          "Transmission": 0.2,
+          "Tyres/Wheels": 0.4
+        },
+        "validation_micro_f1": 0.90726
+      },
+      {
+        "name": "ovr_logistic_C_1.0_ngram_1",
+        "thresholds": {
+          "Battery/Electrical": 0.2,
+          "Brake System": 0.4,
+          "Cooling System": 0.35,
+          "Engine": 0.3,
+          "Fuel System": 0.2,
+          "General Maintenance": 0.15,
+          "Starting System": 0.25,
+          "Suspension": 0.45,
+          "Transmission": 0.25,
+          "Tyres/Wheels": 0.5
+        },
+        "validation_micro_f1": 0.91371
+      },
+      {
+        "name": "ovr_logistic_C_2.0_ngram_1",
+        "thresholds": {
+          "Battery/Electrical": 0.25,
+          "Brake System": 0.5,
+          "Cooling System": 0.4,
+          "Engine": 0.25,
+          "Fuel System": 0.2,
+          "General Maintenance": 0.15,
+          "Starting System": 0.25,
+          "Suspension": 0.55,
+          "Transmission": 0.45,
+          "Tyres/Wheels": 0.2
+        },
+        "validation_micro_f1": 0.92747
+      },
+      {
+        "name": "ovr_logistic_C_1.0_ngram_2",
+        "thresholds": {
+          "Battery/Electrical": 0.2,
+          "Brake System": 0.45,
+          "Cooling System": 0.45,
+          "Engine": 0.3,
+          "Fuel System": 0.4,
+          "General Maintenance": 0.3,
+          "Starting System": 0.2,
+          "Suspension": 0.4,
+          "Transmission": 0.25,
+          "Tyres/Wheels": 0.5
+        },
+        "validation_micro_f1": 0.9226
+      },
+      {
+        "name": "ovr_logistic_C_2.0_ngram_2",
+        "thresholds": {
+          "Battery/Electrical": 0.5,
+          "Brake System": 0.55,
+          "Cooling System": 0.5,
+          "Engine": 0.2,
+          "Fuel System": 0.15,
+          "General Maintenance": 0.2,
+          "Starting System": 0.25,
+          "Suspension": 0.5,
+          "Transmission": 0.25,
+          "Tyres/Wheels": 0.55
+        },
+        "validation_micro_f1": 0.92117
+      },
+      {
+        "name": "balanced_logistic_C_1.0_unigram_domain_cues",
+        "thresholds": {
+          "Battery/Electrical": 0.55,
+          "Brake System": 0.7,
+          "Cooling System": 0.6,
+          "Engine": 0.65,
+          "Fuel System": 0.5,
+          "General Maintenance": 0.35,
+          "Starting System": 0.65,
+          "Suspension": 0.75,
+          "Transmission": 0.5,
+          "Tyres/Wheels": 0.5
+        },
+        "validation_micro_f1": 0.9283
+      },
+      {
+        "name": "balanced_logistic_C_4.0_unigram_domain_cues",
+        "thresholds": {
+          "Battery/Electrical": 0.75,
+          "Brake System": 0.65,
+          "Cooling System": 0.45,
+          "Engine": 0.45,
+          "Fuel System": 0.5,
+          "General Maintenance": 0.45,
+          "Starting System": 0.65,
+          "Suspension": 0.85,
+          "Transmission": 0.5,
+          "Tyres/Wheels": 0.5
+        },
+        "validation_micro_f1": 0.93992
+      },
+      {
+        "name": "balanced_logistic_C_8.0_unigram_domain_cues",
+        "thresholds": {
+          "Battery/Electrical": 0.8,
+          "Brake System": 0.75,
+          "Cooling System": 0.4,
+          "Engine": 0.55,
+          "Fuel System": 0.6,
+          "General Maintenance": 0.55,
+          "Starting System": 0.7,
+          "Suspension": 0.9,
+          "Transmission": 0.5,
+          "Tyres/Wheels": 0.45
+        },
+        "validation_micro_f1": 0.94055
+      },
+      {
+        "name": "char_linear_C_1.0",
+        "thresholds": {
+          "Battery/Electrical": 0.5,
+          "Brake System": 0.6,
+          "Cooling System": 0.35,
+          "Engine": 0.3,
+          "Fuel System": 0.5,
+          "General Maintenance": 0.4,
+          "Starting System": 0.3,
+          "Suspension": 0.5,
+          "Transmission": 0.25,
+          "Tyres/Wheels": 0.45
+        },
+        "validation_micro_f1": 0.91008
+      },
+      {
+        "name": "char_linear_C_4.0",
+        "thresholds": {
+          "Battery/Electrical": 0.35,
+          "Brake System": 0.7,
+          "Cooling System": 0.5,
+          "Engine": 0.35,
+          "Fuel System": 0.2,
+          "General Maintenance": 0.2,
+          "Starting System": 0.5,
+          "Suspension": 0.7,
+          "Transmission": 0.6,
+          "Tyres/Wheels": 0.25
+        },
+        "validation_micro_f1": 0.92868
+      },
+      {
+        "name": "word_char_linear_C_2.0",
+        "thresholds": {
+          "Battery/Electrical": 0.35,
+          "Brake System": 0.7,
+          "Cooling System": 0.55,
+          "Engine": 0.2,
+          "Fuel System": 0.2,
+          "General Maintenance": 0.15,
+          "Starting System": 0.25,
+          "Suspension": 0.65,
+          "Transmission": 0.1,
+          "Tyres/Wheels": 0.15
+        },
+        "validation_micro_f1": 0.93446
+      },
+      {
+        "name": "word_char_linear_C_8.0",
+        "thresholds": {
+          "Battery/Electrical": 0.6,
+          "Brake System": 0.8,
+          "Cooling System": 0.65,
+          "Engine": 0.15,
+          "Fuel System": 0.3,
+          "General Maintenance": 0.35,
+          "Starting System": 0.25,
+          "Suspension": 0.85,
+          "Transmission": 0.15,
+          "Tyres/Wheels": 0.2
+        },
+        "validation_micro_f1": 0.94054
+      }
+    ],
+    "validation_cost_trials": [
+      {
+        "name": "random_forest_leaf1",
+        "validation_per_fault_mae": 92.75
+      },
+      {
+        "name": "random_forest_leaf3",
+        "validation_per_fault_mae": 99.39
+      },
+      {
+        "name": "random_forest_sqrt",
+        "validation_per_fault_mae": 95.39
+      },
+      {
+        "name": "extra_trees_leaf1",
+        "validation_per_fault_mae": 68.35
+      },
+      {
+        "name": "extra_trees_leaf3",
+        "validation_per_fault_mae": 90.12
+      }
+    ],
+    "multi_label_rows": 1200,
+    "multi_fault_rows_two_labels": 1100,
+    "multi_fault_rows_three_labels": 100,
+    "primary_only_rows": 1800,
+    "sklearn_version": "1.7.2",
+    "noise_config": {
+      "initial_rates": {
+        "ambiguous_shared_symptoms": 0.15,
+        "typos_abbreviations_hinglish": 0.1,
+        "plausible_label_misdiagnoses": 0.03
+      },
+      "active_rates": {
+        "ambiguous_shared_symptoms": 0.18,
+        "typos_abbreviations_hinglish": 0.1,
+        "plausible_label_misdiagnoses": 0.03
+      },
+      "rate_adjustments": [
+        {
+          "rate": "ambiguous_shared_symptoms",
+          "from": 0.15,
+          "to": 0.18,
+          "reason": "The initial validation micro-F1 exceeded 0.90, so shared symptom coverage was raised once to reduce remaining separability. The informal and misdiagnosis rates were unchanged."
+        }
+      ],
+      "fresh_test_seed": 104729
+    },
+    "prechange_text_audit": {
+      "dataset": "service_records_balanced_3000.csv before Step 5d generation",
+      "rows": 3000,
+      "unique_symptom_descriptions_overall": 2871,
+      "unique_symptom_descriptions_by_primary": {
+        "Battery/Electrical": 284,
+        "Brake System": 287,
+        "Cooling System": 296,
+        "Engine": 278,
+        "Fuel System": 289,
+        "General Maintenance": 292,
+        "Starting System": 290,
+        "Suspension": 290,
+        "Transmission": 285,
+        "Tyres/Wheels": 280
+      },
+      "base_fault_phrasing_templates_by_primary": {
+        "Battery/Electrical": 8,
+        "Brake System": 8,
+        "Cooling System": 8,
+        "Engine": 8,
+        "Fuel System": 8,
+        "General Maintenance": 8,
+        "Starting System": 8,
+        "Suspension": 8,
+        "Transmission": 8,
+        "Tyres/Wheels": 8
+      },
+      "maximum_base_template_vocabulary_overlap": {
+        "left": "Engine",
+        "right": "Fuel System",
+        "shared_terms": 6,
+        "jaccard": 0.0822
+      },
+      "top_overlap_pairs": [
+        {
+          "left": "Engine",
+          "right": "Fuel System",
+          "shared_terms": 6,
+          "jaccard": 0.0822
+        },
+        {
+          "left": "Cooling System",
+          "right": "Fuel System",
+          "shared_terms": 6,
+          "jaccard": 0.08
+        },
+        {
+          "left": "Suspension",
+          "right": "Tyres/Wheels",
+          "shared_terms": 5,
+          "jaccard": 0.0769
+        },
+        {
+          "left": "Cooling System",
+          "right": "Starting System",
+          "shared_terms": 5,
+          "jaccard": 0.0685
+        },
+        {
+          "left": "Battery/Electrical",
+          "right": "Starting System",
+          "shared_terms": 5,
+          "jaccard": 0.0633
+        }
+      ]
+    },
+    "unique_symptom_descriptions_by_primary": {
+      "Battery/Electrical": 284,
+      "Brake System": 287,
+      "Cooling System": 296,
+      "Engine": 278,
+      "Fuel System": 289,
+      "General Maintenance": 292,
+      "Starting System": 290,
+      "Suspension": 290,
+      "Transmission": 285,
+      "Tyres/Wheels": 280
+    },
+    "noise_row_counts": {
+      "ambiguous_shared_symptoms": 540,
+      "typos_abbreviations_hinglish": 300,
+      "plausible_label_misdiagnoses": 90
+    },
+    "cost_target_definition": "individual fault costs parsed from fault_costs; combined visit totals excluded from model training",
+    "created_at_utc": "2026-10-29T16:19:41.914344+00:00"
+  },
+  "comparison_to_step5c": {
+    "classifier": {
+      "micro_f1": {
+        "step5c": 0.9919,
+        "step5d": 0.9379,
+        "change": -0.054
+      },
+      "macro_f1": {
+        "step5c": 0.991,
+        "step5d": 0.9331,
+        "change": -0.0579
+      },
+      "exact_match_accuracy": {
+        "step5c": 0.9766,
+        "step5d": 0.8883,
+        "change": -0.0883
+      }
+    },
+    "regressor": {
+      "mae": {
+        "step5c": 106.38,
+        "step5d": 80.42,
+        "change": -25.96
+      },
+      "rmse": {
+        "step5c": 621.67,
+        "step5d": 519.18,
+        "change": -102.49
+      },
+      "r2": {
+        "step5c": 0.185,
+        "step5d": 0.1984,
+        "change": 0.0134
+      }
+    }
+  }
 }
