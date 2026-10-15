@@ -1,9 +1,11 @@
 import os
 import json
 import secrets
+import math
 from functools import wraps
 from flask import Flask, render_template, request, jsonify, session
 from backend.ml.predictor import Predictor
+from backend.ml.train_models import CATEGORIES
 import backend.db as db
 
 template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend', 'templates'))
@@ -14,6 +16,7 @@ app.secret_key = os.environ.get('SECRET_KEY', 'servicewise_dev_secret_key_2026')
 
 # Initialize SQLite database tables automatically at startup (for Gunicorn & Render deployments)
 db.init_db()
+db.import_service_records_csv(os.path.join(os.path.dirname(__file__), 'data', 'service_records_balanced_3000.csv'))
 
 predictor = Predictor()
 
@@ -76,6 +79,11 @@ def validate_predict_input(data):
     if len(symptoms) < 5:
         errors.append("symptoms must be at least 5 characters.")
 
+    supported_states = ('Uttar Pradesh', 'Delhi', 'Haryana', 'Punjab', 'Rajasthan', 'Uttarakhand', 'Himachal Pradesh', 'Jammu and Kashmir', 'Ladakh')
+    state = str(data.get('state', '')).strip()
+    if state and state not in supported_states:
+        errors.append("state must be a supported North Indian state or blank.")
+
     if errors:
         return None, " | ".join(errors)
 
@@ -85,7 +93,8 @@ def validate_predict_input(data):
         'vehicle_model': vehicle_model,
         'vehicle_age': vehicle_age,
         'km_driven': km_driven,
-        'symptoms': symptoms
+        'symptoms': symptoms,
+        'state': state or None
     }, None
 
 @app.errorhandler(404)
@@ -153,6 +162,13 @@ def predict():
         return jsonify({"error": error}), 400
 
     result = predictor.predict(cleaned)
+    prediction_snapshot = {
+        'minimum': result.get('estimated_cost_min'),
+        'maximum': result.get('estimated_cost_max'),
+        'fault_cost_breakdown': result.get('fault_cost_breakdown', []),
+        'shared_visit_discount': result.get('shared_visit_discount'),
+        'cost_estimate_basis': result.get('cost_estimate_basis'),
+    }
 
     record_id = None
     user_id = session.get('user', {}).get('id') if session.get('user') else None
@@ -160,17 +176,19 @@ def predict():
         conn = db.get_db()
         cursor = conn.cursor()
         cursor.execute(
-            'INSERT INTO service_records (user_id, vehicle_type, vehicle_brand, vehicle_model, symptoms, predicted_category, urgency, actual_cost) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            (user_id, cleaned['vehicle_type'], cleaned['vehicle_brand'], cleaned['vehicle_model'], cleaned['symptoms'], result['problem_category'], result['urgency'], result['estimated_cost_max'])
+            'INSERT INTO service_records (user_id, vehicle_type, vehicle_brand, vehicle_model, state, vehicle_age, km_driven, symptoms, predicted_category, predicted_faults_json, predicted_costs_json, predicted_cost_min, predicted_cost_max, urgency, actual_cost) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            (user_id, cleaned['vehicle_type'], cleaned['vehicle_brand'], cleaned['vehicle_model'], cleaned['state'], cleaned['vehicle_age'], cleaned['km_driven'], cleaned['symptoms'], result['problem_category'], json.dumps(result['predicted_faults']), json.dumps(prediction_snapshot), result['estimated_cost_min'], result['estimated_cost_max'], result['urgency'], None)
         )
         conn.commit()
         record_id = cursor.lastrowid
         conn.close()
     except Exception as e:
-        print(f"Database insert error: {e}")
+        return jsonify({"error": f"Could not save service record: {e}"}), 500
 
     result_payload = dict(result)
     result_payload['record_id'] = record_id
+    result_payload['vehicle_details'] = {key: cleaned.get(key) for key in ('vehicle_type', 'vehicle_brand', 'vehicle_model', 'vehicle_age', 'km_driven', 'state')}
+    result_payload['prediction_snapshot'] = prediction_snapshot
     return jsonify(result_payload)
 
 @app.route('/api/records', methods=['GET'])
@@ -190,24 +208,45 @@ def get_records():
             count_cur = conn.execute('SELECT COUNT(*) as total FROM service_records')
             total = count_cur.fetchone()['total']
             cursor = conn.execute(
-                f'SELECT id, user_id, vehicle_type, vehicle_brand, vehicle_model, symptoms, predicted_category, urgency, actual_cost, timestamp FROM service_records ORDER BY id {order_sql} LIMIT ? OFFSET ?',
+                f'SELECT id, user_id, vehicle_type, vehicle_brand, vehicle_model, state, vehicle_age, km_driven, symptoms, predicted_category, predicted_faults_json, predicted_cost_min, predicted_cost_max, urgency, actual_cost, timestamp FROM service_records ORDER BY id {order_sql} LIMIT ? OFFSET ?',
                 (per_page, offset)
             )
         elif user and user.get('role') == 'customer':
             count_cur = conn.execute('SELECT COUNT(*) as total FROM service_records WHERE user_id = ?', (user['id'],))
             total = count_cur.fetchone()['total']
             cursor = conn.execute(
-                f'SELECT id, user_id, vehicle_type, vehicle_brand, vehicle_model, symptoms, predicted_category, urgency, actual_cost, timestamp FROM service_records WHERE user_id = ? ORDER BY id {order_sql} LIMIT ? OFFSET ?',
+                f'SELECT id, user_id, vehicle_type, vehicle_brand, vehicle_model, state, vehicle_age, km_driven, symptoms, predicted_category, predicted_faults_json, predicted_cost_min, predicted_cost_max, urgency, actual_cost, timestamp FROM service_records WHERE user_id = ? ORDER BY id {order_sql} LIMIT ? OFFSET ?',
                 (user['id'], per_page, offset)
             )
         else:
             count_cur = conn.execute('SELECT COUNT(*) as total FROM service_records')
             total = count_cur.fetchone()['total']
             cursor = conn.execute(
-                f'SELECT id, user_id, vehicle_type, vehicle_brand, vehicle_model, symptoms, predicted_category, urgency, actual_cost, timestamp FROM service_records ORDER BY id {order_sql} LIMIT ? OFFSET ?',
+                f'SELECT id, user_id, vehicle_type, vehicle_brand, vehicle_model, state, vehicle_age, km_driven, symptoms, predicted_category, predicted_faults_json, predicted_cost_min, predicted_cost_max, urgency, actual_cost, timestamp FROM service_records ORDER BY id {order_sql} LIMIT ? OFFSET ?',
                 (per_page, offset)
             )
         rows = [dict(row) for row in cursor.fetchall()]
+        for row in rows:
+            try:
+                row['predicted_faults'] = json.loads(row.pop('predicted_faults_json')) if row.get('predicted_faults_json') else [{'category': row['predicted_category'], 'confidence': None}]
+            except (TypeError, json.JSONDecodeError):
+                row['predicted_faults'] = [{'category': row['predicted_category'], 'confidence': None}]
+            fb = conn.execute('SELECT id, review_status, corrected_faults_json, actual_cost, actual_fault_costs_json, predicted_faults_json, predicted_costs_json FROM feedback WHERE record_id = ? ORDER BY id DESC LIMIT 1', (row['id'],)).fetchone()
+            row['feedback'] = dict(fb) if fb else None
+            if row['feedback']:
+                try: row['feedback']['corrected_faults'] = json.loads(row['feedback'].pop('corrected_faults_json') or '[]')
+                except (TypeError, json.JSONDecodeError): row['feedback']['corrected_faults'] = []
+                try: row['feedback']['actual_fault_costs'] = json.loads(row['feedback'].pop('actual_fault_costs_json') or '{}')
+                except (TypeError, json.JSONDecodeError): row['feedback']['actual_fault_costs'] = {}
+                try: row['feedback']['predicted_faults'] = json.loads(row['feedback'].pop('predicted_faults_json') or '[]')
+                except (TypeError, json.JSONDecodeError): row['feedback']['predicted_faults'] = []
+                try:
+                    saved_costs = json.loads(row['feedback'].pop('predicted_costs_json') or '{}')
+                    row['feedback']['predicted_cost'] = saved_costs.get('maximum')
+                    row['feedback']['predicted_cost_min'] = saved_costs.get('minimum')
+                    row['feedback']['predicted_fault_cost_breakdown'] = saved_costs.get('fault_cost_breakdown', [])
+                    row['feedback']['shared_visit_discount'] = saved_costs.get('shared_visit_discount')
+                except (TypeError, json.JSONDecodeError): row['feedback']['predicted_cost'] = None
         conn.close()
 
         if 'page' in request.args or 'per_page' in request.args:
@@ -223,29 +262,105 @@ def get_records():
         return jsonify({"error": str(e)}), 500
 
 # --- Feedback Route ---
-@app.route('/api/feedback', methods=['POST'])
-def submit_feedback():
-    data = request.json or {}
+def validate_feedback_input(data):
+    if not isinstance(data, dict):
+        return None, 'Request body must be a JSON object.'
     record_id = data.get('record_id')
     rating = data.get('accuracy_rating')
-    actual_cost = data.get('actual_cost')
+    actual_cost = data.get('actual_total_cost', data.get('actual_cost'))
+    corrected = data.get('corrected_faults')
+    actual_fault_costs = data.get('actual_fault_costs', {})
+    state = data.get('state')
+    supported_states = ('Uttar Pradesh', 'Delhi', 'Haryana', 'Punjab', 'Rajasthan', 'Uttarakhand', 'Himachal Pradesh', 'Jammu and Kashmir', 'Ladakh')
+    try: record_id = int(record_id)
+    except (ValueError, TypeError): return None, 'record_id must be a positive integer.'
+    if record_id <= 0: return None, 'record_id must be a positive integer.'
+    if rating is not None and (not isinstance(rating, int) or isinstance(rating, bool) or not 1 <= rating <= 5):
+        return None, 'accuracy_rating must be an integer from 1 to 5.'
+    if actual_cost is not None:
+        if isinstance(actual_cost, bool) or not isinstance(actual_cost, (int, float)):
+            return None, 'actual_total_cost must be a numeric value.'
+        try: actual_cost = float(actual_cost)
+        except (ValueError, TypeError): return None, 'actual_total_cost must be a valid non-negative amount.'
+        if not math.isfinite(actual_cost) or actual_cost < 0: return None, 'actual_total_cost must be a valid non-negative amount.'
+    if corrected is not None:
+        if not isinstance(corrected, list) or not corrected or any(not isinstance(label, str) or label not in CATEGORIES for label in corrected) or len(set(corrected)) != len(corrected):
+            return None, 'corrected_faults must be a non-empty list of unique supported fault categories.'
+    if not isinstance(actual_fault_costs, dict) or any(k not in CATEGORIES for k in actual_fault_costs):
+        return None, 'actual_fault_costs must map supported fault categories to costs.'
+    try:
+        clean_fault_costs = {k: float(v) for k, v in actual_fault_costs.items()}
+    except (ValueError, TypeError): return None, 'Per-fault costs must be non-negative numbers.'
+    if any(not math.isfinite(v) or v < 0 for v in clean_fault_costs.values()):
+        return None, 'Per-fault costs must be non-negative numbers.'
+    if clean_fault_costs and corrected is not None and set(clean_fault_costs) - set(corrected):
+        return None, 'Per-fault costs may only refer to corrected faults.'
+    if state is not None and state != '' and state not in supported_states:
+        return None, 'state must be a supported North Indian state or blank.'
+    details = data.get('vehicle_details', {})
+    if details is not None and not isinstance(details, dict): return None, 'vehicle_details must be an object.'
     comments = str(data.get('comments', '')).strip()[:500]
+    return {'record_id': record_id, 'rating': rating, 'actual_cost': actual_cost, 'corrected_faults': corrected,
+            'actual_fault_costs': clean_fault_costs, 'state': state or None, 'vehicle_details': details or {}, 'comments': comments}, None
+
+@app.route('/api/feedback', methods=['POST'])
+def submit_feedback():
+    cleaned, error = validate_feedback_input(request.get_json(silent=True))
+    if error: return jsonify({'error': error}), 400
+    record_id, rating, actual_cost = cleaned['record_id'], cleaned['rating'], cleaned['actual_cost']
+    comments = cleaned['comments']
     user_id = session.get('user', {}).get('id') if session.get('user') else None
-
-    if not record_id or not isinstance(rating, int) or not (1 <= rating <= 5):
-        return jsonify({"error": "record_id and accuracy_rating (1-5) required."}), 400
-
     try:
         conn = db.get_db()
+        record = conn.execute('SELECT * FROM service_records WHERE id = ?', (record_id,)).fetchone()
+        if not record:
+            conn.close(); return jsonify({'error': 'record_id was not found.'}), 404
+        predicted_faults = json.loads(record['predicted_faults_json'] or '[]') if record['predicted_faults_json'] else [{'category': record['predicted_category'], 'confidence': None}]
+        details = {'vehicle_type': record['vehicle_type'], 'vehicle_brand': record['vehicle_brand'], 'vehicle_model': record['vehicle_model'], 'vehicle_age': record['vehicle_age'], 'km_driven': record['km_driven']}
+        corrected_labels = cleaned['corrected_faults']
+        if not details.get('vehicle_type') or not details.get('vehicle_brand') or not details.get('vehicle_model'):
+            conn.close(); return jsonify({'error': 'Feedback requires vehicle details from its service record.'}), 400
+        try:
+            predicted_cost_snapshot = json.loads(record['predicted_costs_json'] or '{}')
+        except (TypeError, json.JSONDecodeError):
+            predicted_cost_snapshot = {'minimum': record['predicted_cost_min'], 'maximum': record['predicted_cost_max'], 'fault_cost_breakdown': [], 'shared_visit_discount': None}
         conn.execute(
-            'INSERT INTO feedback (record_id, user_id, accuracy_rating, actual_cost, comments) VALUES (?, ?, ?, ?, ?)',
-            (record_id, user_id, rating, actual_cost, comments)
+            '''INSERT INTO feedback (record_id, user_id, accuracy_rating, actual_cost, comments,
+               predicted_faults_json, predicted_costs_json, corrected_faults_json, actual_fault_costs_json,
+               state, vehicle_details_json, review_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')''',
+            (record_id, user_id, rating, actual_cost, comments, json.dumps(predicted_faults),
+             json.dumps(predicted_cost_snapshot),
+             json.dumps(cleaned['corrected_faults']) if cleaned['corrected_faults'] is not None else None,
+             json.dumps(cleaned['actual_fault_costs']), cleaned['state'] or record['state'], json.dumps(details))
         )
         conn.commit()
+        feedback_id = conn.execute('SELECT last_insert_rowid()').fetchone()[0]
         conn.close()
-        return jsonify({"message": "Feedback submitted successfully."}), 201
+        return jsonify({"message": "Feedback submitted for review.", 'feedback_id': feedback_id, 'review_status': 'pending'}), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/feedback/<int:feedback_id>/review', methods=['POST'])
+@role_required(['store_owner'])
+def review_feedback(feedback_id):
+    data = request.get_json(silent=True) or {}
+    decision = data.get('decision')
+    if decision not in ('approved', 'rejected'):
+        return jsonify({'error': "decision must be 'approved' or 'rejected'."}), 400
+    conn = db.get_db()
+    feedback = conn.execute('SELECT corrected_faults_json FROM feedback WHERE id = ?', (feedback_id,)).fetchone()
+    if not feedback:
+        conn.close(); return jsonify({'error': 'Feedback not found.'}), 404
+    if decision == 'approved':
+        try: labels = json.loads(feedback['corrected_faults_json'] or 'null')
+        except json.JSONDecodeError: labels = None
+        if not isinstance(labels, list) or not labels or any(label not in CATEGORIES for label in labels):
+            conn.close(); return jsonify({'error': 'Feedback needs valid corrected_faults before approval.'}), 400
+        if len(set(labels)) != len(labels):
+            conn.close(); return jsonify({'error': 'Corrected fault labels must be unique.'}), 400
+    conn.execute('UPDATE feedback SET review_status = ?, reviewed_at = CURRENT_TIMESTAMP WHERE id = ?', (decision, feedback_id))
+    conn.commit(); conn.close()
+    return jsonify({'feedback_id': feedback_id, 'review_status': decision})
 
 # --- Model Metrics Route ---
 @app.route('/api/model/metrics')
@@ -289,6 +404,53 @@ def get_analytics():
             "total_reviews": fb_row['total_reviews'] if fb_row else 0
         }
 
+        confirmed = conn.execute('''SELECT f.id, f.record_id, f.predicted_faults_json, f.corrected_faults_json,
+            f.predicted_costs_json, f.actual_cost, f.actual_fault_costs_json FROM feedback f
+            WHERE f.review_status = 'approved' AND f.corrected_faults_json IS NOT NULL''').fetchall()
+        fault_exact = []
+        cost_errors = []
+        comparisons = []
+        for item in confirmed:
+            try:
+                predicted = {x.get('category') for x in json.loads(item['predicted_faults_json'] or '[]') if isinstance(x, dict)}
+                actual = set(json.loads(item['corrected_faults_json'] or '[]'))
+            except (TypeError, json.JSONDecodeError):
+                continue
+            exact = predicted == actual
+            fault_exact.append(exact)
+            predicted_cost = None
+            predicted_min = None
+            try: per_fault_actual_costs = json.loads(item['actual_fault_costs_json'] or '{}')
+            except (TypeError, json.JSONDecodeError): per_fault_actual_costs = {}
+            try:
+                stored_cost = json.loads(item['predicted_costs_json'] or '{}')
+                predicted_cost = float(stored_cost.get('maximum')) if stored_cost.get('maximum') is not None else None
+                predicted_min = float(stored_cost.get('minimum')) if stored_cost.get('minimum') is not None else None
+            except (TypeError, ValueError, json.JSONDecodeError): pass
+            actual_cost = item['actual_cost']
+            error = abs(float(actual_cost) - predicted_cost) if actual_cost is not None and predicted_cost is not None else None
+            if error is not None and predicted_min is not None and predicted_min <= float(actual_cost) <= predicted_cost:
+                error = 0.0
+            if error is not None: cost_errors.append(error)
+            comparisons.append({'feedback_id': item['id'], 'record_id': item['record_id'],
+                'predicted_faults': sorted(x for x in predicted if x), 'confirmed_faults': sorted(actual),
+                'missed_faults': sorted(actual - predicted), 'extra_predicted_faults': sorted(predicted - actual),
+                'fault_exact_match': exact, 'predicted_cost_min': predicted_min, 'predicted_cost': predicted_cost, 'actual_cost': actual_cost,
+                'actual_fault_costs': per_fault_actual_costs,
+                'cost_error': error, 'cost_error_percent': (100 * error / float(actual_cost)) if error is not None and float(actual_cost) else None})
+        confirmed_analytics = {
+            'reviewed_records': len(fault_exact),
+            'fault_exact_match_accuracy': round(sum(fault_exact) / len(fault_exact), 4) if fault_exact else None,
+            'mean_absolute_cost_error': round(sum(cost_errors) / len(cost_errors), 2) if cost_errors else None,
+            'cost_records': len(cost_errors),
+        }
+        pending_rows = conn.execute("SELECT id, record_id, corrected_faults_json FROM feedback WHERE review_status='pending' ORDER BY submitted_at").fetchall()
+        pending_feedback = []
+        for item in pending_rows:
+            try: labels = json.loads(item['corrected_faults_json'] or '[]')
+            except (TypeError, json.JSONDecodeError): labels = []
+            pending_feedback.append({'id': item['id'], 'record_id': item['record_id'], 'corrected_faults': labels})
+
         conn.close()
 
         return jsonify({
@@ -297,7 +459,10 @@ def get_analytics():
             "urgency_distribution": urgency_distribution,
             "vehicle_type_split": vehicle_type_split,
             "avg_estimated_cost": avg_estimated_cost,
-            "feedback_stats": feedback_stats
+            "feedback_stats": feedback_stats,
+            "confirmed_feedback": confirmed_analytics,
+            "confirmed_comparisons": comparisons,
+            "pending_feedback": pending_feedback
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500

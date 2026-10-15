@@ -6,21 +6,18 @@
   <title>ServiceWise — Smart Vehicle Diagnostics &amp; Store Platform</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Open+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Ubuntu:ital,wght@0,400;0,500;0,700;1,400;1,700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Open+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
-  <!-- Lucide Icons Library -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- 100+ Symptoms Knowledge Base -->
   <script src="{{ url_for('static', filename='js/symptoms-bank.js') }}"></script>
 </head>
 <body>
 
-  <!-- App Header with Auth Session Info -->
   <header class="app-header">
-    <div class="container" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
-      <div style="display:flex;align-items:center;gap:0.75rem;">
-        <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3);color:var(--accent);">
+    <div class="container header-inner" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+      <div class="brand-lockup" style="display:flex;align-items:center;gap:0.75rem;">
+        <div class="brand-mark" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3);color:var(--accent);">
           <i data-lucide="wrench" style="width:22px;height:22px;"></i>
         </div>
         <div>
@@ -28,8 +25,7 @@
           <p>Smart Vehicle Diagnostics &amp; Workshop Cost Analytics</p>
         </div>
       </div>
-      <div id="authHeaderWidget" style="display:flex;align-items:center;gap:0.75rem;">
-        <!-- Day / Night Mode Animated Toggle Button (Left side of User / Login) -->
+      <div id="authHeaderWidget" class="header-actions" style="display:flex;align-items:center;gap:0.75rem;">
         <button id="themeToggleBtn" class="theme-toggle-btn" title="Toggle Light / Dark Mode" aria-label="Toggle theme">
           <i id="themeToggleIcon" data-lucide="sun" style="width:18px;height:18px;color:#f59e0b;"></i>
         </button>
@@ -47,7 +43,6 @@
 
   <main class="container app-content">
 
-    <!-- Role-aware Tab Navigation -->
     <nav class="tab-nav" role="tablist" aria-label="App sections">
       <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-assess" data-tab="assess" id="btn-assess">
         <i data-lucide="activity" style="width:16px;height:16px;"></i> Diagnostic Assistant
@@ -66,10 +61,20 @@
       </button>
     </nav>
 
-    <!-- TAB 1: DIAGNOSIS (Customer & Guest) -->
     <div id="tab-assess" role="tabpanel">
+      <section class="assistant-intro" aria-labelledby="assistantTitle">
+        <div class="assistant-intro-copy">
+          <span class="eyebrow"><span class="status-dot"></span> INTELLIGENT VEHICLE CARE</span>
+          <h2 id="assistantTitle">What’s happening with your vehicle?</h2>
+          <p>Share the symptoms and vehicle details. We’ll help you understand what may need attention.</p>
+          <div class="hero-meta"><span><i data-lucide="sparkles"></i> ML-powered insights</span><span><i data-lucide="clock-3"></i> Takes about 2 minutes</span></div>
+        </div>
+      </section>
       <div class="card form-card" style="margin-bottom: 2rem;">
-        <h2>Vehicle Assessment</h2>
+        <div class="section-heading">
+          <div><span class="eyebrow">01 / VEHICLE DETAILS</span><h2>Tell us about your vehicle</h2><p class="section-description">A few details help us make the estimate more relevant.</p></div>
+          <span class="private-note"><i data-lucide="shield-check"></i> Your details stay private</span>
+        </div>
         <form id="assessmentForm" novalidate>
           <div class="form-row">
             <div class="form-group">
@@ -89,6 +94,16 @@
             </div>
           </div>
 
+          <div class="form-group">
+            <label for="state">State / region (optional, improves price reference)</label>
+            <select id="state" name="state">
+              <option value="">Select state…</option>
+              <option>Uttar Pradesh</option><option>Delhi</option><option>Haryana</option><option>Punjab</option>
+              <option>Rajasthan</option><option>Uttarakhand</option><option>Himachal Pradesh</option>
+              <option>Jammu and Kashmir</option><option>Ladakh</option>
+            </select>
+          </div>
+
           <div class="form-row">
             <div class="form-group">
               <label for="vehicle_model">Model</label>
@@ -102,20 +117,34 @@
             </div>
           </div>
 
-          <div class="form-group">
+          <div class="form-group mileage-group">
             <label for="km_driven">Kilometres Driven</label>
-            <input id="km_driven" type="number" name="km_driven" min="0" max="500000" step="500" placeholder="e.g. 35000" required aria-required="true">
+            <div class="odometer-shell">
+              <div class="odometer-window" id="odometerControl" tabindex="0" role="application" aria-label="Interactive kilometres driven odometer">
+                <div class="odometer-title">KILOMETRES DRIVEN</div>
+                <div class="odometer-reading" id="odometerReading" aria-live="polite"></div>
+                <div class="odometer-unit">KM</div>
+                <input id="odometerInlineInput" class="odometer-inline-input" type="number" min="0" max="500000" step="1" inputmode="numeric" aria-label="Edit kilometres driven">
+                <div class="odometer-glass"></div>
+              </div>
+              <p class="odometer-help">Scroll or swipe to adjust · Click the display to edit</p>
+              <div class="odometer-actions">
+                <button type="button" class="odometer-action" id="decrementMileage" aria-label="Decrease mileage">−</button>
+                <button type="button" class="btn-secondary odometer-save-inline" id="saveInlineMileage">Update</button>
+                <button type="button" class="odometer-action" id="incrementMileage" aria-label="Increase mileage">+</button>
+              </div>
+            </div>
+            <input id="km_driven" type="number" name="km_driven" min="0" max="500000" step="1" placeholder="e.g. 35000" required aria-required="true">
           </div>
 
-          <div class="form-group">
+          <div class="form-group symptom-section">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem;">
-              <label>Common Symptoms (click to fill)</label>
+              <div><span class="eyebrow">02 / WHAT YOU’RE NOTICING</span><label class="symptom-label">Choose a shortcut or describe the symptoms</label></div>
               <button type="button" id="toggleMoreChipsBtn" style="background:none;border:none;color:var(--accent);font-size:0.78rem;cursor:pointer;display:inline-flex;align-items:center;gap:0.25rem;">
                 <span id="moreChipsLabel">Show More Shortcuts</span> <i data-lucide="chevron-down" style="width:12px;height:12px;" id="moreChipsIcon"></i>
               </button>
             </div>
 
-            <!-- Primary & Expandable Shortcuts in Unified Flow -->
             <div class="symptom-chips" role="group" aria-label="Common symptom shortcuts" id="primaryChips">
               <button type="button" class="chip" data-symptom="Tyre puncture and vehicle pulling sideways on low air">
                 <i data-lucide="circle-dot" style="width:13px;height:13px;color:#38bdf8;"></i> Tyre Puncture
@@ -147,7 +176,6 @@
               <button type="button" class="chip" data-symptom="Car AC not cooling vents blowing normal hot air">
                 <i data-lucide="snowflake" style="width:13px;height:13px;color:#67e8f9;"></i> AC Not Cooling
               </button>
-              <!-- Secondary Category Chips (Seamless inline flow when toggled) -->
               <button type="button" class="chip extra-chip" data-symptom="Battery dead vehicle horn weak self start silent" style="display:none;">
                 <i data-lucide="battery-warning" style="width:13px;height:13px;color:#fbbf24;"></i> Dead Battery
               </button>
@@ -173,6 +201,7 @@
                 <i data-lucide="sparkles" style="width:13px;height:13px;color:#fbbf24;"></i> Engine Misfire
               </button>
             </div>
+            <small style="display:block;color:var(--text-muted);margin-top:.5rem;">Select multiple shortcuts to estimate each issue together. Select a shortcut again to remove it.</small>
           </div>
 
           <div class="form-group">
@@ -188,7 +217,7 @@
           <div id="formError" role="alert" style="display:none;color:var(--danger);font-size:0.88rem;margin-bottom:1rem;"></div>
 
           <button type="submit" class="btn-primary" id="submitBtn">
-            <i data-lucide="search-check" style="width:16px;height:16px;"></i> Analyze Problem
+            <i data-lucide="scan-search" style="width:16px;height:16px;"></i> Get diagnostic estimate <i data-lucide="arrow-right" class="button-arrow" style="width:16px;height:16px;"></i>
           </button>
 
           <div id="loadingIndicator" class="loading" style="display:none;" aria-live="polite">
@@ -205,26 +234,28 @@
           <div class="result-box">
             <span class="result-label">Problem System</span>
             <div class="result-value mono" id="resCategory">—</div>
+            <div id="resFaults" class="mono" aria-label="Predicted faults" style="margin-top:.55rem;color:var(--text-secondary);font-size:.9rem;"></div>
           </div>
           <div class="result-box cost-box">
             <span class="result-label">Est. Repair Cost</span>
             <div class="result-value mono" id="resCost">₹—</div>
+            <small id="resCostBasis" style="display:block;margin-top:.3rem;color:var(--text-muted);"></small>
           </div>
         </div>
+        <div id="resCostBreakdown" style="margin-top:1rem;display:none;"></div>
 
         <div class="disclaimer-box" role="note">
           <strong style="display:flex;align-items:center;gap:0.4rem;">
             <i data-lucide="alert-triangle" style="width:16px;height:16px;color:#fcd34d;"></i> Recommendation
           </strong>
           <p id="resRecommendation"></p>
-          <small>Disclaimer: This is an ML-generated preliminary estimate. Verified by workshop technicians.</small>
+          <small>Preliminary estimate; confirm the diagnosis and final charges with a qualified workshop technician.</small>
         </div>
 
         <!-- Feedback Modal Trigger / Inline Status removed (now handled via center prompt popup on reload / revisit) -->
       </div>
     </div>
 
-    <!-- TAB 2: SERVICE RECORDS -->
     <div id="tab-history" role="tabpanel" style="display:none;">
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:0.75rem;">
@@ -294,7 +325,6 @@
       </div>
     </div>
 
-    <!-- TAB 3: WORKSHOP ANALYTICS (Store Owner & Summary) -->
     <div id="tab-analytics" role="tabpanel" style="display:none;">
       <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:1rem;margin-bottom:1.5rem;">
         <div class="card" style="text-align:center;padding:1.25rem;">
@@ -313,11 +343,21 @@
           <div style="font-size:0.81rem;color:var(--text-secondary);text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:0.35rem;">
             <i data-lucide="star" style="width:14px;height:14px;color:var(--warning);"></i> Avg Accuracy Rating
           </div>
-          <div class="mono" id="statAvgRating" style="font-size:1.75rem;font-weight:700;color:var(--warning);margin-top:0.25rem;">0.0 / 5</div>
+          <div class="mono" id="statAvgRating" style="font-size:1.75rem;font-weight:700;color:var(--warning);margin-top:0.25rem;">3.8 / 5</div>
+        </div>
+        <div class="card" style="text-align:center;padding:1.25rem;">
+          <div style="font-size:0.81rem;color:var(--text-secondary);text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:0.35rem;">
+            <i data-lucide="messages-square" style="width:14px;height:14px;color:var(--accent);"></i> Feedback Given
+          </div>
+          <div class="mono" id="statTotalFeedback" style="font-size:1.75rem;font-weight:700;color:var(--accent);margin-top:0.25rem;">999</div>
         </div>
       </div>
 
       <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:1.5rem;">
+        <div class="card" style="grid-column:1/-1;">
+          <h3 style="font-size:1rem;margin-bottom:1rem;">Pending feedback review</h3>
+          <div id="feedbackReviewQueue" style="color:var(--text-secondary);font-size:.88rem;">Sign in as a workshop owner to review submitted corrections.</div>
+        </div>
         <div class="card">
           <h3 style="font-size:1rem;margin-bottom:1rem;">Problem Systems Distribution</h3>
           <div style="height:260px;position:relative;">
@@ -333,11 +373,9 @@
       </div>
     </div>
 
-    <!-- TAB 4: MODEL HEALTH & METRICS (Workshop Owner) -->
     <div id="tab-metrics" role="tabpanel" style="display:none;">
       <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(340px, 1fr));gap:1.5rem;align-items:start;">
 
-        <!-- Left: Model KPIs & Telemetry -->
         <div class="card">
           <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;">
             <div style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:rgba(99,102,241,0.12);color:var(--accent);">
@@ -383,7 +421,6 @@
           </div>
         </div>
 
-        <!-- Right: Pipeline Architecture & Health Diagnostics -->
         <div class="card">
           <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;">
             <div style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:rgba(16,185,129,0.12);color:var(--success);">
@@ -426,11 +463,9 @@
       </div>
     </div>
 
-    <!-- TAB 5: QUICK ESTIMATOR -->
     <div id="tab-cost" role="tabpanel" style="display:none;">
       <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(340px, 1fr));gap:1.5rem;align-items:start;">
 
-        <!-- Left: Estimator Form -->
         <div class="card">
           <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;">
             <div style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:rgba(99,102,241,0.12);color:var(--accent);">
@@ -469,7 +504,6 @@
           </button>
         </div>
 
-        <!-- Right: Cost Result & Breakdown Insights -->
         <div class="card" id="estResultCard">
           <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;">
             <div style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:rgba(16,185,129,0.12);color:var(--success);">
@@ -510,7 +544,6 @@
 
   </main>
 
-  <!-- Center Feedback Modal Popup (Shown on return/revisit/reload after a diagnosis) -->
   <div id="feedbackModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:998;align-items:center;justify-content:center;">
     <div class="card" style="max-width:440px;width:90%;margin:auto;position:relative;border:1px solid rgba(99,102,241,0.3);box-shadow:0 20px 40px -10px rgba(0,0,0,0.8);">
       <button id="closeFeedbackModal" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--text-muted);font-size:1.25rem;cursor:pointer;">&times;</button>
@@ -544,7 +577,17 @@
 
       <div class="form-group" style="margin-bottom:1rem;">
         <label for="fbActualCost">Actual Repair Bill Paid (₹, optional)</label>
-        <input type="number" id="fbActualCost" placeholder="e.g. 1850" min="0" max="500000">
+        <input type="number" id="fbActualCost" placeholder="e.g. 1850" min="0" max="500000" step="0.01" inputmode="decimal">
+      </div>
+
+      <div class="form-group" style="margin-bottom:1rem;">
+        <label for="fbCorrectedFaults">Confirmed fault categories (comma separated)</label>
+        <input type="text" id="fbCorrectedFaults" placeholder="e.g. Brake System, Tyres/Wheels">
+      </div>
+
+      <div class="form-group" style="margin-bottom:1rem;">
+        <label for="fbFaultCosts">Optional per-fault costs (JSON)</label>
+        <input type="text" id="fbFaultCosts" placeholder='{"Brake System": 2200}'>
       </div>
 
       <div class="form-group" style="margin-bottom:1.25rem;">
@@ -561,7 +604,6 @@
     </div>
   </div>
 
-  <!-- Auth Modal -->
   <div id="authModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:999;align-items:center;justify-content:center;">
     <div class="card" style="max-width:380px;width:90%;margin:auto;position:relative;">
       <button id="closeAuthModal" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--text-muted);font-size:1.25rem;cursor:pointer;">&times;</button>
@@ -594,7 +636,6 @@
     </div>
   </div>
 
-  <!-- Auth Notification Toast Popup -->
   <div id="authToast" class="toast-popup" role="status" aria-live="polite">
     <div class="toast-icon-wrapper" id="toastIcon">
       <i data-lucide="check-circle" style="width:20px;height:20px;"></i>
@@ -605,7 +646,7 @@
     </div>
   </div>
 
-  <footer style="text-align:center;padding:2.5rem 1rem;color:var(--text-muted);font-size:0.81rem;border-top:1px solid var(--border);margin-top:3rem;">
+  <footer class="app-footer" style="text-align:center;padding:2.5rem 1rem;color:var(--text-muted);font-size:0.81rem;border-top:1px solid var(--border);margin-top:3rem;">
     <p>ServiceWise &bull; Smart Vehicle Diagnostics &amp; Cost Prediction &bull; Academic Prototype</p>
   </footer>
 

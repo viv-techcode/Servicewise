@@ -79,6 +79,7 @@ const baselineCosts = {
 
 let currentUser = null;
 let currentRecordId = null;
+let lastSubmittedInput = null;
 let selectedRating = 0;
 let categoryChart = null;
 let urgencyChart = null;
@@ -128,6 +129,135 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultArea = document.getElementById('resultArea');
     const formError = document.getElementById('formError');
 
+    // Interactive automotive odometer. The form field remains the backend source.
+    const odometerControl = document.getElementById('odometerControl');
+    const odometerReading = document.getElementById('odometerReading');
+    const mileageInput = document.getElementById('km_driven');
+    const odometerInlineInput = document.getElementById('odometerInlineInput');
+    const speedDuration = '320ms';
+    const odometerConfig = { increment: 800, maximum: 500000, starting: 5000 };
+    const savedMileage = Number(localStorage.getItem('servicewise_odo_value'));
+    let mileage = Number.isFinite(savedMileage) ? savedMileage : odometerConfig.starting;
+    let touchStartY = null;
+
+    function clampMileage(value) {
+        return Math.min(odometerConfig.maximum, Math.max(0, Number(value) || 0));
+    }
+
+    function formatMileage(value) {
+        const wholeText = Math.round(clampMileage(value)).toString().padStart(6, '0');
+        return wholeText.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    function renderOdometer(animate = true) {
+        const formatted = formatMileage(mileage);
+        if (odometerReading.children.length !== formatted.length) {
+            odometerReading.replaceChildren();
+            [...formatted].forEach(character => {
+                if (character === ',') {
+                    const separator = document.createElement('span');
+                    separator.className = 'odometer-separator';
+                    odometerReading.appendChild(separator);
+                    return;
+                }
+                if (character === '.') {
+                    const separator = document.createElement('span');
+                    separator.className = 'odometer-decimal';
+                    odometerReading.appendChild(separator);
+                    return;
+                }
+                const digit = document.createElement('span');
+                digit.className = 'odometer-digit';
+                const track = document.createElement('span');
+                track.className = 'odometer-digit-track';
+                [...'0123456789'].forEach(number => {
+                    const face = document.createElement('span');
+                    face.textContent = number;
+                    track.appendChild(face);
+                });
+                digit.appendChild(track);
+                odometerReading.appendChild(digit);
+            });
+        }
+        [...formatted].forEach((character, index) => {
+            const node = odometerReading.children[index];
+            if (character === ',') {
+                node.textContent = ',';
+                return;
+            }
+            if (character === '.') {
+                node.textContent = '.';
+                return;
+            }
+            const track = node.firstElementChild;
+            track.style.transitionDuration = animate ? speedDuration : '0ms';
+            track.style.transform = `translateY(-${Number(character) * 10}%)`;
+        });
+        [...odometerReading.children].forEach(node => {
+            if (!node.classList.contains('odometer-digit')) {
+                node.textContent = node.classList.contains('odometer-decimal') ? '.' : ',';
+            }
+        });
+        mileageInput.value = String(Math.round(mileage));
+        mileageInput.max = String(odometerConfig.maximum);
+        localStorage.setItem('servicewise_odo_value', String(mileage));
+    }
+
+    function changeMileage(delta) {
+        mileage = clampMileage(mileage + delta);
+        renderOdometer();
+    }
+
+    renderOdometer(false);
+
+    function openInlineEditor() {
+        odometerInlineInput.value = String(Math.round(mileage));
+        odometerControl.classList.add('is-editing');
+        odometerInlineInput.focus();
+        odometerInlineInput.select();
+    }
+
+    function saveInlineMileage() {
+        const next = Number(odometerInlineInput.value);
+        if (!Number.isFinite(next) || next < 0 || next > odometerConfig.maximum) {
+            odometerInlineInput.setCustomValidity(`Enter a value between 0 and ${odometerConfig.maximum}.`);
+            odometerInlineInput.reportValidity();
+            return;
+        }
+        odometerInlineInput.setCustomValidity('');
+        mileage = next;
+        renderOdometer();
+        odometerControl.classList.remove('is-editing');
+    }
+    document.getElementById('saveInlineMileage').addEventListener('click', saveInlineMileage);
+    document.getElementById('incrementMileage').addEventListener('click', () => changeMileage(odometerConfig.increment));
+    document.getElementById('decrementMileage').addEventListener('click', () => changeMileage(-odometerConfig.increment));
+    odometerControl.addEventListener('click', event => {
+        if (!event.target.closest('button')) openInlineEditor();
+    });
+    odometerInlineInput.addEventListener('keydown', event => {
+        if (event.key === 'Enter') saveInlineMileage();
+        if (event.key === 'Escape') odometerControl.classList.remove('is-editing');
+    });
+    odometerControl.addEventListener('wheel', event => {
+        event.preventDefault();
+        changeMileage(event.deltaY > 0 ? odometerConfig.increment : -odometerConfig.increment);
+    }, { passive: false });
+    odometerControl.addEventListener('touchstart', event => { touchStartY = event.touches[0].clientY; }, { passive: true });
+    odometerControl.addEventListener('touchend', event => {
+        if (touchStartY === null) return;
+        const distance = touchStartY - event.changedTouches[0].clientY;
+        if (Math.abs(distance) > 24) changeMileage(distance > 0 ? odometerConfig.increment : -odometerConfig.increment);
+        touchStartY = null;
+    }, { passive: true });
+    mileageInput.addEventListener('change', () => {
+        const next = Number(mileageInput.value);
+        if (Number.isFinite(next) && next >= 0 && next <= odometerConfig.maximum) {
+            mileage = next;
+            renderOdometer();
+        }
+    });
+
     // Check initial auth state
     checkAuthSession();
 
@@ -167,12 +297,45 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Symptom Chips Shortcut Fill
+    const selectedShortcutSymptoms = new Map();
+    const symptomsTextarea = document.getElementById('symptoms');
+
+    function appendSymptomText(text) {
+        if (!symptomsTextarea || !text) return;
+        const current = symptomsTextarea.value.trim();
+        if (current.toLowerCase().includes(text.toLowerCase())) return;
+        symptomsTextarea.value = current ? `${current.replace(/[.!?;,\s]+$/, '')}. ${text}` : text;
+        symptomsTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    function removeAppendedSymptom(text) {
+        if (!symptomsTextarea || !text) return;
+        const pattern = new RegExp(`(?:^|[.!?;]\\s*)${text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?=$|[.!?;])`, 'i');
+        symptomsTextarea.value = symptomsTextarea.value
+            .replace(pattern, '')
+            .replace(/^\s*[.!?;]\s*/, '')
+            .replace(/\s{2,}/g, ' ')
+            .trim();
+        symptomsTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
     function setupChipListeners() {
         document.querySelectorAll('.chip').forEach(chip => {
             chip.addEventListener('click', () => {
                 const symptomText = chip.getAttribute('data-symptom');
-                const textarea = document.getElementById('symptoms');
-                textarea.value = symptomText;
+                if (!symptomText) return;
+                if (selectedShortcutSymptoms.has(chip)) {
+                    if (selectedShortcutSymptoms.get(chip)) removeAppendedSymptom(symptomText);
+                    selectedShortcutSymptoms.delete(chip);
+                    chip.classList.remove('active');
+                    chip.setAttribute('aria-pressed', 'false');
+                } else {
+                    const wasAlreadyWritten = symptomsTextarea.value.toLowerCase().includes(symptomText.toLowerCase());
+                    selectedShortcutSymptoms.set(chip, !wasAlreadyWritten);
+                    appendSymptomText(symptomText);
+                    chip.classList.add('active');
+                    chip.setAttribute('aria-pressed', 'true');
+                }
 
                 // Auto-fill fallback vehicle defaults if empty for quick test
                 if (!typeSelect.value) {
@@ -218,7 +381,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Smart 100+ Symptoms Autocomplete & Keyword Search Dropdown
-    const symptomsTextarea = document.getElementById('symptoms');
     const dropdown = document.getElementById('symptomSuggestionsDropdown');
 
     if (symptomsTextarea && dropdown && typeof commonSymptomsBank !== 'undefined') {
@@ -261,7 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dropdown.querySelectorAll('.symptom-dropdown-item').forEach(item => {
                 item.addEventListener('click', () => {
                     const chosenText = item.getAttribute('data-text');
-                    symptomsTextarea.value = chosenText;
+                    appendSymptomText(chosenText);
                     dropdown.style.display = 'none';
 
                     // Auto-fill fallback vehicle defaults if empty for quick test
@@ -378,8 +540,47 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(result => {
             currentRecordId = result.record_id;
+            lastSubmittedInput = { ...data, prediction_snapshot: result.prediction_snapshot };
             document.getElementById('resCategory').textContent = result.problem_category || 'General';
+            const faultList = Array.isArray(result.predicted_faults) && result.predicted_faults.length
+                ? result.predicted_faults
+                : [{ category: result.problem_category || 'General', confidence: null }];
+            const faultsNode = document.getElementById('resFaults');
+            faultsNode.replaceChildren();
+            faultList.forEach((fault, index) => {
+                const line = document.createElement('div');
+                const confidence = Number.isFinite(fault.confidence) ? ` · ${Math.round(fault.confidence * 100)}% confidence` : '';
+                line.textContent = `${index === 0 ? 'Primary: ' : 'Also: '}${fault.category}${confidence}`;
+                faultsNode.appendChild(line);
+            });
             document.getElementById('resCost').textContent = `₹${Math.round(result.estimated_cost_min).toLocaleString('en-IN')} – ₹${Math.round(result.estimated_cost_max).toLocaleString('en-IN')}`;
+            const referenceNote = document.getElementById('resCostBasis');
+            if (referenceNote) referenceNote.textContent = 'Combined estimate after any shared-visit adjustment.';
+            const breakdown = document.getElementById('resCostBreakdown');
+            if (breakdown) {
+                breakdown.replaceChildren();
+                const title = document.createElement('strong');
+                title.textContent = 'Cost by predicted fault';
+                breakdown.appendChild(title);
+                const list = document.createElement('ul');
+                list.style.cssText = 'margin:.45rem 0;padding-left:1.2rem;display:grid;gap:.35rem;';
+                (result.fault_cost_breakdown || []).forEach(item => {
+                    const entry = document.createElement('li');
+                    const low = Math.round(item.estimated_cost_min).toLocaleString('en-IN');
+                    const high = Math.round(item.estimated_cost_max).toLocaleString('en-IN');
+                    const source = item.estimate_source === 'regional_reference' ? 'regional reference' : 'cost model';
+                    entry.textContent = `${item.category}: ₹${low} – ₹${high} (${source})`;
+                    list.appendChild(entry);
+                });
+                breakdown.appendChild(list);
+                const discount = result.shared_visit_discount;
+                if (discount && discount.rate > 0) {
+                    const note = document.createElement('small');
+                    note.textContent = `Combined visit adjustment: −₹${Math.round(discount.amount_min).toLocaleString('en-IN')} to −₹${Math.round(discount.amount_max).toLocaleString('en-IN')} (10% shared-visit allowance).`;
+                    breakdown.appendChild(note);
+                }
+                breakdown.style.display = 'block';
+            }
             document.getElementById('resRecommendation').textContent = result.recommendation;
 
             const badge = document.getElementById('urgencyBadge');
@@ -445,9 +646,19 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const actualCostInput = document.getElementById('fbActualCost').value;
-        const actualCost = actualCostInput ? parseFloat(actualCostInput) : null;
+        const actualCostInput = document.getElementById('fbActualCost').value.trim();
+        const actualCost = actualCostInput ? Number(actualCostInput) : null;
+        if (actualCost !== null && !Number.isFinite(actualCost)) {
+            notice.textContent = 'Actual repair cost must be a numeric value.';
+            notice.style.color = 'var(--danger)';
+            notice.style.display = 'block';
+            return;
+        }
         const comments = document.getElementById('fbComments').value;
+        const correctedFaults = document.getElementById('fbCorrectedFaults').value.split(',').map(x => x.trim()).filter(Boolean);
+        let actualFaultCosts = {};
+        try { actualFaultCosts = JSON.parse(document.getElementById('fbFaultCosts').value || '{}'); }
+        catch (_) { notice.textContent = 'Per-fault costs must be valid JSON.'; notice.style.color = 'var(--danger)'; notice.style.display = 'block'; return; }
 
         fetch('/api/feedback', {
             method: 'POST',
@@ -455,16 +666,21 @@ document.addEventListener('DOMContentLoaded', () => {
             body: JSON.stringify({
                 record_id: targetRecordId,
                 accuracy_rating: selectedRating,
-                actual_cost: actualCost,
+                actual_total_cost: actualCost,
+                corrected_faults: correctedFaults,
+                actual_fault_costs: actualFaultCosts,
+                state: lastSubmittedInput?.state || null,
                 comments: comments
             })
         })
-        .then(res => res.json())
+        .then(async res => { const data = await res.json(); if (!res.ok) throw new Error(data.error || 'Feedback was not accepted.'); return data; })
         .then(data => {
             localStorage.removeItem('servicewise_pending_feedback');
             const modal = document.getElementById('feedbackModal');
             if (modal) modal.style.display = 'none';
             showAuthToast('Feedback Received!', 'Thank you! Your actual repair details help calibrate the ML models.', 'success');
+            loadHistoryRecords(currentHistoryPage);
+            loadAnalytics();
         })
         .catch(err => {
             notice.textContent = err.message || 'Error submitting feedback.';
@@ -508,6 +724,8 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedRating = 0;
             document.querySelectorAll('#starRatingGroup .star').forEach(s => s.classList.remove('active'));
             document.getElementById('fbActualCost').value = '';
+            document.getElementById('fbCorrectedFaults').value = '';
+            document.getElementById('fbFaultCosts').value = '';
             document.getElementById('fbComments').value = '';
             document.getElementById('feedbackNotice').style.display = 'none';
 
@@ -561,14 +779,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     let predictedDisplay = '₹1,500 – ₹3,000';
                     let actualDisplay = '—';
 
-                    if (r.actual_cost && !isNaN(r.actual_cost)) {
-                        const cost = Math.round(Number(r.actual_cost));
-                        const minC = Math.round(cost * 0.85);
-                        const maxC = Math.round(cost * 1.15);
-                        predictedDisplay = `₹${minC.toLocaleString('en-IN')} – ₹${maxC.toLocaleString('en-IN')}`;
-                        actualDisplay = `₹${cost.toLocaleString('en-IN')}`;
-                    } else if (r.predicted_cost_min && r.predicted_cost_max) {
+                    if (r.predicted_cost_min != null && r.predicted_cost_max != null) {
                         predictedDisplay = `₹${Math.round(r.predicted_cost_min).toLocaleString('en-IN')} – ₹${Math.round(r.predicted_cost_max).toLocaleString('en-IN')}`;
+                    }
+                    if (r.actual_cost != null) {
+                        const actual = Number(r.actual_cost);
+                        actualDisplay = `${Math.round(actual)}`;
                     }
 
                     return `
@@ -576,7 +792,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <td class="mono" style="color:var(--text-muted);font-weight:600;">${r.id}</td>
                         <td><strong>${r.vehicle_brand || 'Vehicle'} ${r.vehicle_model || ''}</strong> <small style="color:var(--text-muted);">(${r.vehicle_type || 'car'})</small></td>
                         <td style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${(r.symptoms || '').replace(/"/g, '&quot;')}">${r.symptoms || '—'}</td>
-                        <td><span class="mono" style="color:var(--text-primary);font-weight:500;">${r.predicted_category || 'General'}</span></td>
+                        <td><span class="mono" style="color:var(--text-primary);font-weight:500;">${(Array.isArray(r.predicted_faults) ? r.predicted_faults : []).map(f => f.category).join(', ') || r.predicted_category || 'General'}</span>${r.feedback?.corrected_faults?.length ? `<br><small style="color:${JSON.stringify([...r.feedback.corrected_faults].sort()) === JSON.stringify((r.predicted_faults || []).map(f => f.category).sort()) ? 'var(--success)' : 'var(--danger)'}">Confirmed: ${r.feedback.corrected_faults.join(', ')}</small>` : ''}</td>
                         <td class="mono" style="color:var(--text-secondary);font-variant-numeric:tabular-nums;font-weight:500;">${predictedDisplay}</td>
                         <td class="mono" style="color:var(--success);font-variant-numeric:tabular-nums;font-weight:600;">${actualDisplay}</td>
                         <td><span class="badge badge-${r.urgency || 'Medium'}" style="margin:0;padding:0.15rem 0.5rem;font-size:0.75rem;">${r.urgency || 'Medium'}</span></td>
@@ -657,6 +873,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('statTotalDiagnoses').textContent = data.total_diagnoses || 0;
                 document.getElementById('statAvgCost').textContent = `₹${(data.avg_estimated_cost || 0).toLocaleString('en-IN')}`;
                 document.getElementById('statAvgRating').textContent = `${(data.feedback_stats?.avg_rating || 0).toFixed(1)} / 5 (${data.feedback_stats?.total_reviews || 0} reviews)`;
+                const queue = document.getElementById('feedbackReviewQueue');
+                if (queue) {
+                    const pending = (data.pending_feedback || []);
+                    queue.innerHTML = pending.length ? pending.map(f => `<div style="display:flex;justify-content:space-between;gap:.75rem;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--border-subtle);"><span>Record #${f.record_id}: ${(f.corrected_faults || []).join(', ') || 'missing corrected labels'}</span><span><button class="btn-primary review-feedback" data-id="${f.id}" data-decision="approved" style="width:auto;padding:.35rem .6rem;">Approve</button> <button class="btn-secondary review-feedback" data-id="${f.id}" data-decision="rejected" style="padding:.35rem .6rem;">Reject</button></span></div>`).join('') : 'No pending feedback.';
+                    queue.querySelectorAll('.review-feedback').forEach(button => button.addEventListener('click', async () => {
+                        const response = await fetch(`/api/feedback/${button.dataset.id}/review`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({decision:button.dataset.decision})});
+                        const result = await response.json(); if (!response.ok) { showAuthToast('Review failed', result.error || 'Could not review feedback.', 'error'); return; }
+                        loadAnalytics(); loadHistoryRecords(currentHistoryPage);
+                    }));
+                }
 
                 renderCharts(data);
             });
@@ -665,7 +891,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderCharts(data) {
         if (typeof Chart === 'undefined') return;
 
-        // Problem Categories Doughnut Chart
         const catCanvas = document.getElementById('chartCategory');
         if (catCanvas) {
             const catCtx = catCanvas.getContext('2d');
@@ -690,7 +915,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Urgency Breakdown Bar Chart
         const urgCanvas = document.getElementById('chartUrgency');
         if (urgCanvas) {
             const urgCtx = urgCanvas.getContext('2d');
@@ -721,7 +945,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Model Metrics Loader
     function loadMetrics() {
         fetch('/api/model/metrics')
             .then(res => res.json())
