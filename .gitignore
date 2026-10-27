@@ -1,5 +1,7 @@
 # Environments and virtualenvs
 .venv/
+.venv-*/
+.venvrun/
 env/
 venv/
 ENV/
@@ -9,11 +11,22 @@ __pycache__/
 *.py[cod]
 *$py.class
 .pytest_cache/
+.uv-cache*/
+.tmp-*/
 
 # Local database instances
 *.db
+*.sqlite
+*.sqlite3
 backend/data/*.db
 data/*.db
+*.bak
+
+# Generated training and evaluation reference artifacts
+backend/data/dataset_noise_config.json
+backend/ml/model_versions/
+backend/ml/evaluation_report.md
+backend/ml/retraining_history.jsonl
 
 # Personal and non-project files
 files/

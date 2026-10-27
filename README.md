@@ -1,106 +1,72 @@
-# ServiceWise — Smart Vehicle Diagnostics & Cost Prediction
+# ServiceWise — vehicle fault prediction and repair estimates
 
-ServiceWise is a lightweight, machine-learning-powered decision support and diagnostic web application tailored for automobile service centers and vehicle owners.
+ServiceWise is a Flask application that predicts one or more vehicle fault categories, estimates repair costs, and stores diagnostic history and reviewed repair outcomes.
 
----
+## Setup
 
-## Features
-- **Vehicle Problem Classification**: NLP-based identification of component/system faults from user symptoms.
-- **Repair Cost Range Estimation**: Random Forest regression estimating cost bounds based on vehicle age, mileage, brand, and problem type.
-- **Urgency Assessment**: Risk-level categorization (High, Medium, Low) for prioritized maintenance.
-- **Service History Logging**: Persistent SQLite storage tracking diagnostic logs and historical records.
-- **Interactive UI**: Responsive single-page interface with diagnostic forms, history viewing, and quick cost exploration.
+Requires Python 3.10 or newer.
 
----
-
-## Project Structure
-```text
-.
-├── backend/
-│   ├── app.py                # Flask application & API routes
-│   ├── db.py                 # SQLite database initialization and access
-│   ├── data/
-│   │   └── sample_service_records.csv  # Baseline training records
-│   ├── ml/
-│   │   ├── train_models.py   # Training script for NLP & regression models
-│   │   ├── predictor.py      # Inference wrapper for classification & estimation
-│   │   ├── problem_classifier.pkl
-│   │   └── cost_regressor.pkl
-│   └── tests/
-│       └── test_api.py       # API test suite
-├── frontend/
-│   ├── templates/
-│   │   └── index.html        # Main user interface template
-│   └── static/
-│       ├── css/
-│       │   └── style.css     # Styling and responsive design
-│       └── js/
-│           └── main.js       # Client-side dynamic interactions and API calls
-└── README.md
-```
-
----
-
-## Installation & Setup
-
-### 1. Prerequisites
-- Python 3.10+
-- `pip` or `uv` package manager
-
-### 2. Environment Setup
-Create and activate a virtual environment:
-```bash
-# Windows
+```powershell
 python -m venv .venv
-.venv\Scripts\activate
-
-# Linux / macOS
-python3 -m venv .venv
-source .venv/bin/activate
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
 ```
 
-### 3. Install Dependencies
-```bash
-pip install flask pandas scikit-learn joblib pytest
+## Run the application
+
+```powershell
+python -m backend.app
 ```
 
----
+Open `http://127.0.0.1:5000`. Set `SECRET_KEY` for deployments. `SERVICEWISE_DB_PATH` can point to a separate SQLite file; otherwise the database is `backend/data/service_center.db`. Store-owner accounts can approve or reject feedback from the Analytics tab.
 
-## Running the Application
+## Training and evaluation
 
-1. **Start the Flask Server**:
-   ```bash
-   python -m backend.app
-   ```
-2. **Access the Web Interface**:
-   Open [http://127.0.0.1:5000](http://127.0.0.1:5000) in your web browser.
+The prepared dataset is `backend/data/service_records_balanced_3000.csv`; the preserved source file is `backend/data/sample_service_records.csv`. The prepared dataset is simulated; its labels and costs are not verified workshop records.
 
-3. **Running the Tests**:
-   ```bash
-   pytest
-   ```
+Train and evaluate the base models with the grouped split and fixed test benchmark:
 
----
+```powershell
+python -m backend.ml.train_models
+```
 
-## Prototype Status & Project Phase
-> **Note:** This project is currently in an active **prototype/development phase (Phase 1 MVP)**. While all core functional workflows (ML inference, API routing, and interactive frontend) are operational, several production-level enhancements are actively in progress.
+The split seed and model settings are recorded in `backend/ml/model_metrics.json`. Evaluation details and held-out predictions are in `backend/ml/evaluation_report.md` and `backend/ml/test_set_predictions.csv`. Do not add feedback records to that benchmark.
 
-### Current Limitations & Scope
-- **Dataset Scale & Diversity**: The prototype uses synthetic/sample service record data (`backend/data/sample_service_records.csv`) for demonstration and initial baseline training. Real-world accuracy and variance calibration will require a substantially larger, diverse multi-brand dataset.
-- **NLP & Feature Extraction**: The current NLP pipeline relies on basic keyword and TF-IDF tokenization, which works reliably for standard technical symptom phrases but can be upgraded to transformer-based embeddings or fine-tuned LLM classification for noisy, conversational, or ambiguous user descriptions.
+## Submit and review feedback
 
----
+After a diagnosis, submit the confirmed fault categories as a comma-separated list and the optional total bill. Optional per-fault costs use JSON, for example `{"Brake System": 2200, "Tyres/Wheels": 1500}`. Feedback is validated and stored as pending. A store owner must approve the corrected categories before they are eligible for model training; rejected and pending items are excluded. Existing rating-only submissions remain accepted for compatibility but cannot be approved for retraining without corrected fault labels.
 
-## Roadmap & Planned Enhancements
+The review endpoint is `POST /api/feedback/<feedback_id>/review` with `{"decision":"approved"}` or `{"decision":"rejected"}`. It requires a store-owner session.
 
-### Planned Add-ons & Future Iterations
-1. **PDF Quote & Diagnostic Report Export**
-   - Automated generation of downloadable and printable cost estimation sheets, repair breakdown summaries, and formal diagnostic certificates.
-2. **Garage Appointment & Booking Integration**
-   - Direct booking workflow enabling vehicle owners to reserve workshop time slots prioritized by diagnosed urgency level (High / Medium / Low).
-3. **Parts Catalog & Inventory Synchronization**
-   - Integration with local and supplier inventory systems to map diagnosed fault categories to specific OEM/aftermarket replacement parts and real-time pricing.
-4. **LLM-Assisted Diagnostic Explanation**
-   - Interactive diagnostic assistant offering structured, plain-language troubleshooting guidance, preventive advice, and workshop visit preparation.
-5. **Multi-Language & Vernacular Input Support**
-   - Cross-lingual symptom processing supporting Hindi and regional languages for broader user accessibility.
+## Retraining and model versions
+
+```powershell
+python -m backend.ml.retrain
+```
+
+Use `python -m backend.ml.retrain --dry-run` to fit and evaluate a candidate without saving or activating it.
+
+Retraining adds only approved feedback to the training pool. It evaluates current and candidate artifacts on the same fixed Step 5d test record IDs. Feedback never enters the held-out benchmark. Adoption requires candidate micro-F1 to be no more than 0.005 below current and candidate per-fault cost MAE to be no more than 5% worse. Every run is saved under `backend/ml/model_versions/`; decisions and benchmark metrics are appended to `backend/ml/retraining_history.jsonl`.
+
+Restore a saved version with:
+
+```powershell
+python -m backend.ml.retrain --rollback v000
+```
+
+`v000` is created as the original Step 5d baseline when the first retraining run is saved. Candidate artifacts and metadata remain archived even when the adoption gates fail.
+
+## Tests
+
+```powershell
+python -m pytest
+```
+
+Tests cover API input validation, approval gating, held-out comparison logic, rollback, prediction history, and confirmed outcome analytics.
+
+## Limitations
+
+- The training data is controlled and simulated, so its scores do not establish real-world diagnostic accuracy or price calibration.
+- Feedback quality depends on accurate mechanic-confirmed labels and bill entry; approval is a review gate, not independent verification of a workshop invoice.
+- The fixed benchmark is intentionally not updated during feedback retraining. It should only be replaced through a separately reviewed evaluation-data release.
+- Review authorization currently uses the existing store-owner role and local session authentication; deployments should add operational account controls and backups for the SQLite database and model archives.
