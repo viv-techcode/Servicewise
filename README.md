@@ -1,72 +1,145 @@
-# ServiceWise — vehicle fault prediction and repair estimates
+# ServiceWise
 
-ServiceWise is a Flask application that predicts one or more vehicle fault categories, estimates repair costs, and stores diagnostic history and reviewed repair outcomes.
+ServiceWise is a Flask application for vehicle fault diagnosis, repair-cost estimates, and reviewed service feedback.
 
-## Setup
+## Features
 
-Requires Python 3.10 or newer.
+- Predicts one or more vehicle fault categories from vehicle details and symptoms.
+- Estimates a repair-cost range and urgency.
+- Stores diagnostic records in SQLite.
+- Accepts ratings, confirmed faults, and repair costs as feedback.
+- Provides analytics and model metrics.
+- Retrains models with approved feedback and supports version rollback.
 
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+## Tech stack
+
+- Python 3.11
+- Flask
+- SQLite
+- scikit-learn, pandas, NumPy, and joblib
+- HTML, CSS, and JavaScript frontend
+- pytest
+
+## Project structure
+
+```text
+backend/             Flask application, database access, and machine-learning code
+backend/data/        Datasets and data-preparation utilities
+backend/ml/          Training, prediction, metrics, and retraining code
+backend/tests/       Automated tests
+frontend/templates/  Application HTML
+frontend/static/     CSS and JavaScript assets
+docs/                Database documentation
+scripts/             Data utility scripts
 ```
 
-## Run the application
+## Getting started
+
+Clone the repository and enter its folder:
+
+```powershell
+git clone https://github.com/viv-techcode/Servicewise.git
+Set-Location Servicewise
+```
+
+Create and activate a virtual environment:
+
+```powershell
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+Install the dependencies:
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
+Start the application:
 
 ```powershell
 python -m backend.app
 ```
 
-Open `http://127.0.0.1:5000`. Set `SECRET_KEY` for deployments. `SERVICEWISE_DB_PATH` can point to a separate SQLite file; otherwise the database is `backend/data/service_center.db`. Store-owner accounts can approve or reject feedback from the Analytics tab.
+Open http://127.0.0.1:5000 in a browser.
 
-## Training and evaluation
+## Configuration
 
-The prepared dataset is `backend/data/service_records_balanced_3000.csv`; the preserved source file is `backend/data/sample_service_records.csv`. The prepared dataset is simulated; its labels and costs are not verified workshop records.
+| Variable | Purpose | Default |
+| --- | --- | --- |
+| `SECRET_KEY` | Flask session signing key | Development fallback in the application |
+| `SERVICEWISE_DB_PATH` | SQLite database file path | `backend/data/service_center.db` |
 
-Train and evaluate the base models with the grouped split and fixed test benchmark:
+If these variables are not set, the application uses the defaults shown above.
 
-```powershell
-python -m backend.ml.train_models
-```
+## How to use
 
-The split seed and model settings are recorded in `backend/ml/model_metrics.json`. Evaluation details and held-out predictions are in `backend/ml/evaluation_report.md` and `backend/ml/test_set_predictions.csv`. Do not add feedback records to that benchmark.
+### Diagnose a vehicle
 
-## Submit and review feedback
+1. Open the application and provide the vehicle type, brand, model, age, kilometres driven, state, and symptoms.
+2. Submit the diagnosis form.
+3. Review the predicted fault categories, urgency, and estimated repair-cost range.
+4. The diagnosis is saved and can be viewed in the records area.
 
-After a diagnosis, submit the confirmed fault categories as a comma-separated list and the optional total bill. Optional per-fault costs use JSON, for example `{"Brake System": 2200, "Tyres/Wheels": 1500}`. Feedback is validated and stored as pending. A store owner must approve the corrected categories before they are eligible for model training; rejected and pending items are excluded. Existing rating-only submissions remain accepted for compatibility but cannot be approved for retraining without corrected fault labels.
+The web form uses `POST /api/predict` for diagnoses and `GET /api/records` for saved records.
 
-The review endpoint is `POST /api/feedback/<feedback_id>/review` with `{"decision":"approved"}` or `{"decision":"rejected"}`. It requires a store-owner session.
+### Submit feedback
 
-## Retraining and model versions
+1. Open a saved diagnosis and submit a rating.
+2. Add the confirmed fault categories when available.
+3. Optionally add the total repair cost, per-fault costs, and comments.
+4. Feedback is submitted with a `pending` review status.
+
+Feedback is sent to `POST /api/feedback`.
+
+### Store-owner approval
+
+1. Sign in with a store-owner account.
+2. Open the analytics and feedback review area.
+3. Approve or reject pending feedback.
+4. Only approved feedback with valid corrected fault labels is eligible for retraining.
+
+Approval uses `POST /api/feedback/<feedback_id>/review` with `approved` or `rejected`.
+
+## Model results
+
+The current metrics are recorded in `backend/ml/model_metrics.json`.
+
+| Model result | Metric | Test value |
+| --- | --- | ---: |
+| Fault classifier | Primary fault accuracy | 0.8204 |
+| Fault classifier | Micro-F1 | 0.9379 |
+| Fault classifier | Exact-match accuracy | 0.8883 |
+| Cost regressor | Per-fault MAE | 80.42 |
+| Cost regressor | Per-fault RMSE | 519.18 |
+| Cost regressor | Per-fault R² | 0.1984 |
+| Cost regressor | Combined multi-fault total MAE | 60.01 |
+| Cost regressor | Combined multi-fault total R² | 0.8247 |
+
+## Retraining
+
+Retrain using approved feedback:
 
 ```powershell
 python -m backend.ml.retrain
 ```
 
-Use `python -m backend.ml.retrain --dry-run` to fit and evaluate a candidate without saving or activating it.
+Evaluate a candidate without saving or activating it:
 
-Retraining adds only approved feedback to the training pool. It evaluates current and candidate artifacts on the same fixed Step 5d test record IDs. Feedback never enters the held-out benchmark. Adoption requires candidate micro-F1 to be no more than 0.005 below current and candidate per-fault cost MAE to be no more than 5% worse. Every run is saved under `backend/ml/model_versions/`; decisions and benchmark metrics are appended to `backend/ml/retraining_history.jsonl`.
+```powershell
+python -m backend.ml.retrain --dry-run
+```
 
-Restore a saved version with:
+Restore a saved model version:
 
 ```powershell
 python -m backend.ml.retrain --rollback v000
 ```
 
-`v000` is created as the original Step 5d baseline when the first retraining run is saved. Candidate artifacts and metadata remain archived even when the adoption gates fail.
+Retraining compares the candidate with the current model on the fixed benchmark. A candidate is adopted only when both the micro-F1 and cost-MAE gates pass.
 
-## Tests
+## Running tests
 
 ```powershell
 python -m pytest
 ```
-
-Tests cover API input validation, approval gating, held-out comparison logic, rollback, prediction history, and confirmed outcome analytics.
-
-## Limitations
-
-- The training data is controlled and simulated, so its scores do not establish real-world diagnostic accuracy or price calibration.
-- Feedback quality depends on accurate mechanic-confirmed labels and bill entry; approval is a review gate, not independent verification of a workshop invoice.
-- The fixed benchmark is intentionally not updated during feedback retraining. It should only be replaced through a separately reviewed evaluation-data release.
-- Review authorization currently uses the existing store-owner role and local session authentication; deployments should add operational account controls and backups for the SQLite database and model archives.
