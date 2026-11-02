@@ -62,9 +62,10 @@ Stores diagnostic queries submitted by customers or guests, along with ML predic
 |---|---|---|---|
 | `id` | INTEGER | PRIMARY KEY AUTOINCREMENT | Unique record ID |
 | `user_id` | INTEGER | FOREIGN KEY REFERENCES users(id) | Associated user (NULL for guests) |
-| `vehicle_type` | TEXT | NOT NULL | 'bike' or 'car' |
+| `vehicle_type` | TEXT | NOT NULL | 'bike' or 'car'; active supported makes/models are in `backend/vehicles.py` |
 | `vehicle_brand` | TEXT | NOT NULL | Vehicle manufacturer brand |
 | `vehicle_model` | TEXT | NOT NULL | Vehicle model name |
+| `state` | TEXT | | Always `Global`; location is not collected or used for estimates |
 | `vehicle_age` | INTEGER | | Age of vehicle in years |
 | `km_driven` | INTEGER | | Kilometres driven |
 | `symptoms` | TEXT | NOT NULL | Reported vehicle issue description |

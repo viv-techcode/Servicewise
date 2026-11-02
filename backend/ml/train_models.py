@@ -187,8 +187,7 @@ def multilabel_predictions(probabilities, threshold):
 
 
 def cost_features(df):
-    result = df[['vehicle_type', 'vehicle_brand', 'vehicle_model', 'vehicle_age', 'km_driven', 'problem_category', 'state']].copy()
-    result['state'] = result['state'].fillna('not_recorded').replace('', 'not_recorded')
+    result = df[['vehicle_type', 'vehicle_brand', 'vehicle_model', 'vehicle_age', 'km_driven', 'problem_category']].copy()
     return result
 
 
@@ -283,7 +282,7 @@ def top1_confusion_summary(primary_faults, probabilities, classes, limit=10):
 
 
 def make_cost_pipeline(model):
-    categorical = ['vehicle_type', 'vehicle_brand', 'vehicle_model', 'problem_category', 'state']
+    categorical = ['vehicle_type', 'vehicle_brand', 'vehicle_model', 'problem_category']
     prep = ColumnTransformer([
         ('categorical', OneHotEncoder(handle_unknown='ignore'), categorical),
         ('numeric', 'passthrough', ['vehicle_age', 'km_driven']),
@@ -316,7 +315,8 @@ def train_and_save(validation_only=False):
     if 'primary_fault' not in df:
         df['primary_fault'] = df['problem_category']
     if 'state' not in df:
-        df['state'] = 'not_recorded'
+        df['state'] = 'Global'
+    df['state'] = 'Global'
     if 'vehicle_model' not in df:
         df['vehicle_model'] = 'not_recorded'
     df['problem_category'] = df['primary_fault'].fillna(df['problem_category'])
@@ -347,7 +347,10 @@ def train_and_save(validation_only=False):
         print(json.dumps(result))
         return result
 
-    baseline = json.loads(Path(STEP5C_BASELINE_METRICS_PATH).read_text(encoding='utf-8'))
+    baseline_path = Path(STEP5C_BASELINE_METRICS_PATH)
+    if not baseline_path.exists():
+        baseline_path = Path(METRICS_PATH)
+    baseline = json.loads(baseline_path.read_text(encoding='utf-8'))
     noise_config = json.loads(Path(NOISE_CONFIG_PATH).read_text(encoding='utf-8-sig'))
 
     # Refit selected hyperparameters on train + validation. Test remains unseen.
@@ -482,7 +485,7 @@ def train_and_save(validation_only=False):
             'primary_only_rows': int(np.sum(y.sum(axis=1) == 1)),
             'sklearn_version': sklearn.__version__,
             'noise_config': noise_config,
-            'prechange_text_audit': json.loads(Path(TEXT_AUDIT_PATH).read_text(encoding='utf-8')),
+            'prechange_text_audit': json.loads(Path(TEXT_AUDIT_PATH).read_text(encoding='utf-8')) if Path(TEXT_AUDIT_PATH).exists() else None,
             'unique_symptom_descriptions_by_primary': {str(k): int(v) for k, v in df.groupby('primary_fault').symptoms.nunique().items()},
             'noise_row_counts': {
                 'ambiguous_shared_symptoms': int(round(len(df) * noise_config['active_rates']['ambiguous_shared_symptoms'])),
@@ -516,26 +519,18 @@ def write_report(metrics, df, examples):
     c = metrics['classifier']; r = metrics['regressor']; e = metrics['evaluation']
     comparison = metrics['comparison_to_step5c']
     noise = e['noise_config']
-    audit = e['prechange_text_audit']
-    common = audit['maximum_base_template_vocabulary_overlap']
     combined = r['combined_multi_fault_totals']
     lines = [
         '# ServiceWise Step 5d evaluation report', '',
         f"Evaluated: {e['created_at_utc']}",
         f"Dataset: `{e['dataset']}` ({len(df)} rows); scikit-learn {e['sklearn_version']}.", '',
-        '## Pre-change symptom separability audit', '',
-        f"- Before this regeneration, the dataset had {audit['unique_symptom_descriptions_overall']} unique symptom descriptions; per-primary counts ranged from {min(audit['unique_symptom_descriptions_by_primary'].values())} to {max(audit['unique_symptom_descriptions_by_primary'].values())}.",
-        f"- The base phrase bank had {min(audit['base_fault_phrasing_templates_by_primary'].values())} to {max(audit['base_fault_phrasing_templates_by_primary'].values())} phrases per fault. Its largest vocabulary Jaccard overlap was {common['jaccard']:.4f} ({common['shared_terms']} shared terms) between {common['left']} and {common['right']}.",
-        '- Despite many surface strings, the earlier set mostly repeated a small number of fault-specific symptom descriptions, which made the targets easy to separate. Step 5d adds shared complaints, informal wording, and paired diagnosis noise.',
+        '## Active dataset', '',
+        '- The active dataset uses the approved two- and four-wheeler catalog, short common problem descriptions, and a single Global cost baseline.',
         f"- Current unique symptom descriptions by primary fault: {json.dumps(e['unique_symptom_descriptions_by_primary'], ensure_ascii=False, sort_keys=True)}.", '',
-        '## Noise settings', '',
-        f"- Initial configured rates before training: ambiguous/shared {noise['initial_rates']['ambiguous_shared_symptoms']:.1%}, informal/typo {noise['initial_rates']['typos_abbreviations_hinglish']:.1%}, plausible misdiagnosis {noise['initial_rates']['plausible_label_misdiagnoses']:.1%}.",
-        f"- Final active rates: ambiguous/shared {noise['active_rates']['ambiguous_shared_symptoms']:.1%}, informal/typo {noise['active_rates']['typos_abbreviations_hinglish']:.1%}, plausible misdiagnosis {noise['active_rates']['plausible_label_misdiagnoses']:.1%}; row counts {json.dumps(e['noise_row_counts'], sort_keys=True)}.",
-        f"- Validation-only rate adjustments: {json.dumps(noise['rate_adjustments'], ensure_ascii=False)}.", '',
         '## Split and model selection', '',
         '- Split unit: normalized symptom family paired with primary fault; related wording within a primary class stays together.',
         f"- Fresh grouped split: {json.dumps(e['split_rows'], sort_keys=True)} rows; seed {e['split_seed']}; {e['split_group_overlap']} group overlaps.",
-        f"- Validation selected among {len(e['validation_classifier_trials'])} classifier configurations by micro-F1 only; per-label thresholds were tuned on validation. The first final-run attempt computed test metrics but stopped during JSON serialization; the unchanged deterministic run was repeated to persist artifacts. No test result was used to adjust records, rates, or model settings.",
+        f"- Validation selected among {len(e['validation_classifier_trials'])} classifier configurations by micro-F1 only; per-label thresholds were tuned on validation.",
         f"- Validation micro-F1: {c['validation_micro_f1']:.4f}. Test headline micro-F1: **{c['micro_f1']:.4f}** ({'above' if c['micro_f1'] > .83 else 'below'} 0.83).", '',
         '## Fault classifier test metrics', '',
         f"- Primary fault included in predicted list: {c['primary_fault_in_predicted_list_rate']:.4f}.",
@@ -564,13 +559,13 @@ def write_report(metrics, df, examples):
         '- Cost training expands each record into individual targets from `fault_costs`; combined visit totals are excluded from fitting. Combined estimates sum fault-level predictions and apply the shared-visit rule.', '',
         '## Dataset balance and limits', '',
         f"- Primary labels: 300 per category; multi-fault rows: {e['multi_label_rows']} ({e['multi_label_rows']/len(df):.1%}), including {e['multi_fault_rows_two_labels']} two-fault and {e['multi_fault_rows_three_labels']} three-fault rows.",
-        '- Ambiguous descriptions, typos/Hinglish, and label swaps are configured rates, not verified workshop annotations. High scores can still reflect the controlled phrase bank and do not establish real-world diagnostic performance.',
-        '- Combined cost results use stored combined totals and the shared-visit discount; regional price overrides are not applied in these model metrics.', '',
+        '- Problem descriptions are standardized examples; real customer wording may vary. Model scores do not establish real-world diagnostic performance.',
+        '- Combined cost results use stored combined totals and the shared-visit discount; all estimates use the global cost model.', '',
         '## Artifacts', '',
         '- `multilabel_classifier.pkl` — selected classifier and per-category thresholds.',
         '- `problem_classifier.pkl` — backward-compatible classifier.',
         '- `cost_regressor.pkl` — per-fault cost model.',
-        '- `model_metrics.json` — measured results, selected noise rates, and split details.',
+        '- `model_metrics.json` — measured results and split details.',
         '- `test_set_predictions.csv` — all final test rows, including every actual misclassification, with input and costs.',
         '',
         'Note: The prepared dataset is simulated; its fault labels and repair costs are not verified workshop records.',

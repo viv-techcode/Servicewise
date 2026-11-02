@@ -9,8 +9,11 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Open+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="{{ url_for('static', filename='js/symptoms-bank.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/tear-calendar.js') }}"></script>
 </head>
 <body>
 
@@ -79,29 +82,27 @@
           <div class="form-row">
             <div class="form-group">
               <label for="vehicle_type">Vehicle Type</label>
-              <select id="vehicle_type" name="vehicle_type" required aria-required="true">
-                <option value="">Select type&hellip;</option>
-                <option value="bike">Two-Wheeler (Motorcycle / Scooter)</option>
-                <option value="car">Four-Wheeler (Car / Hatchback / SUV)</option>
-                <option value="cycle">Bicycle / Cycle (Road / MTB / Standard)</option>
-              </select>
+              <input id="vehicle_type" name="vehicle_type" type="hidden" required aria-required="true">
+              <div class="vehicle-type-options" role="group" aria-label="Vehicle type">
+                <button type="button" class="vehicle-type-card" data-vehicle-type="bike" aria-pressed="false">
+                  <img src="/static/images/two-wheeler.png" alt="Two-wheeler motorcycles and scooters">
+                  <span>Two-Wheeler</span>
+                  <small>Motorcycle or scooter</small>
+                </button>
+                <button type="button" class="vehicle-type-card" data-vehicle-type="car" aria-pressed="false">
+                  <img src="/static/images/four-wheeler.png" alt="Four-wheeler cars">
+                  <span>Four-Wheeler</span>
+                  <small>Car, hatchback or SUV</small>
+                </button>
+              </div>
             </div>
             <div class="form-group">
               <label for="vehicle_brand">Brand</label>
               <select id="vehicle_brand" name="vehicle_brand" required aria-required="true" disabled>
                 <option value="">Select brand&hellip;</option>
               </select>
+              <div id="brandOptions" class="brand-options" role="group" aria-label="Vehicle brand" hidden></div>
             </div>
-          </div>
-
-          <div class="form-group">
-            <label for="state">State / region (optional, improves price reference)</label>
-            <select id="state" name="state">
-              <option value="">Select state…</option>
-              <option>Uttar Pradesh</option><option>Delhi</option><option>Haryana</option><option>Punjab</option>
-              <option>Rajasthan</option><option>Uttarakhand</option><option>Himachal Pradesh</option>
-              <option>Jammu and Kashmir</option><option>Ladakh</option>
-            </select>
           </div>
 
           <div class="form-row">
@@ -110,10 +111,51 @@
               <select id="vehicle_model" name="vehicle_model" required aria-required="true" disabled>
                 <option value="">Select model&hellip;</option>
               </select>
+              <div id="modelOptions" class="model-options" role="group" aria-label="Vehicle model" hidden></div>
             </div>
             <div class="form-group">
-              <label for="vehicle_age">Vehicle Age (Years)</label>
-              <input id="vehicle_age" type="number" name="vehicle_age" min="0" max="30" placeholder="e.g. 3" required aria-required="true">
+              <div class="vehicle-age-heading">
+                <div>
+                  <label for="vehicle_age">Vehicle Age (Years)</label>
+                  <p class="vehicle-age-caption">Scroll over the page to turn one year at a time</p>
+                </div>
+                <span class="vehicle-age-limit mono">01—30</span>
+              </div>
+              <div class="vehicle-age-timeline" id="vehicleAgeTimeline" tabindex="0" aria-label="Interactive vehicle age calendar" role="application">
+                <div class="paper-stack" aria-hidden="true">
+                  <span class="calendar-label">JUNE</span>
+                  <svg class="calendar-spiral" viewBox="0 0 100 80" preserveAspectRatio="none">
+                    <path d="M52 73 C45 65 42 57 47 47 C52 37 66 40 70 29 C74 18 67 7 57 8 C49 9 44 17 47 24 C50 31 62 32 68 27"></path>
+                  </svg>
+                  <div class="paper-underlay" id="paperUnderlay"></div>
+                  <div class="paper-sheet" id="paperSheet">
+                    <svg class="tear-edge" viewBox="0 0 18 100" preserveAspectRatio="none">
+                      <defs>
+                        <clipPath id="tearClip">
+                          <path d="M10 0 C4 8 15 15 8 23 S14 38 7 47 S15 62 8 70 S14 86 6 100 L18 100 L18 0Z"></path>
+                        </clipPath>
+                      </defs>
+                      <path class="tear-shadow" d="M10 0 C4 8 15 15 8 23 S14 38 7 47 S15 62 8 70 S14 86 6 100"></path>
+                      <rect x="0" y="0" width="18" height="100" clip-path="url(#tearClip)" class="tear-fill"></rect>
+                    </svg>
+                    <div class="paper-content">
+                      <div class="paper-face paper-front">
+                        <span class="paper-year" id="vehicleAgeDisplay" aria-live="polite">1</span>
+                      </div>
+                      <div class="paper-face paper-back" aria-hidden="true">
+                        <span class="paper-hole"></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <span class="paper-scroll-hint">SCROLL TO TURN</span>
+              </div>
+              <div class="vehicle-age-controls" aria-label="Vehicle age navigation">
+                <button type="button" class="vehicle-age-arrow" id="vehicleAgePrev" aria-label="Previous year" disabled>←</button>
+                <span class="vehicle-age-status mono" id="vehicleAgeStatus">01 / 30</span>
+                <button type="button" class="vehicle-age-arrow" id="vehicleAgeNext" aria-label="Next year">→</button>
+              </div>
+              <input id="vehicle_age" type="number" name="vehicle_age" min="1" max="30" value="1" required aria-required="true" tabindex="-1">
             </div>
           </div>
 
@@ -179,7 +221,7 @@
               <button type="button" class="chip extra-chip" data-symptom="Battery dead vehicle horn weak self start silent" style="display:none;">
                 <i data-lucide="battery-warning" style="width:13px;height:13px;color:#fbbf24;"></i> Dead Battery
               </button>
-              <button type="button" class="chip extra-chip" data-symptom="Chain slipping off bicycle or motorcycle sprocket" style="display:none;">
+              <button type="button" class="chip extra-chip" data-symptom="Motorcycle chain loose or slipping off sprocket" style="display:none;">
                 <i data-lucide="link" style="width:13px;height:13px;color:#a78bfa;"></i> Loose Chain
               </button>
               <button type="button" class="chip extra-chip" data-symptom="Oil leaking from under engine leaves black stains" style="display:none;">
@@ -444,7 +486,7 @@
               <div style="color:var(--success);padding-top:2px;"><i data-lucide="trending-up" style="width:20px;height:20px;"></i></div>
               <div>
                 <strong style="font-size:0.9rem;display:block;">Random Forest Regressor (100 Trees)</strong>
-                <span style="font-size:0.8rem;color:var(--text-muted);">Encodes vehicle type, brand, odometer km, age, and predicted subsystem to compute regional repair brackets.</span>
+                <span style="font-size:0.8rem;color:var(--text-muted);">Uses vehicle type, brand, model, age, mileage, and predicted problem to estimate a global cost range.</span>
               </div>
             </div>
           </div>
@@ -474,14 +516,13 @@
             <h2 style="margin:0;">Quick Cost Estimator</h2>
           </div>
           <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:1.5rem;">
-            Instant average cost calculation for vehicle subsystems based on Indian regional benchmark data.
+            Instant average cost calculation for common vehicle problems using a global estimate.
           </p>
           <div class="form-group">
             <label for="est_type">Vehicle Type</label>
             <select id="est_type">
               <option value="bike">Two-Wheeler (Motorcycle / Scooter)</option>
-              <option value="car">Four-Wheeler (Car / SUV)</option>
-              <option value="cycle">Bicycle / Cycle (Road / MTB / Standard)</option>
+              <option value="car">Four-Wheeler (Car / Hatchback / SUV)</option>
             </select>
           </div>
           <div class="form-group">

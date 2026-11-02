@@ -16,6 +16,7 @@ from sklearn.metrics import f1_score, mean_absolute_error
 from backend import db
 from backend.ml import train_models as training
 from backend.ml.fault_text import prepare_classifier_text
+from backend.vehicles import is_supported_vehicle
 
 ML_DIR = Path(__file__).resolve().parent
 DATA_PATH = ML_DIR.parent / 'data' / 'service_records_balanced_3000.csv'
@@ -51,11 +52,13 @@ def load_approved_feedback(connection=None):
         except (TypeError, json.JSONDecodeError): per_cost = {}
         if not per_cost and row['actual_cost'] is not None:
             per_cost = {labels[0]: float(row['actual_cost'])}
+        if not is_supported_vehicle(details.get('vehicle_type'), details.get('vehicle_brand'), details.get('vehicle_model')):
+            continue
         result.append({**details, 'symptoms': row['symptoms'], 'primary_fault': labels[0],
             'problem_category': labels[0], 'simultaneous_faults': ';'.join(labels[1:]) or 'not_recorded',
             'fault_costs': json.dumps(per_cost), 'actual_repair_cost': per_cost.get(labels[0]),
             'total_repair_cost': float(row['actual_cost']) if row['actual_cost'] is not None else sum(per_cost.values()),
-            'state': row['state'] or details.get('state') or 'not_recorded',
+            'state': 'Global',
             'vehicle_age': details.get('vehicle_age', 0), 'km_driven': details.get('km_driven', 0),
             'vehicle_type': details.get('vehicle_type', 'car'), 'vehicle_brand': details.get('vehicle_brand', 'not_recorded'),
             'vehicle_model': details.get('vehicle_model', 'not_recorded'), '_feedback_id': row['id']})
@@ -128,7 +131,7 @@ def train_candidate(feedback_rows):
     df['problem_category'] = df['primary_fault'].fillna(df['problem_category'])
     df['actual_repair_cost'] = pd.to_numeric(df['actual_repair_cost'], errors='coerce')
     df['total_repair_cost'] = pd.to_numeric(df['total_repair_cost'], errors='coerce')
-    df['state'] = df['state'].fillna('not_recorded')
+    df['state'] = 'Global'
     _, test_idx = _fixed_benchmark(df)
     benchmark_ids = set(df.iloc[test_idx]['record_id'].astype(str))
     if any(str(row.get('record_id', '')) in benchmark_ids for row in feedback_rows):

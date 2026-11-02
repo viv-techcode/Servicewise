@@ -383,6 +383,152 @@ input:disabled, select:disabled {
   background: var(--bg-panel);
 }
 
+.vehicle-type-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.vehicle-type-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.45rem;
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.vehicle-type-card:hover,
+.vehicle-type-card:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.vehicle-type-card.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.vehicle-type-card img {
+  width: 100%;
+  height: 108px;
+  border-radius: calc(var(--radius-sm) - 2px);
+  object-fit: cover;
+}
+
+.vehicle-type-card span {
+  padding: 0.25rem 0.35rem 0;
+  font-weight: 650;
+}
+
+.vehicle-type-card small {
+  padding: 0 0.35rem 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+}
+
+.brand-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.brand-options[hidden] {
+  display: none;
+}
+
+.brand-card {
+  display: flex;
+  min-width: 0;
+  min-height: 124px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.3rem;
+  padding: 0.55rem;
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.brand-card:hover,
+.brand-card:focus-visible,
+.brand-card.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.brand-card img {
+  width: 100%;
+  height: 82px;
+  object-fit: contain;
+}
+
+.brand-card span {
+  font-weight: 650;
+}
+
+.model-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.model-options[hidden] {
+  display: none;
+}
+
+.model-card {
+  display: flex;
+  min-width: 0;
+  min-height: 148px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  padding: 0.55rem;
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.model-card:hover,
+.model-card:focus-visible,
+.model-card.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.model-card img {
+  width: 100%;
+  height: 108px;
+  border-radius: calc(var(--radius-sm) - 2px);
+  object-fit: cover;
+}
+
+.model-card span {
+  font-weight: 650;
+  text-align: center;
+}
+
 .btn-primary, .btn-secondary, .chip, .page-btn {
   font-family: var(--font-subheading);
   user-select: none;
@@ -1009,6 +1155,59 @@ body { background-image: none; }
 [data-theme="light"] .tab-btn.active { background: rgba(20,20,18,.06); }
 [data-theme="light"] .btn-primary { background: #30312c; color: #fff; }
 [data-theme="light"] .btn-primary:hover { background: #191a17; }
+
+/* Cartoon spiral vehicle age calendar */
+.vehicle-age-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; }
+.vehicle-age-caption { color:var(--text-muted); font-size:.72rem; margin:.35rem 0 0; }
+.vehicle-age-limit { color:var(--text-dim); font-size:.68rem; letter-spacing:.12em; padding-top:.15rem; }
+.vehicle-age-timeline { --paper-color:#fffdf5; --paper-ink:#22243c; position:relative; min-height:295px; margin-top:.7rem; padding:1.35rem 1rem 1rem; overflow:hidden; border:3px solid #252744; border-radius:18px; background-color:#5bc8ed; background-image:linear-gradient(30deg, rgba(255,255,255,.16) 12%, transparent 12.5%, transparent 87%, rgba(255,255,255,.16) 87.5%, rgba(255,255,255,.16)), linear-gradient(150deg, rgba(255,255,255,.16) 12%, transparent 12.5%, transparent 87%, rgba(255,255,255,.16) 87.5%, rgba(255,255,255,.16)); background-size:105px 182px; background-position:0 0, 0 0; cursor:ns-resize; touch-action:none; user-select:none; outline:none; }
+.vehicle-age-timeline::before, .vehicle-age-timeline::after { content:''; position:absolute; border-radius:50%; pointer-events:none; }
+.vehicle-age-timeline::before { width:130px; height:130px; top:-70px; right:-35px; background:#ff7b5c; }
+.vehicle-age-timeline::after { width:80px; height:80px; bottom:-35px; left:-24px; background:#4bc6c6; }
+.vehicle-age-timeline:focus-visible { box-shadow:0 0 0 4px #ff7b5c; }
+.paper-stack { position:relative; z-index:1; width:min(100%, 350px); height:235px; margin:0 auto 0 8%; border:3px solid #252744; border-radius:4px; background:#26485a; box-shadow:5px 6px 0 #252744; }
+.calendar-label { position:absolute; z-index:6; top:10px; left:22px; width:145px; padding:7px 4px 5px; border:2px solid #252744; background:#fff; color:#f59a0e; font:900 1.35rem/1 Georgia, serif; letter-spacing:.08em; text-align:center; box-shadow:2px 2px 0 rgba(37,39,68,.4); }
+.paper-stack::before { content:''; position:absolute; z-index:-1; inset:-10px auto 0 -48px; width:58px; border:3px solid #252744; border-right:0; border-radius:12px 0 0 8px; background:repeating-linear-gradient(90deg, #697276 0 4px, #3f4b51 4px 7px, #a5abad 7px 9px); box-shadow:-7px 5px 0 #252744; }
+.calendar-spiral { position:absolute; z-index:4; top:-27px; left:36%; width:90px; height:76px; overflow:visible; fill:none; stroke:#c99c39; stroke-width:8; stroke-linecap:round; stroke-linejoin:round; filter:drop-shadow(2px 3px 0 #252744); pointer-events:none; }
+.paper-underlay, .paper-sheet { position:absolute; inset:0 0 0 38px; border:3px solid #252744; border-radius:4px 4px 9px 9px; background:var(--paper-color); }
+.paper-underlay { transform:translate(-5px, 7px) rotate(-2deg); opacity:.92; box-shadow:4px 5px 0 #252744; }
+.paper-underlay::before, .paper-underlay::after { content:''; position:absolute; inset:3px; border:3px solid rgba(37,39,68,.75); border-top:0; transform:translate(-7px, 5px) rotate(-2deg); }
+.paper-underlay::after { transform:translate(-13px, 10px) rotate(-4deg); opacity:.55; }
+.paper-sheet { isolation:isolate; overflow:hidden; color:var(--paper-ink); transform-origin:0 50%; box-shadow:4px 5px 0 #252744; transition:background-color .45s ease, color .45s ease; }
+.paper-sheet::before { content:''; position:absolute; inset:0; opacity:calc(.08 + var(--age-ratio, 0) * .2); background-image:radial-gradient(#9b5b32 1px, transparent 1.5px), repeating-linear-gradient(12deg, transparent 0 18px, rgba(125,75,35,.18) 19px 21px, transparent 22px 39px); background-size:18px 18px, auto; mix-blend-mode:multiply; pointer-events:none; }
+.paper-sheet::after { content:''; position:absolute; right:12px; bottom:10px; width:70px; height:42px; border:4px solid currentColor; border-left:0; border-bottom:0; border-radius:50%; opacity:calc(.04 + var(--age-ratio, 0) * .3); transform:rotate(-18deg); pointer-events:none; }
+.paper-content { position:relative; z-index:1; display:block; height:100%; text-align:center; }
+.paper-face { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; backface-visibility:hidden; }
+.paper-back { background:var(--paper-back, #e2dacb); opacity:0; }
+.paper-back.is-visible { opacity:1; }
+.paper-hole { position:absolute; top:12px; left:46%; width:18px; height:10px; border:3px solid #2b2b2b; border-top:0; border-radius:0 0 50% 50%; background:var(--paper-back, #e2dacb); }
+.calendar-flight { position:absolute !important; inset:0 0 0 38px !important; transform-origin:100% 0%; will-change:transform, opacity; }
+.calendar-flight .paper-front { opacity:1; }
+.calendar-flight .paper-back { opacity:0; }
+.calendar-flight .paper-back.is-visible { opacity:1; }
+.calendar-flight .paper-year { transform:scaleY(1.03); }
+.paper-year { margin:0; font:900 clamp(6.5rem, 20vw, 11rem)/.8 var(--font-heading); letter-spacing:-.1em; color:#f39a08; text-shadow:4px 5px 0 #ff6d4d; }
+.tear-edge { position:absolute; z-index:2; top:0; bottom:0; left:-1px; width:24px; height:100%; overflow:visible; }
+.tear-shadow { fill:none; stroke:#252744; stroke-width:2; vector-effect:non-scaling-stroke; }
+.tear-fill { fill:var(--paper-color); }
+.paper-scroll-hint { display:block; margin-top:.9rem; color:#252744; text-align:center; font:800 .64rem/1 var(--font-mono); letter-spacing:.16em; }
+.vehicle-age-controls { display:flex; align-items:center; justify-content:center; gap:1.25rem; margin-top:.8rem; }
+.vehicle-age-arrow { width:42px; height:34px; border:3px solid #252744; border-radius:10px; background:#ff7b5c; color:#252744; cursor:pointer; font:900 1.2rem/1 var(--font-sans); box-shadow:3px 3px 0 #252744; transition:transform .15s ease, opacity .2s ease; }
+.vehicle-age-arrow:hover:not(:disabled) { transform:translate(-1px, -2px) rotate(-2deg); }
+.vehicle-age-arrow:active:not(:disabled) { transform:translate(2px, 2px); box-shadow:1px 1px 0 #252744; }
+.vehicle-age-arrow:disabled { cursor:not-allowed; opacity:.35; }
+.vehicle-age-status { min-width:72px; color:var(--text-primary); font-size:.72rem; text-align:center; }
+.mileage-group > #km_driven { position: absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
+.form-card .vehicle-age-timeline + .vehicle-age-controls + #vehicle_age { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+@media (max-width:480px) {
+  .vehicle-age-timeline { min-height:270px; padding-left:.55rem; padding-right:.55rem; }
+  .paper-stack { height:210px; margin-left:6%; }
+  .calendar-label { width:120px; font-size:1.05rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .paper-sheet { transition:none; }
+  .vehicle-age-arrow { transition:none; }
+}
 
 /* Mechanical odometer */
 .odometer-shell { background: #10110f; border: 1px solid rgba(255,255,255,.14); border-radius: 14px; padding: 1rem; box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 14px 30px rgba(0,0,0,.24); }

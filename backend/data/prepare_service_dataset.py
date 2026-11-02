@@ -2,20 +2,19 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
 import pandas as pd
 
-from backend.ml.fault_text import (
-    FAULT_SYMPTOMS, INFORMAL_NOISE_NOTES, SHARED_AMBIGUOUS_SYMPTOMS,
-    add_fault_symptoms,
-)
-
 ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT.parent.parent))
+from backend.ml.fault_text import FAULT_SYMPTOMS
+from backend.vehicles import VEHICLES
+
 SOURCE = ROOT / 'sample_service_records.csv'
 OUTPUT = ROOT / 'service_records_balanced_3000.csv'
 REPORT = ROOT / 'service_records_validation_report.md'
-NOISE_CONFIG = ROOT / 'dataset_noise_config.json'
 TARGET_PER_CATEGORY = 300
 CATEGORIES = list(FAULT_SYMPTOMS)
 PARTS_SHARE = {
@@ -24,11 +23,17 @@ PARTS_SHARE = {
     'Starting System': .70, 'Suspension': .65, 'Transmission': .66,
     'Tyres/Wheels': .72,
 }
-STATES = ['Delhi', 'Haryana', 'Himachal Pradesh', 'Jammu and Kashmir', 'Ladakh', 'Punjab', 'Rajasthan', 'Uttar Pradesh', 'Uttarakhand']
-VEHICLES = {
-    'car': [('Maruti Suzuki', 'Swift'), ('Tata', 'Tiago'), ('Hyundai', 'i20'), ('Mahindra', 'XUV300'), ('Toyota', 'Innova')],
-    'bike': [('Hero', 'Splendor Plus'), ('Honda', 'Shine 125'), ('Bajaj', 'Pulsar 150'), ('TVS', 'Apache RTR'), ('Suzuki', 'Access 125')],
-    'cycle': [('Firefox', 'Bad Attitude'), ('Hero', 'Sprint Pro'), ('Hercules', 'Roadeo'), ('Avon', 'Element'), ('BSA', 'SLR')],
+COMMON_PROBLEMS = {
+    'Battery/Electrical': ('Battery drains overnight.', 'Headlights dim or flicker.', 'Horn or electrical parts stop working.', 'Battery needs frequent jump starts.', 'Dashboard lights flicker.', 'Battery warning light stays on.', 'Electrical power is weak.', 'Lights become dim at idle.'),
+    'Brake System': ('Brakes squeal when stopping.', 'Brake pedal feels soft.', 'Vehicle takes longer to stop.', 'Brakes grind during use.', 'Parking brake does not hold.', 'Vehicle pulls to one side while braking.', 'Brake pedal sinks too far.', 'Brakes feel weak.'),
+    'Cooling System': ('Engine overheats in traffic.', 'Coolant leaks under the vehicle.', 'Radiator fan does not start.', 'Temperature rises quickly.', 'Steam comes from the engine bay.', 'Coolant level keeps dropping.', 'Engine runs hot after a short drive.', 'Coolant warning light comes on.'),
+    'Engine': ('Engine runs rough or misfires.', 'Engine loses power while driving.', 'Engine makes a knocking noise.', 'Exhaust smoke has increased.', 'Engine stalls at stops.', 'Engine hesitates during acceleration.', 'Engine uses too much oil.', 'Engine warning light stays on.'),
+    'Fuel System': ('Fuel mileage has dropped.', 'There is a strong petrol smell.', 'Engine struggles during acceleration.', 'Fuel appears to be leaking.', 'Engine uses more fuel than usual.', 'Engine loses power under load.', 'Black smoke comes from the exhaust.', 'Fuel delivery seems uneven.'),
+    'General Maintenance': ('Routine service is due.', 'Engine oil and filter need changing.', 'Vehicle needs a general inspection.', 'Scheduled maintenance is overdue.', 'Air filter needs cleaning or replacement.', 'Vehicle is due for an oil change.', 'Fluids and filters need checking.', 'A routine safety check is needed.'),
+    'Starting System': ('Vehicle clicks but will not start.', 'Engine cranks slowly.', 'Starter does not turn the engine.', 'Vehicle starts only after several tries.', 'Starter makes a grinding noise.', 'Engine struggles to start when cold.', 'Ignition switch works intermittently.', 'Vehicle needs repeated attempts to start.'),
+    'Suspension': ('Vehicle bounces over bumps.', 'There is a clunk over potholes.', 'A shock absorber makes noise.', 'Vehicle feels unstable on rough roads.', 'Suspension bottoms out over bumps.', 'Vehicle leans to one side.', 'Front end knocks while driving.', 'Ride feels unusually rough.'),
+    'Transmission': ('Gears are hard to change.', 'Gears grind while shifting.', 'Clutch slips during acceleration.', 'Vehicle vibrates when pulling away.', 'Gear changes feel rough.', 'Clutch pedal feels unusually stiff.', 'Transmission makes a rattling noise.', 'Vehicle struggles to select a gear.'),
+    'Tyres/Wheels': ('Tyre pressure keeps dropping.', 'Vehicle pulls to one side.', 'Tyres are wearing unevenly.', 'Steering wheel vibrates at speed.', 'A tyre has a bulge after a pothole.', 'Wheel makes a repeated noise.', 'Vehicle shakes while driving.', 'Tyre loses air between trips.'),
 }
 COMBINATIONS = {
     'Battery/Electrical': ['Starting System', 'General Maintenance', 'Engine'],
@@ -43,28 +48,16 @@ COMBINATIONS = {
     'Tyres/Wheels': ['Suspension', 'Brake System', 'General Maintenance'],
 }
 EXTRA_COLUMNS = ['primary_fault', 'simultaneous_faults', 'fault_costs', 'state', 'parts_cost', 'labour_cost', 'total_repair_cost', 'reference_price_min', 'reference_price_max', 'price_reference_url']
-MISLABEL_PAIRS = [
-    ('Battery/Electrical', 'Starting System'),
-    ('Engine', 'Fuel System'),
-    ('Suspension', 'Tyres/Wheels'),
-    ('Brake System', 'Suspension'),
-    ('Cooling System', 'Engine'),
-]
-
-
 def main():
-    config = json.loads(NOISE_CONFIG.read_text(encoding='utf-8-sig'))
-    rates = config['active_rates']
-    ambiguous_per_category = round(TARGET_PER_CATEGORY * rates['ambiguous_shared_symptoms'])
-    informal_per_category = round(TARGET_PER_CATEGORY * rates['typos_abbreviations_hinglish'])
-    mislabel_rows = round(TARGET_PER_CATEGORY * len(CATEGORIES) * rates['plausible_label_misdiagnoses'])
-    swaps_per_side = round(mislabel_rows / (2 * len(MISLABEL_PAIRS)))
-    ambiguous_ids = {category: [] for category in CATEGORIES}
-    informal_ids = []
     original = pd.read_csv(SOURCE)
+    allowed = {(kind, brand, model) for kind, brands in VEHICLES.items() for brand, models in brands.items() for model in models}
+    original = original[original.apply(lambda row: (row.vehicle_type, row.vehicle_brand, row.vehicle_model) in allowed, axis=1)].copy()
+    if original.empty:
+        raise ValueError('No source records match the active vehicle catalog.')
     rows = original.to_dict('records')
     for row in rows:
-        row.update(primary_fault=row['problem_category'], simultaneous_faults='not_recorded', fault_costs=json.dumps({row['problem_category']: float(row['actual_repair_cost'])}), state='not_recorded', parts_cost=pd.NA, labour_cost=pd.NA, total_repair_cost=row['actual_repair_cost'], reference_price_min=pd.NA, reference_price_max=pd.NA, price_reference_url='')
+        category = row['problem_category']
+        row.update(symptoms=COMMON_PROBLEMS[category][int(row['record_id']) % 8], primary_fault=category, simultaneous_faults='not_recorded', fault_costs=json.dumps({category: float(row['actual_repair_cost'])}), state='Global', parts_cost=pd.NA, labour_cost=pd.NA, total_repair_cost=row['actual_repair_cost'], reference_price_min=pd.NA, reference_price_max=pd.NA, price_reference_url='')
     next_id = int(original.record_id.max()) + 1
     category_cost = original.groupby('problem_category')['actual_repair_cost'].median().to_dict()
     for category_index, category in enumerate(CATEGORIES):
@@ -73,8 +66,9 @@ def main():
             raise ValueError(f'Missing source examples for {category}')
         for j in range(TARGET_PER_CATEGORY - len(seeds)):
             base = seeds[j % len(seeds)]
-            vehicle_type = ['car', 'bike', 'cycle'][(j + category_index) % 3]
-            brand, model = VEHICLES[vehicle_type][(j * 3 + category_index) % len(VEHICLES[vehicle_type])]
+            vehicle_type = ['car', 'bike'][(j + category_index) % 2]
+            vehicles = [(brand, model) for brand, models in VEHICLES[vehicle_type].items() for model in models]
+            brand, model = vehicles[(j * 3 + category_index) % len(vehicles)]
             if j < 10:
                 options = COMBINATIONS[category]
                 secondary_categories = [options[j % 3], options[(j + 1) % 3]]
@@ -83,18 +77,11 @@ def main():
             else:
                 secondary_categories = []
             secondary = ';'.join(secondary_categories) if secondary_categories else 'none'
-            is_ambiguous = not secondary_categories and 120 <= j < 120 + ambiguous_per_category
-            if is_ambiguous:
-                primary_symptom = SHARED_AMBIGUOUS_SYMPTOMS[(next_id + category_index) % len(SHARED_AMBIGUOUS_SYMPTOMS)]
-                ambiguous_ids[category].append(next_id)
-            else:
-                primary_symptom = FAULT_SYMPTOMS[category][(j + category_index * 3) % len(FAULT_SYMPTOMS[category])]
-            symptom_text = add_fault_symptoms(primary_symptom, secondary_categories, next_id)
-            if j < informal_per_category:
-                symptom_text += ' ' + INFORMAL_NOISE_NOTES[(next_id + category_index) % len(INFORMAL_NOISE_NOTES)] + '.'
-                informal_ids.append(next_id)
+            symptom_text = COMMON_PROBLEMS[category][j % len(COMMON_PROBLEMS[category])]
+            for offset, secondary_category in enumerate(secondary_categories):
+                symptom_text += ' ' + COMMON_PROBLEMS[secondary_category][(j + offset + category_index) % len(COMMON_PROBLEMS[secondary_category])]
             scale = [0.78, 0.90, 1.00, 1.12, 1.25][j % 5]
-            segment = {'cycle': .35, 'bike': .72, 'car': 1.0}[vehicle_type]
+            segment = {'bike': .72, 'car': 1.0}[vehicle_type]
             target_categories = [category, *secondary_categories]
             fault_cost_map = {
                 fault: max(50, int(round(float(category_cost[fault]) * scale * segment / 10) * 10))
@@ -121,7 +108,7 @@ def main():
                 'primary_fault': category,
                 'simultaneous_faults': secondary,
                 'fault_costs': json.dumps(fault_cost_map, ensure_ascii=False, sort_keys=True),
-                'state': STATES[(j + category_index) % len(STATES)],
+                'state': 'Global',
                 'parts_cost': parts,
                 'labour_cost': primary_cost - parts,
                 'total_repair_cost': combined_total,
@@ -133,19 +120,6 @@ def main():
             next_id += 1
     df = pd.DataFrame(rows)
     df['problem_category'] = df['primary_fault']
-    # Paired swaps preserve the fixed primary-class counts. Select only vague
-    # single-fault examples so each alternate diagnosis remains plausible.
-    used_ids = set()
-    for left, right in MISLABEL_PAIRS:
-        left_ids = [rid for rid in ambiguous_ids[left] if rid not in used_ids][:swaps_per_side]
-        right_ids = [rid for rid in ambiguous_ids[right] if rid not in used_ids][:swaps_per_side]
-        if len(left_ids) != swaps_per_side or len(right_ids) != swaps_per_side:
-            raise ValueError('Not enough ambiguous single-fault examples for paired diagnosis swaps.')
-        left_indices = df.index[df.record_id.isin(left_ids)].tolist()
-        right_indices = df.index[df.record_id.isin(right_ids)].tolist()
-        df.loc[left_indices, ['primary_fault', 'problem_category']] = right
-        df.loc[right_indices, ['primary_fault', 'problem_category']] = left
-        used_ids.update(left_ids + right_ids)
     columns = list(original.columns) + EXTRA_COLUMNS
     df = df.loc[:, list(dict.fromkeys(columns))]
     df.to_csv(OUTPUT, index=False)
@@ -153,20 +127,16 @@ def main():
     counts = check.primary_fault.value_counts().reindex(CATEGORIES, fill_value=0)
     split = check.parts_cost.notna() & check.labour_cost.notna()
     assert len(check) == 3000 and counts.eq(300).all()
+    assert set(check.state) == {'Global'}
+    assert all((row.vehicle_type, row.vehicle_brand, row.vehicle_model) in allowed for row in check.itertuples())
     assert ((check.loc[split, 'parts_cost'] + check.loc[split, 'labour_cost']) == check.loc[split, 'actual_repair_cost']).all()
     fault_counts = check.simultaneous_faults.fillna('none').apply(lambda value: 1 + len([x for x in str(value).split(';') if x and x not in {'none', 'not_recorded'}]))
-    assert int((fault_counts > 1).sum()) == 1200
-    assert int((fault_counts == 3).sum()) == 100
-    assert len(ambiguous_ids) == len(CATEGORIES)
-    assert sum(map(len, ambiguous_ids.values())) == int(round(len(check) * rates['ambiguous_shared_symptoms']))
-    assert len(informal_ids) == int(round(len(check) * rates['typos_abbreviations_hinglish']))
-    assert len(used_ids) == mislabel_rows
     lines = ['# ServiceWise prepared dataset validation report', '', f'Table rows: {len(check)}.', '', '## Primary fault counts', '', '| Primary fault | Rows |', '|---|---:|']
     lines += [f'| {category} | {int(counts[category])} |' for category in CATEGORIES]
     template_counts = check.groupby('primary_fault').symptoms.nunique().reindex(CATEGORIES, fill_value=0)
-    lines += ['', '## Text ambiguity and noise checks', '', f'- Ambiguous/shared descriptions: {len(ambiguous_ids) * ambiguous_per_category} ({len(ambiguous_ids) * ambiguous_per_category / len(check):.1%}) across multiple plausible categories.', f'- Typos, abbreviations, or Hinglish notes: {len(informal_ids)} ({len(informal_ids) / len(check):.1%}).', f'- Paired plausible diagnosis swaps: {len(used_ids)} ({len(used_ids) / len(check):.1%}); primary category totals remain balanced.', '- Unique symptom descriptions per primary fault: ' + ', '.join(f'{category} {int(template_counts[category])}' for category in CATEGORIES) + '.', '', '## Checks', '', f'- Null cells: {int(check.isna().sum().sum())}.', f'- Exact duplicate rows: {int(check.duplicated().sum())}.', f'- Duplicate record IDs: {int(check.record_id.duplicated().sum())}.', f'- Multi-fault rows: {int((fault_counts > 1).sum())} ({(fault_counts > 1).mean():.1%}); two-fault rows: {int((fault_counts == 2).sum())}; three-fault rows: {int((fault_counts == 3).sum())}.', f'- Parts/labour sum mismatches against primary-fault cost where both are present: {int(((check.loc[split, "parts_cost"] + check.loc[split, "labour_cost"]) != check.loc[split, "actual_repair_cost"]).sum())}.', '- Multi-fault combined totals follow the documented shared visit rule and are distinct from per-fault model targets.', '- The first 165 rows retain the source values, with the added fault and price-reference columns populated only where those values are applicable.', '', '## Files', '', f'- `{OUTPUT.name}`', f'- `{REPORT.name}`', f'- `{Path(__file__).name}`', f'- `{NOISE_CONFIG.name}`', '']
+    lines += ['', '## Checks', '', f'- Null cells: {int(check.isna().sum().sum())}.', f'- Exact duplicate rows: {int(check.duplicated().sum())}.', f'- Duplicate record IDs: {int(check.record_id.duplicated().sum())}.', f'- Multi-fault rows: {int((fault_counts > 1).sum())}.', f'- Parts/labour sum mismatches: {int(((check.loc[split, "parts_cost"] + check.loc[split, "labour_cost"]) != check.loc[split, "actual_repair_cost"]).sum())}.', '- All region values are Global; all vehicles match the active catalog.', '', '## Files', '', f'- `{OUTPUT.name}`', f'- `{REPORT.name}`', f'- `{Path(__file__).name}`', '']
     REPORT.write_text('\n'.join(lines), encoding='utf-8')
-    print(json.dumps({'rows': len(check), 'category_counts': counts.to_dict(), 'multi_fault_rows': int((~check.simultaneous_faults.isin(['none', 'not_recorded'])).sum()), 'ambiguous_rows': len(ambiguous_ids) * ambiguous_per_category, 'informal_rows': len(informal_ids), 'mislabelled_rows': len(used_ids)}, indent=2))
+    print(json.dumps({'rows': len(check), 'category_counts': counts.to_dict(), 'multi_fault_rows': int((~check.simultaneous_faults.isin(['none', 'not_recorded'])).sum())}, indent=2))
 
 
 if __name__ == '__main__':

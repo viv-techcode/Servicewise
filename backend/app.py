@@ -7,6 +7,7 @@ from flask import Flask, render_template, request, jsonify, session
 from backend.ml.predictor import Predictor
 from backend.ml.train_models import CATEGORIES
 import backend.db as db
+from backend.vehicles import is_supported_vehicle
 
 template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend', 'templates'))
 static_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend', 'static'))
@@ -48,7 +49,7 @@ def validate_predict_input(data):
 
     errors = []
     vehicle_type = str(data.get('vehicle_type', '')).strip().lower()
-    if vehicle_type not in ('bike', 'car', 'cycle'):
+    if vehicle_type not in ('bike', 'car'):
         errors.append("vehicle_type must be 'bike' or 'car'.")
 
     vehicle_brand = str(data.get('vehicle_brand', '')).strip()[:50]
@@ -58,6 +59,8 @@ def validate_predict_input(data):
     vehicle_model = str(data.get('vehicle_model', '')).strip()[:50]
     if not vehicle_model:
         errors.append("vehicle_model is required.")
+    elif not is_supported_vehicle(vehicle_type, vehicle_brand, vehicle_model):
+        errors.append('vehicle brand and model are not supported.')
 
     try:
         vehicle_age = int(data.get('vehicle_age', -1))
@@ -79,11 +82,6 @@ def validate_predict_input(data):
     if len(symptoms) < 5:
         errors.append("symptoms must be at least 5 characters.")
 
-    supported_states = ('Uttar Pradesh', 'Delhi', 'Haryana', 'Punjab', 'Rajasthan', 'Uttarakhand', 'Himachal Pradesh', 'Jammu and Kashmir', 'Ladakh')
-    state = str(data.get('state', '')).strip()
-    if state and state not in supported_states:
-        errors.append("state must be a supported North Indian state or blank.")
-
     if errors:
         return None, " | ".join(errors)
 
@@ -94,7 +92,7 @@ def validate_predict_input(data):
         'vehicle_age': vehicle_age,
         'km_driven': km_driven,
         'symptoms': symptoms,
-        'state': state or None
+        'state': 'Global'
     }, None
 
 @app.errorhandler(404)
@@ -270,8 +268,7 @@ def validate_feedback_input(data):
     actual_cost = data.get('actual_total_cost', data.get('actual_cost'))
     corrected = data.get('corrected_faults')
     actual_fault_costs = data.get('actual_fault_costs', {})
-    state = data.get('state')
-    supported_states = ('Uttar Pradesh', 'Delhi', 'Haryana', 'Punjab', 'Rajasthan', 'Uttarakhand', 'Himachal Pradesh', 'Jammu and Kashmir', 'Ladakh')
+    state = 'Global'
     try: record_id = int(record_id)
     except (ValueError, TypeError): return None, 'record_id must be a positive integer.'
     if record_id <= 0: return None, 'record_id must be a positive integer.'
@@ -295,13 +292,11 @@ def validate_feedback_input(data):
         return None, 'Per-fault costs must be non-negative numbers.'
     if clean_fault_costs and corrected is not None and set(clean_fault_costs) - set(corrected):
         return None, 'Per-fault costs may only refer to corrected faults.'
-    if state is not None and state != '' and state not in supported_states:
-        return None, 'state must be a supported North Indian state or blank.'
     details = data.get('vehicle_details', {})
     if details is not None and not isinstance(details, dict): return None, 'vehicle_details must be an object.'
     comments = str(data.get('comments', '')).strip()[:500]
     return {'record_id': record_id, 'rating': rating, 'actual_cost': actual_cost, 'corrected_faults': corrected,
-            'actual_fault_costs': clean_fault_costs, 'state': state or None, 'vehicle_details': details or {}, 'comments': comments}, None
+            'actual_fault_costs': clean_fault_costs, 'state': state, 'vehicle_details': details or {}, 'comments': comments}, None
 
 @app.route('/api/feedback', methods=['POST'])
 def submit_feedback():

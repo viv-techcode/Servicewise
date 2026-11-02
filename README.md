@@ -74,9 +74,22 @@ If these variables are not set, the application uses the defaults shown above.
 
 ## How to use
 
+### Tear-off calendar
+
+The vehicle-age control is implemented by `frontend/static/js/tear-calendar.js`.
+It is a vanilla `TearCalendar` component driven by the existing GSAP CDN
+scripts, so no frontend build step or package install is required. The current
+page wires it to the vehicle age input with scroll, touch, and arrow controls.
+
+To reuse it, instantiate `new TearCalendar(element, options)` with
+`trigger: 'load'`, `'click'`, or `'scroll'`, then use `play()`, `pause()`, and
+`reset()` on the returned instance. Adjust `speedUpFactor`, `daysToTear`,
+`loop`, and `whipPanAtEnd` in the options. Timing and palette constants are
+listed at the top of `tear-calendar.js`.
+
 ### Diagnose a vehicle
 
-1. Open the application and provide the vehicle type, brand, model, age, kilometres driven, state, and symptoms.
+1. Open the application and provide the vehicle type, brand, model, age, kilometres driven, and symptoms. Cost estimates use a global baseline.
 2. Submit the diagnosis form.
 3. Review the predicted fault categories, urgency, and estimated repair-cost range.
 4. The diagnosis is saved and can be viewed in the records area.

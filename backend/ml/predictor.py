@@ -1,7 +1,6 @@
 import os
 import joblib
 import pandas as pd
-import re
 from backend.ml.fault_text import prepare_classifier_text
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -27,8 +26,6 @@ class Predictor:
                 self.model_version = 'baseline-step5d'
         else:
             self.model_version = (self.multilabel or {}).get('model_version', 'baseline-step5d')
-        reference_path = os.path.join(BASE_DIR, '..', 'data', 'north_india_repair_price_reference.csv')
-        self.price_reference = pd.read_csv(reference_path) if os.path.exists(reference_path) else pd.DataFrame()
 
     def refresh_if_model_changed(self):
         version_path = os.path.join(BASE_DIR, 'active_model_version.json')
@@ -42,43 +39,6 @@ class Predictor:
             return
         if active_version != self.model_version:
             self._load_models()
-
-    def _regional_price(self, category, input_data):
-        state = input_data.get('state')
-        symptoms = str(input_data.get('symptoms', '')).lower()
-        if not state or self.price_reference.empty:
-            return None
-        # Match only published complete ranges with an explicit state and
-        # vehicle class. Starting prices and national/unlocated evidence are
-        # excluded because they cannot support a defensible bounded estimate.
-        rows = self.price_reference[
-            (self.price_reference['fault_category'] == category) &
-            (self.price_reference['state'] == state) &
-            (self.price_reference['vehicle_type'] == input_data.get('vehicle_type')) &
-            (self.price_reference['availability'] == 'priced') &
-            self.price_reference['price_min'].notna() &
-            self.price_reference['price_max'].notna()
-        ]
-        for _, ref in rows.iterrows():
-            job = str(ref['repair_or_part']).lower()
-            details = str(ref.get('vehicle_details', '')).lower()
-            if 'above-180cc' in details and input_data.get('vehicle_type') == 'bike':
-                cc = re.search(r'\b(\d{3,4})\b', str(input_data.get('vehicle_model', '')))
-                if not cc or int(cc.group(1)) <= 180:
-                    continue
-            terms = [term for term in ('brake', 'battery', 'service') if term in job]
-            if terms and not any(term in symptoms for term in terms):
-                continue
-            if not terms:
-                continue
-            return {
-                'minimum': int(ref['price_min']),
-                'maximum': int(ref['price_max']),
-                'source': str(ref['source_url']),
-                'basis': str(ref['price_basis']),
-                'location': str(ref['state_or_city']),
-            }
-        return None
 
     def predict(self, input_data):
         self.refresh_if_model_changed()
@@ -113,23 +73,18 @@ class Predictor:
             category = fault['category']
             features_df = pd.DataFrame([input_data])
             features_df['problem_category'] = category
-            features_df['state'] = features_df.get('state', pd.Series([None])).fillna('not_recorded').replace('', 'not_recorded')
             expected_features = list(getattr(self.regressor, 'feature_names_in_', ['vehicle_type', 'vehicle_brand', 'vehicle_age', 'km_driven', 'problem_category']))
             features_df = features_df.reindex(columns=expected_features)
-            regional_price = self._regional_price(category, input_data)
-            if regional_price:
-                minimum, maximum = regional_price['minimum'], regional_price['maximum']
-            else:
-                cost_point = float(self.regressor.predict(features_df)[0])
-                minimum = max(0, int(cost_point * 0.8))
-                maximum = max(minimum, int(cost_point * 1.2))
+            cost_point = float(self.regressor.predict(features_df)[0])
+            minimum = max(0, int(cost_point * 0.8))
+            maximum = max(minimum, int(cost_point * 1.2))
             fault_costs.append({
                 'category': category,
                 'confidence': fault['confidence'],
                 'estimated_cost_min': minimum,
                 'estimated_cost_max': maximum,
-                'estimate_source': 'regional_reference' if regional_price else 'cost_model',
-                'price_reference': regional_price,
+                'estimate_source': 'global_cost_model',
+                'price_reference': None,
             })
 
         base_minimum = sum(item['estimated_cost_min'] for item in fault_costs)
@@ -162,7 +117,7 @@ class Predictor:
             "combined_estimated_cost_max": total_maximum,
             "fault_cost_breakdown": fault_costs,
             "shared_visit_discount": shared_visit_discount,
-            "cost_estimate_basis": "per-fault regional references where matched, otherwise cost model",
+            "cost_estimate_basis": "global cost model",
             "price_reference": primary_reference,
             "urgency": urgency,
             "recommendation": "Professional mechanical inspection recommended."

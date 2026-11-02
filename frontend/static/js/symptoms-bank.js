@@ -6,12 +6,10 @@ const commonSymptomsBank = [
     { label: "Vehicle pulling to left or right uneven tyre tread wear", icon: "compass", category: "Tyres/Wheels", price: "₹350 – ₹900", keywords: ["alignment", "pulling", "balancing", "wobble", "tread", "tyre"] },
     { label: "Steering wheel vibrating heavily at speeds above 60 km/h", icon: "radio", category: "Tyres/Wheels", price: "₹400 – ₹1,200", keywords: ["wobble", "vibration", "wheel balancing", "rim", "bent rim"] },
     { label: "Tyre sidewall bulge or bubble after hitting a pothole", icon: "alert-circle", category: "Tyres/Wheels", price: "₹1,800 – ₹4,500", keywords: ["bulge", "tyre cut", "sidewall", "pothole", "damage"] },
-    { label: "Bicycle tyre valve leaking air won't hold pressure", icon: "disc", category: "Tyres/Wheels", price: "₹30 – ₹120", keywords: ["cycle valve", "presta", "schrader", "cycle tyre", "tube"] },
     { label: "Tyre screeching sound during normal low-speed turns", icon: "volume-2", category: "Tyres/Wheels", price: "₹150 – ₹400", keywords: ["tyre noise", "screeching", "turn noise", "underinflation"] },
-    { label: "Wheel rim bent or cracked causing air leak and wobble", icon: "alert-triangle", category: "Tyres/Wheels", price: "₹500 – ₹2,200", keywords: ["bent rim", "alloy damage", "wheel bend", "cycle rim"] },
+    { label: "Wheel rim bent or cracked causing air leak and wobble", icon: "alert-triangle", category: "Tyres/Wheels", price: "₹500 – ₹2,200", keywords: ["bent rim", "alloy damage", "wheel bend"] },
     { label: "Rear tyre slipping on wet roads loss of grip", icon: "shield-alert", category: "Tyres/Wheels", price: "₹1,200 – ₹3,800", keywords: ["bald tyre", "worn tread", "slipping", "skid", "traction"] },
     { label: "Loose wheel nuts clicking sound from tyre while rolling", icon: "tool", category: "Tyres/Wheels", price: "₹100 – ₹300", keywords: ["lug nut", "wheel bolts", "loose wheel", "rattle"] },
-    { label: "Cycle spokes broken wheel rubbing against frame", icon: "settings", category: "Tyres/Wheels", price: "₹80 – ₹250", keywords: ["cycle spoke", "wheel trueing", "spoke loose", "cycle wheel"] },
     { label: "Spare tyre flat in boot/stepney valve damaged", icon: "archive", category: "Tyres/Wheels", price: "₹100 – ₹250", keywords: ["stepney", "spare tyre", "flat spare"] },
 
     // 2. Lights & Electrical (12 symptoms)
@@ -38,14 +36,12 @@ const commonSymptomsBank = [
     { label: "Ignition key switch loose or ignition barrel not turning", icon: "key-round", category: "Starting System", price: "₹350 – ₹1,200", keywords: ["ignition switch", "key jam", "barrel", "lock"] },
     { label: "Car push start button not responding key not detected", icon: "radio-receiver", category: "Starting System", price: "₹500 – ₹2,000", keywords: ["push start", "smart key", "keyless entry", "start button"] },
     { label: "Starter motor grinding screech sound after engine fires", icon: "activity", category: "Starting System", price: "₹750 – ₹2,500", keywords: ["starter motor", "bendix", "starter teeth", "grind"] },
-    { label: "Electric cycle / e-bike motor not engaging on throttle", icon: "battery-charging", category: "Starting System", price: "₹600 – ₹2,800", keywords: ["ebike motor", "electric cycle", "throttle", "bldc"] },
 
     // 4. Brakes & Stopping (10 symptoms)
     { label: "Brakes screeching loud metallic grinding noise when stopping", icon: "disc", category: "Brake System", price: "₹450 – ₹1,600", keywords: ["brake screech", "brake noise", "squeal", "grind", "brake pads"] },
     { label: "Brake pedal going deep down spongy feel without stopping power", icon: "arrow-down-circle", category: "Brake System", price: "₹350 – ₹1,200", keywords: ["spongy brake", "pedal sink", "brake fluid", "air in brake"] },
     { label: "Disc brake lever vibrating or pulsing violently while braking", icon: "radio", category: "Brake System", price: "₹800 – ₹3,200", keywords: ["brake pulsation", "warped rotor", "disc wobble", "abs shudder"] },
     { label: "Handbrake / parking brake not holding car on slope incline", icon: "anchor", category: "Brake System", price: "₹300 – ₹850", keywords: ["handbrake", "parking brake", "cable loose", "brake shoe"] },
-    { label: "Cycle brake rubber pads worn out rubbing on metal rim", icon: "slash", category: "Brake System", price: "₹60 – ₹180", keywords: ["cycle brake", "rubber shoe", "caliper brake", "brake wire"] },
     { label: "Brake fluid reservoir leaking fluid under master cylinder", icon: "droplet", category: "Brake System", price: "₹500 – ₹1,800", keywords: ["brake fluid leak", "master cylinder", "brake oil", "dot 4"] },
     { label: "Brake calipers sticking causing wheel to heat up and smell", icon: "flame", category: "Brake System", price: "₹600 – ₹2,200", keywords: ["brake jam", "caliper stick", "brake drag", "hot wheel"] },
     { label: "ABS warning indicator light permanently on dashboard", icon: "alert-triangle", category: "Brake System", price: "₹850 – ₹3,500", keywords: ["abs light", "abs sensor", "antilock"] },
@@ -78,23 +74,20 @@ const commonSymptomsBank = [
 
     // 7. Transmission & Gearbox (10 symptoms)
     { label: "Gears slipping and grinding noise when shifting gears", icon: "settings-2", category: "Transmission", price: "₹1,800 – ₹6,500", keywords: ["gear slipping", "gearbox", "gear grind", "hard shift"] },
-    { label: "Bicycle or motorcycle chain loose and slipping off teeth", icon: "link", category: "Transmission", price: "₹120 – ₹850", keywords: ["chain slip", "loose chain", "cycle chain", "sprocket", "chain drop"] },
     { label: "Clutch plate slipping engine revs high but vehicle speed slow", icon: "sliders", category: "Transmission", price: "₹1,200 – ₹5,800", keywords: ["clutch slip", "clutch plate", "rpm high no speed", "pressure plate"] },
     { label: "Clutch lever or pedal extremely hard and stiff to press", icon: "hand-metal", category: "Transmission", price: "₹150 – ₹650", keywords: ["hard clutch", "clutch wire", "clutch cable", "stiff clutch"] },
     { label: "Automatic gearbox (CVT/AMT/DCT) jerking on gear changes", icon: "cpu", category: "Transmission", price: "₹2,500 – ₹9,500", keywords: ["automatic jerk", "amt gearbox", "cvt jerk", "gear lag"] },
     { label: "Gear lever shaking violently in neutral or drive gear", icon: "vibrate", category: "Transmission", price: "₹400 – ₹1,400", keywords: ["gear lever shake", "gear linkage", "bush worn"] },
-    { label: "Chain making dry squeaking noise needs lubrication", icon: "droplet", category: "Transmission", price: "₹80 – ₹250", keywords: ["chain lube", "dry chain", "chain noise", "cycle oil"] },
+    { label: "Chain making dry squeaking noise needs lubrication", icon: "droplet", category: "Transmission", price: "₹80 – ₹250", keywords: ["chain lube", "dry chain", "chain noise"] },
     { label: "Scooter drive belt variator rollers worn out vibrating on acceleration", icon: "circle", category: "Transmission", price: "₹850 – ₹2,200", keywords: ["activa belt", "scooter belt", "variator", "clutch shoe"] },
     { label: "Gear shift lever not returning to original center position", icon: "arrow-left-right", category: "Transmission", price: "₹300 – ₹850", keywords: ["gear spring", "selector fork", "shift stuck"] },
-    { label: "Cycle freewheel gear spinning freely in both directions", icon: "rotate-ccw", category: "Transmission", price: "₹150 – ₹450", keywords: ["freewheel", "pedal spin", "cycle cassette", "hub ratchet"] },
 
     // 8. Suspension & Steering (10 symptoms)
     { label: "Front suspension fork leaking oil and bottoming out", icon: "arrow-down", category: "Suspension", price: "₹650 – ₹2,400", keywords: ["fork oil", "fork seal", "front suspension", "fork leak"] },
     { label: "Rear shock absorber squeaking and bouncing over potholes", icon: "activity", category: "Suspension", price: "₹900 – ₹3,800", keywords: ["shock absorber", "suspension thud", "bouncing", "rear shocks"] },
     { label: "Steering feeling very heavy hard to turn power steering loss", icon: "navigation", category: "Suspension", price: "₹800 – ₹3,500", keywords: ["heavy steering", "power steering", "steering oil", "hard turn"] },
     { label: "Clunking or rattling sound from front wheels over rough roads", icon: "volume-2", category: "Suspension", price: "₹600 – ₹2,800", keywords: ["link rod", "bush worn", "lower arm", "ball joint"] },
-    { label: "Handlebars misaligned handlebar turned sideways while going straight", icon: "move", category: "Suspension", price: "₹200 – ₹650", keywords: ["handlebar bend", "fork align", "cycle handlebar", "steering off"] },
-    { label: "Cycle front fork loose wobbling inside headtube frame", icon: "git-commit", category: "Suspension", price: "₹80 – ₹250", keywords: ["headset loose", "cycle fork wobble", "headtube bearing"] },
+    { label: "Handlebars misaligned handlebar turned sideways while going straight", icon: "move", category: "Suspension", price: "₹200 – ₹650", keywords: ["handlebar bend", "fork align", "steering off"] },
     { label: "Power steering fluid leaking from steering rack or boot", icon: "droplets", category: "Suspension", price: "₹1,200 – ₹4,500", keywords: ["steering leak", "steering rack", "ps fluid"] },
     { label: "Vehicle sagging or leaning to one side on level ground", icon: "trending-down", category: "Suspension", price: "₹1,500 – ₹5,500", keywords: ["broken spring", "sagging", "leaf spring", "coil spring"] },
     { label: "Steering column clicking noise when turning full lock", icon: "rotate-cw", category: "Suspension", price: "₹650 – ₹2,200", keywords: ["steering click", "clockspring", "steering intermediate shaft"] },
@@ -113,12 +106,9 @@ const commonSymptomsBank = [
     // 10. General Maintenance & Body/Accessories (10 symptoms)
     { label: "Routine periodic general maintenance service oil & filter change", icon: "wrench", category: "General Maintenance", price: "₹450 – ₹2,800", keywords: ["service", "general service", "oil change", "maintenance", "routine"] },
     { label: "Engine oil dirty black viscous texture overdue for replacement", icon: "droplet", category: "General Maintenance", price: "₹350 – ₹1,800", keywords: ["oil dirty", "engine oil", "mobil oil", "oil filter"] },
-    { label: "Cycle bottom bracket pedal crank creaking on every rotation", icon: "rotate-cw", category: "General Maintenance", price: "₹120 – ₹350", keywords: ["cycle crank", "bottom bracket", "pedal noise", "bearing"] },
-    { label: "Cycle chain rusted and stiff after riding in rainy monsoon", icon: "link-2", category: "General Maintenance", price: "₹80 – ₹250", keywords: ["rust chain", "monsoon", "chain lube", "stiff cycle"] },
     { label: "Side stand or main stand spring loose scraping on speed breakers", icon: "anchor", category: "General Maintenance", price: "₹80 – ₹220", keywords: ["side stand", "main stand", "stand spring", "speed breaker"] },
     { label: "Rearview mirror loose vibrating and slipping down while riding", icon: "eye", category: "General Maintenance", price: "₹120 – ₹350", keywords: ["side mirror", "rearview", "mirror loose", "mirror glass"] },
     { label: "Vehicle horn switch or pass light button jammed by dust", icon: "toggle-left", category: "General Maintenance", price: "₹100 – ₹250", keywords: ["switch jam", "button stuck", "handle switchgear"] },
     { label: "Car door latch squeaking and difficult to open or shut smoothly", icon: "door-closed", category: "General Maintenance", price: "₹150 – ₹450", keywords: ["door lock", "door squeak", "latch grease", "door hinge"] },
-    { label: "Bicycle seat post slipping down into frame while cycling", icon: "arrow-down", category: "General Maintenance", price: "₹50 – ₹150", keywords: ["seat post", "cycle saddle", "seat clamp", "seat loose"] },
     { label: "Windshield washer spray nozzle blocked no water spraying", icon: "shower-head", category: "General Maintenance", price: "₹80 – ₹200", keywords: ["washer nozzle", "wiper spray", "washer fluid"] }
 ];

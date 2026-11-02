@@ -13,7 +13,7 @@ def test_predictor_returns_expected_keys():
     result = p.predict({
         'vehicle_type': 'bike',
         'vehicle_brand': 'Honda',
-        'vehicle_model': 'Activa',
+        'vehicle_model': 'Activa 6G',
         'vehicle_age': 3,
         'km_driven': 20000,
         'symptoms': 'engine overheating and excessive white smoke'
@@ -66,7 +66,7 @@ def test_predictor_returns_multiple_faults_with_confidence():
     }
     # Cost model receives the highest confidence category as its legacy label.
     result = p.predict({
-        'vehicle_type': 'bike', 'vehicle_brand': 'Honda', 'vehicle_model': 'Activa',
+        'vehicle_type': 'bike', 'vehicle_brand': 'Honda', 'vehicle_model': 'Activa 6G',
         'vehicle_age': 3, 'km_driven': 20000,
         'symptoms': 'brakes squeal and wheel wobbling'
     })
@@ -82,7 +82,7 @@ def test_predictor_single_fault_fallback_when_no_label_passes_threshold():
         'classes': ['Brake System', 'Tyres/Wheels', 'Engine']
     }
     result = p.predict({
-        'vehicle_type': 'bike', 'vehicle_brand': 'Honda', 'vehicle_model': 'Activa',
+        'vehicle_type': 'bike', 'vehicle_brand': 'Honda', 'vehicle_model': 'Activa 6G',
         'vehicle_age': 3, 'km_driven': 20000, 'symptoms': 'brakes feel weak'
     })
     assert [fault['category'] for fault in result['predicted_faults']] == ['Brake System']
@@ -92,7 +92,7 @@ def test_three_fault_cost_breakdown_applies_one_shared_visit_discount(monkeypatc
     import numpy as np
 
     class CostStub:
-        feature_names_in_ = np.array(['vehicle_type', 'vehicle_brand', 'vehicle_model', 'vehicle_age', 'km_driven', 'problem_category', 'state'])
+        feature_names_in_ = np.array(['vehicle_type', 'vehicle_brand', 'vehicle_model', 'vehicle_age', 'km_driven', 'problem_category'])
 
         def predict(self, frame):
             amounts = {'Battery/Electrical': 1000, 'Engine': 2000, 'Tyres/Wheels': 3000}
@@ -104,7 +104,6 @@ def test_three_fault_cost_breakdown_applies_one_shared_visit_discount(monkeypatc
         'classes': ['Battery/Electrical', 'Engine', 'Tyres/Wheels'],
     }
     p.regressor = CostStub()
-    monkeypatch.setattr(p, '_regional_price', lambda category, data: None)
     result = p.predict({
         'vehicle_type': 'car', 'vehicle_brand': 'Tata', 'vehicle_model': 'Tiago',
         'vehicle_age': 4, 'km_driven': 35000,

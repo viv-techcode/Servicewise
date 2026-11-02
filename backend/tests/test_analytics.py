@@ -14,7 +14,7 @@ def test_analytics_endpoint(client):
     # Ensure there are some records
     client.post('/api/predict', json={
         'vehicle_type': 'bike', 'vehicle_brand': 'Honda',
-        'vehicle_model': 'Activa', 'vehicle_age': 2,
+        'vehicle_model': 'Activa 6G', 'vehicle_age': 2,
         'km_driven': 10000, 'symptoms': 'engine overheating and smoking'
     })
     

@@ -11,7 +11,7 @@ def test_predict_endpoint(client):
     data = {
         "vehicle_type": "bike",
         "vehicle_brand": "Honda",
-        "vehicle_model": "Activa",
+        "vehicle_model": "Activa 6G",
         "vehicle_age": 2,
         "km_driven": 10000,
         "symptoms": "clicking noise when starting"
@@ -34,7 +34,7 @@ def test_invalid_prediction_input_stays_rejected(client):
 
 def test_prediction_history_keeps_legacy_category_and_fault_list(client):
     response = client.post('/api/predict', json={
-        'vehicle_type': 'bike', 'vehicle_brand': 'Honda', 'vehicle_model': 'Activa',
+        'vehicle_type': 'bike', 'vehicle_brand': 'Honda', 'vehicle_model': 'Activa 6G',
         'vehicle_age': 2, 'km_driven': 10000, 'symptoms': 'brakes squealing and wheel wobbling'
     })
     assert response.status_code == 200
@@ -45,13 +45,13 @@ def test_prediction_history_keeps_legacy_category_and_fault_list(client):
     assert isinstance(row['predicted_faults'], list)
 
 
-def test_unsupported_state_is_rejected(client):
+def test_location_is_normalized_to_global(client):
     response = client.post('/api/predict', json={
-        'vehicle_type': 'bike', 'vehicle_brand': 'Honda', 'vehicle_model': 'Activa',
+        'vehicle_type': 'bike', 'vehicle_brand': 'Honda', 'vehicle_model': 'Activa 6G',
         'vehicle_age': 2, 'km_driven': 10000, 'symptoms': 'brake pads worn', 'state': 'Kerala'
     })
-    assert response.status_code == 400
-    assert 'state' in response.get_json()['error']
+    assert response.status_code == 200
+    assert response.get_json()['vehicle_details']['state'] == 'Global'
 
 def test_records_endpoint(client):
     response = client.get('/api/records')

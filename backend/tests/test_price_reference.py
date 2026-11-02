@@ -25,28 +25,20 @@ def test_reference_has_explicit_coverage_for_every_target_pair():
     assert (priced.loc[bounded, 'price_min'] <= priced.loc[bounded, 'price_max']).all()
 
 
-def test_predictor_uses_matching_researched_state_vehicle_range():
+def test_predictor_uses_global_cost_model():
     predictor = Predictor()
-    price = predictor._regional_price('Brake System', {
-        'state': 'Delhi', 'vehicle_type': 'bike', 'vehicle_model': 'Classic 350', 'symptoms': 'brake pad squeal and weak braking'
+    result = predictor.predict({
+        'state': 'Global', 'vehicle_type': 'bike', 'vehicle_brand': 'Hero', 'vehicle_model': 'Splendor Plus',
+        'vehicle_age': 4, 'km_driven': 24000, 'symptoms': 'Brakes squeal when stopping.'
     })
-    assert price is not None
-    assert price['minimum'] == 249
-    assert price['maximum'] == 349
-    assert price['source'].startswith('https://')
+    assert result['cost_estimate_basis'] == 'global cost model'
+    assert all(item['estimate_source'] == 'global_cost_model' for item in result['fault_cost_breakdown'])
 
 
-def test_predictor_respects_engine_size_qualifier():
+def test_predictor_cost_does_not_change_by_location():
     predictor = Predictor()
-    price = predictor._regional_price('Brake System', {
-        'state': 'Delhi', 'vehicle_type': 'bike', 'vehicle_model': 'Activa 125', 'symptoms': 'brake pad squeal'
-    })
-    assert price is None
-
-
-def test_predictor_does_not_extrapolate_unavailable_state_prices():
-    predictor = Predictor()
-    price = predictor._regional_price('Brake System', {
-        'state': 'Punjab', 'vehicle_type': 'bike', 'symptoms': 'brakes feel weak'
-    })
-    assert price is None
+    details = {'vehicle_type': 'bike', 'vehicle_brand': 'Honda', 'vehicle_model': 'Shine 125', 'vehicle_age': 3, 'km_driven': 18000, 'symptoms': 'Brakes feel weak.'}
+    local = predictor.predict({**details, 'state': 'Delhi'})
+    global_result = predictor.predict({**details, 'state': 'Global'})
+    assert local['estimated_cost_min'] == global_result['estimated_cost_min']
+    assert local['estimated_cost_max'] == global_result['estimated_cost_max']

@@ -1,41 +1,20 @@
 const vehicleData = {
     bike: {
-        brands: ['Hero', 'Honda', 'Bajaj', 'TVS', 'Royal Enfield', 'Yamaha', 'Suzuki'],
+        brands: ['Hero', 'Honda', 'TVS'],
         models: {
-            'Hero': ['Splendor Plus', 'HF Deluxe', 'Passion Pro', 'Glamour', 'Xtreme 160R', 'Pleasure Plus', 'Destini 125'],
-            'Honda': ['Activa 6G', 'Activa 125', 'Shine 125', 'SP 125', 'Unicorn', 'Dio 125', 'Hornet 2.0'],
-            'Bajaj': ['Pulsar 125', 'Pulsar 150', 'Pulsar NS200', 'Platina 100', 'Platina 110', 'CT 110', 'Avenger 160'],
-            'TVS': ['Jupiter 110', 'Jupiter 125', 'Apache RTR 160', 'Apache RTR 180', 'Raider 125', 'XL100', 'Ntorq 125'],
-            'Royal Enfield': ['Classic 350', 'Bullet 350', 'Hunter 350', 'Meteor 350'],
-            'Yamaha': ['FZ-S V4', 'FZ-X', 'MT-15 V2', 'RayZR 125', 'Fascino 125'],
-            'Suzuki': ['Access 125', 'Burgman Street', 'Gixxer 150', 'Avenis 125']
+            'Hero': ['Splendor Plus', 'HF Deluxe'],
+            'Honda': ['Shine 125', 'Activa 6G'],
+            'TVS': ['Jupiter 110']
         }
     },
     car: {
-        brands: ['Maruti Suzuki', 'Hyundai', 'Tata', 'Mahindra', 'Honda', 'Kia', 'Toyota', 'Renault'],
+        brands: ['Maruti Suzuki', 'Hyundai', 'Tata'],
         models: {
-            'Maruti Suzuki': ['WagonR', 'Swift', 'Dzire', 'Baleno', 'Alto K10', 'Brezza', 'Ertiga', 'Fronx', 'Celerio', 'Eeco'],
-            'Hyundai': ['Grand i10 Nios', 'i20', 'Venue', 'Creta', 'Exter', 'Aura', 'Verna'],
-            'Tata': ['Punch', 'Nexon', 'Tiago', 'Tigor', 'Altroz', 'Harrier'],
-            'Mahindra': ['Bolero', 'Bolero Neo', 'Scorpio-Classic', 'Scorpio-N', 'XUV300', 'XUV700', 'Thar'],
-            'Honda': ['Amaze', 'City', 'Elevate'],
-            'Kia': ['Sonet', 'Seltos', 'Carens'],
-            'Toyota': ['Glanza', 'Urban Cruiser Taisor', 'Hyryder', 'Innova Crysta', 'Rumion'],
-            'Renault': ['Kwid', 'Triber', 'Kiger']
+            'Maruti Suzuki': ['Swift', 'WagonR', 'Alto K10'],
+            'Hyundai': ['i20'],
+            'Tata': ['Tiago']
         }
     },
-    cycle: {
-        brands: ['Hero Cycles', 'Atlas', 'Avon', 'Hercules', 'BSA', 'Firefox', 'Leader'],
-        models: {
-            'Hero Cycles': ['Hero Jet / Desi Cycle', 'Hero Sprint Pro', 'Hero Ranger', 'Hero Kyoto', 'Hero Octane', 'Hero Lectro (Electric)'],
-            'Atlas': ['Atlas Goldline', 'Atlas Ultimate', 'Atlas Camp', 'Atlas Motion'],
-            'Avon': ['Avon Prime', 'Avon Steed', 'Avon Elements', 'Avon Buke MTB'],
-            'Hercules': ['Hercules Roadeo Hardliner', 'Hercules Turbodrive', 'Hercules Streetcat', 'Hercules Captain'],
-            'BSA': ['BSA Ladybird', 'BSA Champ', 'BSA SLR', 'BSA Photon'],
-            'Firefox': ['Firefox Target', 'Firefox Mount 29', 'Firefox Bad Attitude'],
-            'Leader': ['Leader Scout MTB', 'Leader Beast', 'Leader Gladiator']
-        }
-    }
 };
 
 const baselineCosts = {
@@ -63,18 +42,6 @@ const baselineCosts = {
         'Tyres/Wheels': [1500, 3500],
         'General Maintenance': [2500, 4500]
     },
-    cycle: {
-        'Starting System': [100, 250],
-        'Brake System': [100, 350],
-        'Engine': [150, 400],
-        'Battery/Electrical': [150, 500],
-        'Suspension': [200, 600],
-        'Cooling System': [100, 250],
-        'Fuel System': [100, 250],
-        'Transmission': [150, 450],
-        'Tyres/Wheels': [120, 350],
-        'General Maintenance': [150, 350]
-    }
 };
 
 let currentUser = null;
@@ -121,13 +88,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const typeSelect = document.getElementById('vehicle_type');
+    const vehicleTypeCards = document.querySelectorAll('.vehicle-type-card');
     const brandSelect = document.getElementById('vehicle_brand');
+    const brandOptions = document.getElementById('brandOptions');
     const modelSelect = document.getElementById('vehicle_model');
+    const modelOptions = document.getElementById('modelOptions');
     const form = document.getElementById('assessmentForm');
     const submitBtn = document.getElementById('submitBtn');
     const loading = document.getElementById('loadingIndicator');
     const resultArea = document.getElementById('resultArea');
     const formError = document.getElementById('formError');
+
+    const ageTimeline = document.getElementById('vehicleAgeTimeline');
+    if (ageTimeline && window.TearCalendar) {
+        window.vehicleAgeCalendar = new window.TearCalendar(ageTimeline, {
+            trigger: 'click',
+            startDate: new Date(2026, 5, 3),
+            initialValue: 1,
+            maxValue: 30
+        });
+    }
 
     // Interactive automotive odometer. The form field remains the backend source.
     const odometerControl = document.getElementById('odometerControl');
@@ -262,10 +242,121 @@ document.addEventListener('DOMContentLoaded', () => {
     checkAuthSession();
 
     // Cascading Vehicle Selects
+    function updateVehicleTypeCards(value) {
+        vehicleTypeCards.forEach(card => {
+            const isSelected = card.dataset.vehicleType === value;
+            card.classList.toggle('selected', isSelected);
+            card.setAttribute('aria-pressed', String(isSelected));
+        });
+    }
+
+    const twoWheelerBrandImages = {
+        Honda: '/static/images/honda-logo.png',
+        TVS: '/static/images/tvs-logo.png',
+        Hero: '/static/images/hero-logo.png'
+    };
+    const fourWheelerBrandImages = {
+        'Maruti Suzuki': '/static/images/suzuki-logo.png',
+        Hyundai: '/static/images/hyundai-logo.png',
+        Tata: '/static/images/tata-logo.png'
+    };
+    const modelImages = {
+        'Splendor Plus': '/static/images/splendor-plus.png',
+        'HF Deluxe': '/static/images/hf-deluxe.png',
+        'Shine 125': '/static/images/shine-125.png',
+        'Activa 6G': '/static/images/activa-6g.png',
+        'Jupiter 110': '/static/images/jupiter-110.png',
+        Swift: '/static/images/swift.png',
+        WagonR: '/static/images/wagonr.png',
+        'Alto K10': '/static/images/alto-k10.png',
+        i20: '/static/images/i20.png',
+        Tiago: '/static/images/tiago.png'
+    };
+
+    function renderBrandCards(brands, type) {
+        brandOptions.replaceChildren();
+        const brandImages = type === 'bike' ? twoWheelerBrandImages : fourWheelerBrandImages;
+        brands.forEach(brand => {
+            if (!brandImages[brand]) return;
+            const card = document.createElement('button');
+            card.type = 'button';
+            card.className = 'brand-card';
+            card.dataset.brand = brand;
+            card.setAttribute('aria-pressed', 'false');
+            const image = document.createElement('img');
+            image.src = brandImages[brand];
+            image.alt = `${brand} logo`;
+            const label = document.createElement('span');
+            label.textContent = brand;
+            card.append(image, label);
+            card.addEventListener('click', () => {
+                brandSelect.value = brand;
+                brandSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+            brandOptions.appendChild(card);
+        });
+    }
+
+    function updateBrandCards(value) {
+        brandOptions.querySelectorAll('.brand-card').forEach(card => {
+            const isSelected = card.dataset.brand === value;
+            card.classList.toggle('selected', isSelected);
+            card.setAttribute('aria-pressed', String(isSelected));
+        });
+    }
+
+    function renderModelCards(models, type) {
+        modelOptions.replaceChildren();
+        models.forEach(model => {
+            const card = document.createElement('button');
+            card.type = 'button';
+            card.className = 'model-card';
+            card.dataset.model = model;
+            card.setAttribute('aria-pressed', 'false');
+            const image = document.createElement('img');
+            image.src = modelImages[model] || (type === 'bike' ? '/static/images/two-wheeler.png' : '/static/images/four-wheeler.png');
+            image.alt = `${model} vehicle`;
+            image.onerror = () => {
+                image.onerror = null;
+                image.src = type === 'bike' ? '/static/images/two-wheeler.png' : '/static/images/four-wheeler.png';
+            };
+            const label = document.createElement('span');
+            label.textContent = model;
+            card.append(image, label);
+            card.addEventListener('click', () => {
+                modelSelect.value = model;
+                modelSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+            modelOptions.appendChild(card);
+        });
+    }
+
+    function updateModelCards(value) {
+        modelOptions.querySelectorAll('.model-card').forEach(card => {
+            const isSelected = card.dataset.model === value;
+            card.classList.toggle('selected', isSelected);
+            card.setAttribute('aria-pressed', String(isSelected));
+        });
+    }
+
+    vehicleTypeCards.forEach(card => {
+        card.addEventListener('click', () => {
+            typeSelect.value = card.dataset.vehicleType;
+            typeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+    });
+
     typeSelect.addEventListener('change', function() {
+        updateVehicleTypeCards(this.value);
         brandSelect.innerHTML = '<option value="">Select brand&hellip;</option>';
         modelSelect.innerHTML = '<option value="">Select model&hellip;</option>';
         modelSelect.disabled = true;
+        brandOptions.replaceChildren();
+        brandOptions.hidden = !this.value;
+        brandSelect.hidden = Boolean(this.value);
+        modelOptions.replaceChildren();
+        modelOptions.hidden = true;
+        modelSelect.hidden = false;
 
         if (this.value && vehicleData[this.value]) {
             brandSelect.disabled = false;
@@ -275,25 +366,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 opt.textContent = brand;
                 brandSelect.appendChild(opt);
             });
+            renderBrandCards(vehicleData[this.value].brands, this.value);
         } else {
             brandSelect.disabled = true;
         }
     });
 
     brandSelect.addEventListener('change', function() {
+        updateBrandCards(this.value);
         modelSelect.innerHTML = '<option value="">Select model&hellip;</option>';
         const type = typeSelect.value;
         if (this.value && type && vehicleData[type] && vehicleData[type].models[this.value]) {
+            const models = vehicleData[type].models[this.value];
             modelSelect.disabled = false;
-            vehicleData[type].models[this.value].forEach(model => {
+            modelSelect.hidden = true;
+            modelOptions.hidden = false;
+            renderModelCards(models, type);
+            models.forEach(model => {
                 const opt = document.createElement('option');
                 opt.value = model;
                 opt.textContent = model;
                 modelSelect.appendChild(opt);
             });
+            if (models.length === 1) {
+                modelSelect.value = models[0];
+                updateModelCards(models[0]);
+            }
         } else {
             modelSelect.disabled = true;
+            modelSelect.hidden = false;
+            modelOptions.hidden = true;
         }
+    });
+
+    modelSelect.addEventListener('change', function() {
+        updateModelCards(this.value);
     });
 
     // Symptom Chips Shortcut Fill
@@ -350,7 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }, 50);
                 }
                 if (!document.getElementById('vehicle_age').value) {
-                    document.getElementById('vehicle_age').value = '3';
+                    document.getElementById('vehicle_age').value = '1';
                 }
                 if (!document.getElementById('km_driven').value) {
                     document.getElementById('km_driven').value = '25000';
@@ -439,7 +546,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         }, 50);
                     }
                     if (!document.getElementById('vehicle_age').value) {
-                        document.getElementById('vehicle_age').value = '3';
+                        document.getElementById('vehicle_age').value = '1';
                     }
                     if (!document.getElementById('km_driven').value) {
                         document.getElementById('km_driven').value = '25000';
@@ -568,7 +675,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const entry = document.createElement('li');
                     const low = Math.round(item.estimated_cost_min).toLocaleString('en-IN');
                     const high = Math.round(item.estimated_cost_max).toLocaleString('en-IN');
-                    const source = item.estimate_source === 'regional_reference' ? 'regional reference' : 'cost model';
+                    const source = 'global cost model';
                     entry.textContent = `${item.category}: ₹${low} – ₹${high} (${source})`;
                     list.appendChild(entry);
                 });
@@ -669,7 +776,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 actual_total_cost: actualCost,
                 corrected_faults: correctedFaults,
                 actual_fault_costs: actualFaultCosts,
-                state: lastSubmittedInput?.state || null,
                 comments: comments
             })
         })
@@ -988,10 +1094,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (costValue) costValue.textContent = `₹${min.toLocaleString('en-IN')} – ₹${max.toLocaleString('en-IN')}`;
 
             // Benchmark ratios
-            if (type === 'cycle') {
-                if (partsSplit) partsSplit.textContent = '~50% Parts';
-                if (laborSplit) laborSplit.textContent = '~50% Labor';
-            } else if (system === 'Engine' || system === 'Transmission') {
+            if (system === 'Engine' || system === 'Transmission') {
                 if (partsSplit) partsSplit.textContent = '~70% Parts';
                 if (laborSplit) laborSplit.textContent = '~30% Labor';
             } else if (system === 'General Maintenance') {
