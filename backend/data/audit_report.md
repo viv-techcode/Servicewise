@@ -1,124 +1,185 @@
 # Dataset audit details
 
-Rows: 5033; stock SKUs: 63; ledger events: 14174; vague/typo/Hinglish proxy share: 10.2%.
+Rows: 7000; stock SKUs: 62; ledger events: 13300; vague/typo/Hinglish proxy share: 20.2%.
 
 ## Median job charge vs reference range
 | Category | Vehicle | n | Dataset median | Ref median low | Ref median high |
 |---|---:|---:|---:|---:|---:|
-| Battery/Electrical | bike | 260 | 2718 | n/a | n/a |
-| Battery/Electrical | car | 309 | 5360 | 3029.5 | 4469.5 |
-| Brake System | bike | 220 | 345 | 224.0 | 299.0 |
-| Brake System | car | 299 | 1146 | 600.0 | 2729.5 |
-| Cooling System | bike | 191 | 917 | n/a | n/a |
-| Cooling System | car | 282 | 1544 | 685.0 | 1420.0 |
-| Engine | bike | 214 | 3554 | n/a | n/a |
-| Engine | car | 290 | 7456 | 8500.0 | 18000.0 |
-| Fuel System | bike | 127 | 559 | n/a | n/a |
-| Fuel System | car | 181 | 970 | 560.0 | 810.0 |
-| General Maintenance | bike | 461 | 1779 | n/a | n/a |
-| General Maintenance | car | 535 | 3436 | 1599.0 | 5499.0 |
-| Starting System | bike | 181 | 1863 | n/a | n/a |
-| Starting System | car | 230 | 3544 | n/a | n/a |
-| Suspension | bike | 156 | 3841 | n/a | n/a |
-| Suspension | car | 220 | 7691 | 800.0 | n/a |
-| Transmission | bike | 124 | 1078 | n/a | n/a |
-| Transmission | car | 178 | 1885 | 925.0 | 1550.0 |
-| Tyres/Wheels | bike | 243 | 3931 | n/a | n/a |
-| Tyres/Wheels | car | 332 | 8044 | 399.5 | 10299.0 |
+| Battery/Electrical | bike | 437 | 1010 | 500.0 | 1500.0 |
+| Battery/Electrical | car | 488 | 1980 | 1500.0 | 4500.0 |
+| Brake System | bike | 345 | 1404 | 800.0 | 3000.0 |
+| Brake System | car | 412 | 4275 | 2200.0 | 7000.0 |
+| Cooling System | bike | 226 | 1220 | 500.0 | 2500.0 |
+| Cooling System | car | 314 | 2560 | 1600.0 | 7000.0 |
+| Engine | bike | 203 | 2367 | 1200.0 | 6500.0 |
+| Engine | car | 235 | 4491 | 2800.0 | 15000.0 |
+| Fuel System | bike | 259 | 960 | 500.0 | 2500.0 |
+| Fuel System | car | 315 | 2820 | 1500.0 | 7000.0 |
+| General Maintenance | bike | 662 | 790 | 700.0 | 3000.0 |
+| General Maintenance | car | 794 | 2320 | 2200.0 | 9000.0 |
+| Starting System | bike | 311 | 1360 | 500.0 | 2500.0 |
+| Starting System | car | 369 | 3230 | 1500.0 | 7000.0 |
+| Suspension | bike | 185 | 1892 | 1200.0 | 7000.0 |
+| Suspension | car | 257 | 4986 | 3000.0 | 20000.0 |
+| Transmission | bike | 249 | 2376 | 1200.0 | 7000.0 |
+| Transmission | car | 235 | 6950 | 4500.0 | 26000.0 |
+| Tyres/Wheels | bike | 296 | 2367 | 800.0 | 7000.0 |
+| Tyres/Wheels | car | 408 | 6736 | 1800.0 | 22000.0 |
 
 ## Bike-to-car median job charge
 | Fault | Bike median | Car median | Ratio |
 |---|---:|---:|---:|
-| Battery/Electrical | 2718 | 5360 | 0.51 |
-| Brake System | 345 | 1146 | 0.30 |
-| Cooling System | 917 | 1544 | 0.59 |
-| Engine | 3554 | 7456 | 0.48 |
-| Fuel System | 559 | 970 | 0.58 |
-| General Maintenance | 1779 | 3436 | 0.52 |
-| Starting System | 1863 | 3544 | 0.53 |
-| Suspension | 3841 | 7691 | 0.50 |
-| Transmission | 1078 | 1885 | 0.57 |
-| Tyres/Wheels | 3931 | 8044 | 0.49 |
+| Battery/Electrical | 1010 | 1980 | 0.51 |
+| Brake System | 1404 | 4275 | 0.33 |
+| Cooling System | 1220 | 2560 | 0.48 |
+| Engine | 2367 | 4491 | 0.53 |
+| Fuel System | 960 | 2820 | 0.34 |
+| General Maintenance | 790 | 2320 | 0.34 |
+| Starting System | 1360 | 3230 | 0.42 |
+| Suspension | 1892 | 4986 | 0.38 |
+| Transmission | 2376 | 6950 | 0.34 |
+| Tyres/Wheels | 2367 | 6736 | 0.35 |
 ## Combined severity distribution by primary fault
 | Fault | Severity | Jobs |
 |---|---|---:|
-| Battery/Electrical | critical | 19 |
-| Battery/Electrical | high | 192 |
-| Battery/Electrical | low | 106 |
-| Battery/Electrical | medium | 252 |
-| Brake System | critical | 187 |
-| Brake System | high | 105 |
-| Brake System | low | 40 |
-| Brake System | medium | 187 |
-| Cooling System | critical | 70 |
-| Cooling System | high | 80 |
-| Cooling System | medium | 323 |
-| Engine | critical | 147 |
-| Engine | high | 175 |
-| Engine | medium | 182 |
-| Fuel System | critical | 83 |
-| Fuel System | high | 65 |
-| Fuel System | medium | 160 |
-| General Maintenance | high | 1 |
-| General Maintenance | low | 857 |
-| General Maintenance | medium | 138 |
-| Starting System | critical | 11 |
-| Starting System | high | 110 |
-| Starting System | medium | 290 |
-| Suspension | critical | 18 |
-| Suspension | high | 104 |
-| Suspension | low | 29 |
-| Suspension | medium | 225 |
-| Transmission | critical | 2 |
-| Transmission | high | 48 |
-| Transmission | medium | 252 |
-| Tyres/Wheels | critical | 28 |
-| Tyres/Wheels | high | 211 |
-| Tyres/Wheels | low | 233 |
-| Tyres/Wheels | medium | 103 |
+| Battery/Electrical | critical | 76 |
+| Battery/Electrical | high | 140 |
+| Battery/Electrical | low | 210 |
+| Battery/Electrical | medium | 499 |
+| Brake System | critical | 185 |
+| Brake System | high | 166 |
+| Brake System | low | 168 |
+| Brake System | medium | 238 |
+| Cooling System | critical | 63 |
+| Cooling System | high | 120 |
+| Cooling System | low | 90 |
+| Cooling System | medium | 267 |
+| Engine | critical | 59 |
+| Engine | high | 137 |
+| Engine | low | 55 |
+| Engine | medium | 187 |
+| Fuel System | critical | 44 |
+| Fuel System | high | 87 |
+| Fuel System | low | 60 |
+| Fuel System | medium | 383 |
+| General Maintenance | critical | 6 |
+| General Maintenance | high | 20 |
+| General Maintenance | low | 286 |
+| General Maintenance | medium | 1144 |
+| Starting System | critical | 40 |
+| Starting System | high | 222 |
+| Starting System | low | 90 |
+| Starting System | medium | 328 |
+| Suspension | critical | 57 |
+| Suspension | high | 111 |
+| Suspension | low | 75 |
+| Suspension | medium | 199 |
+| Transmission | critical | 48 |
+| Transmission | high | 103 |
+| Transmission | low | 41 |
+| Transmission | medium | 292 |
+| Tyres/Wheels | critical | 74 |
+| Tyres/Wheels | high | 155 |
+| Tyres/Wheels | low | 224 |
+| Tyres/Wheels | medium | 251 |
 
 ## Per-fault severity distribution
 | Fault | Severity | Fault instances |
 |---|---|---:|
-| Battery/Electrical | high | 214 |
-| Battery/Electrical | low | 166 |
-| Battery/Electrical | medium | 322 |
-| Brake System | critical | 169 |
-| Brake System | high | 125 |
-| Brake System | low | 107 |
-| Brake System | medium | 315 |
-| Cooling System | critical | 60 |
-| Cooling System | high | 105 |
-| Cooling System | medium | 504 |
-| Engine | critical | 100 |
-| Engine | high | 168 |
-| Engine | medium | 320 |
-| Fuel System | critical | 77 |
-| Fuel System | high | 84 |
-| Fuel System | medium | 341 |
-| General Maintenance | low | 1137 |
-| General Maintenance | medium | 169 |
-| Starting System | high | 133 |
-| Starting System | medium | 435 |
-| Suspension | high | 82 |
-| Suspension | low | 71 |
-| Suspension | medium | 361 |
-| Transmission | high | 51 |
-| Transmission | medium | 429 |
-| Tyres/Wheels | high | 245 |
-| Tyres/Wheels | low | 396 |
-| Tyres/Wheels | medium | 123 |
+| Battery/Electrical | critical | 63 |
+| Battery/Electrical | high | 155 |
+| Battery/Electrical | low | 380 |
+| Battery/Electrical | medium | 605 |
+| Brake System | critical | 163 |
+| Brake System | high | 178 |
+| Brake System | low | 297 |
+| Brake System | medium | 367 |
+| Cooling System | critical | 45 |
+| Cooling System | high | 132 |
+| Cooling System | low | 211 |
+| Cooling System | medium | 410 |
+| Engine | critical | 30 |
+| Engine | high | 128 |
+| Engine | low | 165 |
+| Engine | medium | 342 |
+| Fuel System | critical | 30 |
+| Fuel System | high | 97 |
+| Fuel System | low | 166 |
+| Fuel System | medium | 552 |
+| General Maintenance | low | 350 |
+| General Maintenance | medium | 1441 |
+| Starting System | critical | 23 |
+| Starting System | high | 261 |
+| Starting System | low | 223 |
+| Starting System | medium | 440 |
+| Suspension | critical | 31 |
+| Suspension | high | 111 |
+| Suspension | low | 181 |
+| Suspension | medium | 328 |
+| Transmission | critical | 32 |
+| Transmission | high | 97 |
+| Transmission | low | 98 |
+| Transmission | medium | 408 |
+| Tyres/Wheels | critical | 56 |
+| Tyres/Wheels | high | 152 |
+| Tyres/Wheels | low | 403 |
+| Tyres/Wheels | medium | 362 |
 
 ## Fault category by service month
 | Fault | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| Battery/Electrical | 76 | 61 | 36 | 44 | 71 | 61 | 74 | 68 | 59 | 76 | 29 | 47 |
-| Brake System | 71 | 59 | 60 | 82 | 51 | 66 | 71 | 58 | 67 | 73 | 32 | 26 |
-| Cooling System | 31 | 34 | 36 | 85 | 121 | 99 | 57 | 42 | 57 | 51 | 27 | 29 |
-| Engine | 60 | 54 | 54 | 63 | 46 | 42 | 57 | 53 | 50 | 62 | 29 | 18 |
-| Fuel System | 41 | 34 | 40 | 57 | 47 | 44 | 54 | 48 | 41 | 54 | 26 | 16 |
-| General Maintenance | 90 | 79 | 104 | 98 | 129 | 126 | 143 | 115 | 131 | 157 | 90 | 44 |
-| Starting System | 51 | 53 | 31 | 34 | 42 | 51 | 64 | 55 | 54 | 68 | 22 | 43 |
-| Suspension | 40 | 32 | 46 | 51 | 44 | 39 | 59 | 51 | 46 | 59 | 25 | 22 |
-| Transmission | 27 | 28 | 35 | 30 | 39 | 44 | 69 | 54 | 50 | 51 | 29 | 24 |
-| Tyres/Wheels | 59 | 56 | 54 | 69 | 54 | 65 | 110 | 92 | 74 | 69 | 39 | 23 |
+| Battery/Electrical | 127 | 111 | 78 | 101 | 107 | 103 | 128 | 111 | 94 | 107 | 56 | 80 |
+| Brake System | 98 | 74 | 81 | 68 | 68 | 87 | 144 | 134 | 112 | 65 | 45 | 29 |
+| Cooling System | 50 | 48 | 44 | 99 | 131 | 121 | 68 | 57 | 56 | 53 | 40 | 31 |
+| Engine | 75 | 60 | 66 | 52 | 59 | 53 | 67 | 65 | 56 | 52 | 30 | 30 |
+| Fuel System | 67 | 56 | 63 | 76 | 80 | 77 | 95 | 94 | 69 | 85 | 50 | 33 |
+| General Maintenance | 132 | 89 | 138 | 153 | 177 | 180 | 192 | 171 | 173 | 200 | 99 | 87 |
+| Starting System | 90 | 78 | 55 | 74 | 83 | 97 | 107 | 86 | 76 | 88 | 50 | 63 |
+| Suspension | 58 | 53 | 60 | 59 | 63 | 70 | 67 | 55 | 47 | 60 | 35 | 24 |
+| Transmission | 36 | 33 | 36 | 58 | 73 | 59 | 75 | 69 | 61 | 65 | 43 | 27 |
+| Tyres/Wheels | 81 | 66 | 68 | 70 | 74 | 89 | 139 | 106 | 108 | 85 | 49 | 38 |
+
+## Dataset v2 composition
+| Measure | Value |
+|---|---:|
+| Jobs | 7000 |
+| Ambiguous rows | 9.7% |
+| Part-price SKUs | 62 |
+
+## Cost medians by severity
+| Category | Vehicle | Low | Medium | High | Critical |
+|---|---|---:|---:|---:|---:|
+| Battery/Electrical | bike | 270 | 1010 | 3312 | 4284 |
+| Battery/Electrical | car | 1107 | 1320 | 6858 | 7578 |
+| Brake System | bike | 954 | 999 | 4040 | 4714 |
+| Brake System | car | 1817 | 1818 | 5292 | 6608 |
+| Cooling System | bike | 702 | 747 | 1476 | 2286 |
+| Cooling System | car | 1755 | 1856 | 4002 | 6636 |
+| Engine | bike | 1242 | 1287 | 3030 | 4077 |
+| Engine | car | 2655 | 2754 | 5175 | 8046 |
+| Fuel System | bike | 324 | 410 | 1215 | 1647 |
+| Fuel System | car | 1230 | 1420 | 3762 | 5166 |
+| General Maintenance | bike | 740 | 790 | — | — |
+| General Maintenance | car | 2230 | 2320 | — | — |
+| Starting System | bike | 450 | 550 | 1692 | 2250 |
+| Starting System | car | 1130 | 1270 | 4122 | 5762 |
+| Suspension | bike | 729 | 774 | 2448 | 3285 |
+| Suspension | car | 3357 | 3438 | 7002 | 10566 |
+| Transmission | bike | — | 1580 | 3528 | 3798 |
+| Transmission | car | 3915 | 4014 | 9855 | 15540 |
+| Tyres/Wheels | bike | 1089 | 1260 | 4158 | 5355 |
+| Tyres/Wheels | car | 3030 | 2808 | 8980 | 11117 |
+
+## Bike-to-car median ratios
+| Category | Bike median | Car median | Ratio |
+|---|---:|---:|---:|
+| Battery/Electrical | 1010 | 1980 | 0.51 |
+| Brake System | 1404 | 4275 | 0.33 |
+| Cooling System | 1220 | 2560 | 0.48 |
+| Engine | 2367 | 4491 | 0.53 |
+| Fuel System | 960 | 2820 | 0.34 |
+| General Maintenance | 790 | 2320 | 0.34 |
+| Starting System | 1360 | 3230 | 0.42 |
+| Suspension | 1892 | 4986 | 0.38 |
+| Transmission | 2376 | 6950 | 0.34 |
+| Tyres/Wheels | 2367 | 6736 | 0.35 |

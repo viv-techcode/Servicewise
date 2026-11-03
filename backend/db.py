@@ -86,8 +86,15 @@ def init_db():
         gross_loss REAL NOT NULL, gross_margin REAL NOT NULL, discount REAL NOT NULL,
         rent_overhead REAL NOT NULL, salary_overhead REAL NOT NULL, utilities_overhead REAL NOT NULL,
         total_overheads REAL NOT NULL, net_profit REAL NOT NULL, profit_loss REAL NOT NULL,
-        stockout_delay_days INTEGER NOT NULL, mom_change_pct REAL, trend TEXT
+        stockout_delay_days INTEGER NOT NULL, mom_change_pct REAL, trend TEXT,
+        revenue_mom_change_pct REAL, jobs_mom_change_pct REAL
     )''')
+
+    cursor.execute("PRAGMA table_info(monthly_summary)")
+    monthly_columns = {row[1] for row in cursor.fetchall()}
+    for column in ('revenue_mom_change_pct','jobs_mom_change_pct'):
+        if column not in monthly_columns:
+            conn.execute(f'ALTER TABLE monthly_summary ADD COLUMN {column} REAL')
 
     conn.execute('''CREATE TABLE IF NOT EXISTS feedback (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

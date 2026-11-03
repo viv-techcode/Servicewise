@@ -33,7 +33,7 @@ def test_multilabel_training_targets_include_secondary_faults():
     import pandas as pd
     from backend.ml.train_models import DATA_PATH
     df = pd.read_csv(DATA_PATH)
-    assert 4000 <= len(df) <= 6000
+    assert len(df) == 7000
     assert set(df.faults.str.split(';').explode()) == set(__import__('backend.ml.train_models', fromlist=['CATEGORIES']).CATEGORIES)
     multi = df[df['fault_count'].astype(int) > 1]
     assert 0.25 <= (df.fault_count.astype(int) == 2).mean() <= 0.30

@@ -126,13 +126,12 @@ def test_csv_import_keeps_full_history_and_store_snapshots(monkeypatch):
         db.init_db()
         source = Path('backend/data/service_records.csv').resolve()
         result = db.import_service_records_csv(str(source))
-        assert result['imported'] == 5033
+        assert result['imported'] == 7000
         counts = db.import_store_data()
-        assert counts == {'inventory_stock': 63, 'inventory_log': 14174, 'monthly_summary': 22}
+        assert counts == {'inventory_stock': 62, 'inventory_log': 13300, 'monthly_summary': 22}
         conn = db.get_db()
-        assert conn.execute('SELECT COUNT(*) FROM service_records WHERE source_record_key IS NOT NULL').fetchone()[0] == 5033
+        assert conn.execute('SELECT COUNT(*) FROM service_records WHERE source_record_key IS NOT NULL').fetchone()[0] == 7000
         assert conn.execute('SELECT COUNT(*) FROM service_records WHERE source_record_key IS NULL').fetchone()[0] == 0
         conn.close()
     finally:
         test_db.unlink(missing_ok=True)
-

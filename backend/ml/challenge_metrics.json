@@ -1,6 +1,6 @@
 {
   "cases": 150,
-  "severity_accuracy": 1.0,
+  "severity_accuracy": 0.9867,
   "safety_fault_recall": {
     "Brake System": 1.0,
     "Cooling System": 1.0,
@@ -8,5 +8,32 @@
   },
   "red_flag_cases": 24,
   "red_flag_underpredicted": 0,
-  "misses": []
+  "misses": [
+    {
+      "id": "challenge-017",
+      "input": "There is no brake failure; a soft squeak happens while parking.",
+      "expected_faults": [
+        "Brake System"
+      ],
+      "predicted_faults": [
+        "Brake System"
+      ],
+      "expected_severity": "low",
+      "predicted_severity": "medium",
+      "red_flag_underpredicted": false
+    },
+    {
+      "id": "challenge-056",
+      "input": "Oil and filter service is due before the next journey.",
+      "expected_faults": [
+        "General Maintenance"
+      ],
+      "predicted_faults": [
+        "General Maintenance"
+      ],
+      "expected_severity": "low",
+      "predicted_severity": "medium",
+      "red_flag_underpredicted": false
+    }
+  ]
 }

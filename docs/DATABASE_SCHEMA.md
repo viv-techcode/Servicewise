@@ -4,7 +4,7 @@
 - **Database Engine**: SQLite 3
 - **File Location**: `backend/data/service_center.db`
 - **Data Access Layer**: `backend/db.py`
-- **Active workshop CSVs**: `backend/data/service_records.csv`, `inventory_stock.csv`, `inventory_log.csv`, and `monthly_summary.csv`
+- **Active workshop CSVs**: `backend/data/service_records.csv`, `inventory_stock.csv`, `inventory_log.csv`, `monthly_summary.csv`, and `part_price_table.csv`
 - **Dataset generation and checks**: `backend/data/generate_workshop_data.py` and `backend/data/validate_workshop_data.py`
 
 ---
@@ -108,4 +108,4 @@ Stores user-submitted verification ratings and actual workshop costs to audit ML
 
 ## Imported store data
 
-`inventory_stock` stores the current part snapshot and compatible model list imported from `backend/data/inventory_stock.csv`. `inventory_log` stores stock openings, sales, restocks, and stock-out events from `inventory_log.csv`. `monthly_summary` stores job counts, revenue, margins, fixed overheads, net profit, month-over-month change, and trend from `monthly_summary.csv`. Startup refreshes these operational tables from their CSV sources. `service_records.csv` is likewise the source of the imported demonstration history; synchronization retains every current CSV row and removes stale imported rows while leaving user-created records alone. The local `service_center.db` is rebuilt from these sources and is ignored by Git. Store owners can read them through `GET /api/store-data`; the response includes stock-level status and per-month fault counts.
+`inventory_stock` stores the current part snapshot and compatible model list imported from `backend/data/inventory_stock.csv`. `part_price_table.csv` is the separate auditable unit-price book; its source and estimate metadata do not alter the inventory table schema. `inventory_log` stores stock openings, sales, restocks, and stock-out events from `inventory_log.csv`. `monthly_summary` stores job counts, revenue, margins, fixed overheads, net profit, revenue and job month-over-month changes, and a revenue-based trend label from `monthly_summary.csv`; its first month has no change baseline. Startup refreshes these operational tables from their CSV sources. `service_records.csv` is likewise the source of the imported demonstration history; synchronization retains every current CSV row and removes stale imported rows while leaving user-created records alone. The local `service_center.db` is rebuilt from these sources and is ignored by Git. Store owners can read them through `GET /api/store-data`; the response includes stock-level status and per-month fault counts.

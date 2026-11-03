@@ -16,6 +16,7 @@ SEVERITY_RULE_TABLE = {
     'category_critical_terms': {
         'Brake System': ['brake failure'], 'Cooling System': ['overheating rapidly'],
         'Engine': ['oil pressure warning'], 'Fuel System': ['fuel is leaking heavily'],
+        'Transmission': ['transmission has seized'],
         'Tyres/Wheels': ['sidewall blowout'],
     },
     'category_high_terms': {
@@ -23,8 +24,8 @@ SEVERITY_RULE_TABLE = {
         'Brake System': ['pedal sinks', 'stopping distance is longer', 'pedal travels farther', 'takes much longer to stop', 'takes longer to stop', 'brake pedal feels soft', 'brake lever feels soft'],
         'Cooling System': ['engine temperature rises', 'temperature rises', 'engine overheats', 'overheats', 'engine temperature keeps climbing', 'temperature rises in traffic', 'temperature gauge climbs', 'temperature gauge rises', 'temperature gauge still rises', 'radiator fan does not start', 'cooling fan cuts out'],
         'Engine': ['stalls at signals', 'stalls at traffic signals', 'engine misfires', 'engine misfires under load', 'misfire', 'loud engine knock', 'engine knocks', 'engine taps', 'engine taps under load', 'engine stalls', 'stalls every time'],
-        'Fuel System': ['strong petrol smell', 'petrol leak', 'fuel leak'], 'Transmission': ['clutch slips', 'clutch slip is severe', 'clutch slip'],
-        'Starting System': ['does not start after several', 'will not start after several', 'fails to start after repeated', 'still will not start', 'will not start after the battery was charged', 'starter clicks but the engine will not turn over', 'engine will not turn over', 'start nahi ho rahi'],
+        'Fuel System': ['strong petrol smell', 'petrol leak', 'fuel leak'], 'Transmission': ['clutch slips', 'clutch slip is severe', 'clutch slip', 'belt slips during acceleration', 'chain drive slips during acceleration'],
+        'Starting System': ['does not start after several', 'will not start after several', 'fails to start after repeated', 'still will not start', 'will not start after the battery was charged', 'will not start after repeated attempts', 'starter clicks but the engine will not turn over', 'engine will not turn over', 'start nahi ho rahi'],
         'Suspension': ['shock has failed', 'suspension bottoms out'],
         'Tyres/Wheels': ['bearing noise', 'wheel bearing hum', 'wheel bearing hums', 'tyre has a sidewall bulge', 'tire has a sidewall bulge'],
     },
@@ -47,6 +48,11 @@ SEVERITY_RULE_TABLE = {
     'category_low_terms': {
         'Battery/Electrical': ['headlamp beam is weak', 'headlamp is weak', 'headlights dim', 'headlight dim', 'headlight is dim', 'dim headlight', 'dim lights', 'headlamp beam is weak', 'headlamp is weak'],
         'General Maintenance': ['oil and filter service is due', 'oil change due', 'oil change is due', 'oil and filter are due', 'oil and filter service is due', 'oil and filter service is due before', 'scheduled oil change', 'scheduled maintenance is due', 'scheduled maintenance is due after the latest service interval', 'owner requests a periodic inspection before a long trip', 'general inspection and lubrication service', 'service filters need their routine check', 'routine check', 'no specific symptom described', 'regular service karani'],
+        'Cooling System': ['coolant level is checked during routine service', 'cooling fins need a routine clean'],
+        'Engine': ['engine feels slightly rough at idle'],
+        'Fuel System': ['fuel filter is due for inspection'],
+        'Starting System': ['starter turns a little slowly on cold starts'],
+        'Transmission': ['transmission makes a faint sound'],
         'Suspension': ['shock absorber squeaks', 'suspension squeaks', 'suspension squeak'],
         'Brake System': ['brake pads rub occasionally', 'soft squeak', 'squeak happens', 'squeal at low speed', 'squeaks but still stop normally', 'squeal under light pressure', 'squeak happens while parking', 'soft squeak', 'squeak', 'squeal', 'brake pads rub occasionally', 'brake pads rub while stopping'],
         'Tyres/Wheels': ['pressure drops slowly'],
@@ -76,6 +82,7 @@ RED_FLAG_RULES = {
     'Battery/Electrical': [(r'\b(?:electrical|wiring|battery) (?:is )?burning\b', 'critical'), (r'\bburning smell\b', 'high')],
     'Tyres/Wheels': [(r'\b(?:tyre|tire) (?:has )?(?:burst|blown|blowout|blew out)\b', 'critical'), (r'\bsidewall (?:burst|blowout|split)\b', 'critical')],
     'Suspension': [(r'\bsteering (?:has )?locked\b', 'critical'), (r'\bsteering lock(?:ed|s)?\b', 'high')],
+    'Starting System': [(r'\bstarter wiring is burning with smoke\b', 'critical')],
 }
 
 LEVEL_RANK = {name: i for i, name in enumerate(SEVERITY_RULE_TABLE['levels'])}
@@ -90,7 +97,7 @@ def split_symptom_clauses(text: str):
 def _normalize(text: str) -> str:
     value = str(text).lower()
     # Common typing variants found in customer complaints.
-    for wrong, right in {'brke':'brake', 'braks':'brakes', 'overheatng':'overheating', 'overheatin':'overheating', 'steem':'steam', 'petorl':'petrol', 'smel':'smell', 'tyer':'tyre', 'battrey':'battery', 'engin':'engine', 'cluch':'clutch'}.items():
+    for wrong, right in {'brke':'brake', 'braks':'brakes', 'break':'brake', 'overheatng':'overheating', 'overheatin':'overheating', 'steem':'steam', 'petorl':'petrol', 'fule':'fuel', 'smel':'smell', 'tyer':'tyre', 'battrey':'battery', 'batery':'battery', 'engin':'engine', 'engne':'engine', 'cluch':'clutch', 'suspention':'suspension', 'coolng':'cooling'}.items():
         value = re.sub(rf'\b{wrong}\b', right, value)
     return value
 
@@ -146,7 +153,8 @@ def severity_for_fault(category: str, symptom: str) -> str:
         relevant = clauses
     result = SEVERITY_RULE_TABLE['category_baseline'][category]
     low_terms = SEVERITY_RULE_TABLE.get('category_low_terms', {}).get(category, [])
-    has_low = any(_term_matches(text, _normalize(term)) for term in low_terms)
+    has_low = any(_term_matches(clause, _normalize(term)) and not _is_negated(clause, _term_matches(clause, _normalize(term)))
+                  for clause in relevant for term in low_terms)
     if has_low:
         result = 'low'
     if any(_term_matches(clause, term) and not _is_negated(clause, _term_matches(clause,term))

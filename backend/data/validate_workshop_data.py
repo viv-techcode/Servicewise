@@ -8,11 +8,12 @@ from collections import Counter, defaultdict
 from datetime import date, timedelta
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from backend.vehicles import MODEL_FACTS, VEHICLES
 from backend.discount_rules import MULTI_FAULT_DISCOUNT_RATE
-from backend.ml.severity import combined_severity, severity_for_fault, detect_red_flag_faults
+from backend.ml.severity import combined_severity, severity_for_fault, detect_red_flag_faults, _normalize
 
 ROOT = Path(__file__).resolve().parent
 SERVICE_DATE_MIN, SERVICE_DATE_MAX = '2025-01-01', '2026-10-31'
@@ -52,19 +53,20 @@ DANGEROUS = [
     {'Cooling System', 'Engine'}, {'Fuel System', 'Engine'},
 ]
 CUES = {
-    'Battery/Electrical': ('battery', 'electrical', 'headlight', 'horn', 'dashboard', 'charge'),
+    'Battery/Electrical': ('battery', 'electrical', 'headlight', 'headlamp', 'horn', 'dashboard', 'charge'),
     'Brake System': ('brake',), 'Cooling System': ('coolant', 'radiator', 'overheating', 'temperature', 'cooling fin', 'garam', 'hotter', 'engine heat', 'hot', 'airflow'),
     'Engine': ('engine', 'engin', 'oil pressure', 'exhaust', 'misfire'), 'Fuel System': ('fuel', 'petrol', 'exhaust smoke'),
     'General Maintenance': ('oil', 'filter', 'service', 'maintenance', 'inspection', 'routine'),
     'Starting System': ('starter', 'start', 'ignition', 'crank'),
-    'Suspension': ('shock', 'suspension', 'clunk', 'bounces', 'unstable'),
+    'Suspension': ('shock', 'suspension', 'clunk', 'bounces', 'unstable', 'steering lock', 'steering has locked'),
     'Transmission': ('gear', 'clutch', 'belt', 'chain', 'transmission', 'drive system', 'variator', 'automatic', 'scooter drive'),
-    'Tyres/Wheels': ('tyre', 'wheel', 'puncture', 'pressure', 'pulls slightly'),
+    'Tyres/Wheels': ('tyre', 'tire', 'wheel', 'puncture', 'pressure', 'pulls slightly'),
 }
 SERVICE_COLUMNS = [
     'job_id', 'service_date', 'service_time', 'vehicle_type', 'brand', 'model', 'age', 'km_driven',
-    'symptoms', 'symptom_template_id', 'primary_fault', 'faults', 'fault_count', 'per_fault_severity', 'severity', 'parts_used',
-    'per_fault_cost', 'customer_charge', 'parts_cost', 'labour_cost', 'gross_margin', 'discount',
+    'symptoms', 'symptom_template_id', 'phrasing_family_id', 'is_ambiguous', 'ambiguity_categories',
+    'primary_fault', 'faults', 'fault_count', 'per_fault_severity', 'severity', 'parts_used',
+    'per_fault_cost', 'customer_charge', 'parts_cost', 'estimated_cost_min', 'estimated_cost_max', 'labour_cost', 'gross_margin', 'discount',
     'stockout_delay_days', 'status',
 ]
 
@@ -89,22 +91,63 @@ def combined_for(faults, per_fault):
     return LEVELS[min(index, 3)]
 
 
-def validate(service_path=None):
-    service = pd.read_csv(service_path or ROOT / 'service_records.csv', keep_default_na=False)
-    stock = pd.read_csv(ROOT / 'inventory_stock.csv', keep_default_na=False)
-    ledger = pd.read_csv(ROOT / 'inventory_log.csv', keep_default_na=False)
-    monthly = pd.read_csv(ROOT / 'monthly_summary.csv', keep_default_na=False)
+def validate(service_path=None, data_dir=None):
+    root = Path(data_dir) if data_dir else ROOT
+    service = pd.read_csv(service_path or root / 'service_records.csv', keep_default_na=False)
+    stock = pd.read_csv(root / 'inventory_stock.csv', keep_default_na=False)
+    ledger = pd.read_csv(root / 'inventory_log.csv', keep_default_na=False)
+    monthly = pd.read_csv(root / 'monthly_summary.csv', keep_default_na=False)
+    reference = pd.read_csv(root / 'north_india_repair_price_reference.csv', keep_default_na=False)
+    price_book = pd.read_csv(root / 'part_price_table.csv', keep_default_na=False)
     assert list(service.columns) == SERVICE_COLUMNS, f'Service columns mismatch: {list(service.columns)}'
-    assert 4000 <= len(service) <= 6000, f'Unexpected job count: {len(service)}'
+    assert len(service) == 7000, f'Unexpected job count: {len(service)} (expected 7000)'
     assert not service.job_id.duplicated().any()
     assert service.service_date.between('2025-01-01', '2026-10-31').all()
     assert service.job_id.tolist() == service.assign(_timestamp=pd.to_datetime(service.service_date + ' ' + service.service_time)).sort_values(['_timestamp','job_id']).job_id.tolist(), 'Job IDs not chronological'
+    assert abs(float(service.parts_cost.sum())/max(1,float(service.customer_charge.sum())) - .55) <= .05, 'Total parts cost share must be 50%-60% of revenue'
+    estimate_min = pd.to_numeric(service.estimated_cost_min)
+    estimate_max = pd.to_numeric(service.estimated_cost_max)
+    assert (estimate_min > 0).all() and (estimate_max >= estimate_min).all() and (estimate_max/estimate_min <= 1.5).all(), 'Invalid estimate range or max/min above 1.5x'
+    ambiguity_mask = service.is_ambiguous.astype(str).str.lower().isin(['true','1','yes'])
+    assert .08 <= ambiguity_mask.mean() <= .12, f'Ambiguity share outside 8%-12%: {ambiguity_mask.mean():.1%}'
+    phrase_sets, family_sets = defaultdict(set), defaultdict(set)
+    for row in service.itertuples(index=False):
+        try:
+            family_json = json.loads(row.phrasing_family_id)
+            ambiguity_candidates = json.loads(row.ambiguity_categories)
+        except Exception as exc:
+            raise AssertionError(f'{row.job_id}: invalid phrase/ambiguity JSON') from exc
+        for cat in row.faults.split(';'):
+            phrase_sets[(cat,row.vehicle_type)].add(str(row.symptoms).strip().lower())
+            family = family_json.get(cat, '')
+            assert family, f'{row.job_id}: missing phrasing family for {cat}'
+            family_sets[cat].add(family.split(':')[-2] if ':' in family else family)
+        is_ambiguous = str(row.is_ambiguous).lower() in ('true','1','yes')
+        if is_ambiguous:
+            assert int(row.fault_count)==1 and row.primary_fault in ambiguity_candidates and len(ambiguity_candidates)>=2, f'{row.job_id}: invalid ambiguity set or true cause'
+        else:
+            assert not ambiguity_candidates, f'{row.job_id}: unmarked ambiguity candidates'
+    for cat in CUES:
+        for vtype in ('bike','car'):
+            assert len(phrase_sets[(cat,vtype)])>=40, f'{cat}/{vtype}: fewer than 40 distinct symptom phrasings'
+        assert len(family_sets[cat])>=4, f'{cat}: fewer than four phrasing families'
     seen_days = set(service.service_date)
     expected_days = {(date(2025, 1, 1) + timedelta(days=i)).isoformat() for i in range((date(2026, 10, 31) - date(2025, 1, 1)).days + 1)}
     assert SERVICE_DATE_MIN <= min(seen_days) <= max(seen_days) <= SERVICE_DATE_MAX
 
     stock_by_id = stock.set_index('part_id').to_dict('index')
     assert len(stock_by_id) >= 60, f'Expected ~60 SKUs, got {len(stock_by_id)}'
+    assert 55 <= len(price_book) <= 70, f'Expected approximately 60 priced SKUs, got {len(price_book)}'
+    assert set(price_book.part_id) == set(stock.part_id), 'Explicit price book SKU set differs from inventory snapshot'
+    assert (pd.to_numeric(price_book.unit_price) > 0).all() and (pd.to_numeric(price_book.unit_cost) > 0).all()
+    assert price_book.price_basis.isin(['estimate','catalogue/official listing']).all(), 'Unmarked part price source/basis'
+    for stock_row in stock.itertuples(index=False):
+        priced = price_book[price_book.part_id.eq(stock_row.part_id)].iloc[0]
+        assert int(priced.unit_cost) == int(stock_row.unit_cost) and int(priced.unit_price) == int(stock_row.unit_price), f'{stock_row.part_id}: price book/snapshot mismatch'
+    estimate_ref = reference[reference.availability.eq('estimated') & reference.price_basis.str.startswith('typical-job estimate')]
+    expected_pairs = {(cat, vtype) for cat in CUES for vtype in ('bike','car')}
+    observed_pairs = set(zip(estimate_ref.fault_category, estimate_ref.vehicle_type))
+    assert expected_pairs <= observed_pairs, f'Missing explicit reference bands: {sorted(expected_pairs-observed_pairs)}'
     assert (pd.to_numeric(stock.stock) >= 0).all(), 'Negative snapshot stock'
     assert (pd.to_numeric(stock.reorder_level) >= 0).all()
     assert (pd.to_numeric(stock.opening_stock) >= pd.to_numeric(stock.reorder_level)).all(), 'Opening stock below reorder level'
@@ -146,6 +189,8 @@ def validate(service_path=None):
         per_severity = json.loads(row.per_fault_severity)
         per_cost = json.loads(row.per_fault_cost)
         part_ids = json.loads(row.parts_used)
+        ambiguous_row = str(row.is_ambiguous).lower() in ('true','1','yes')
+        ambiguity_candidates = json.loads(row.ambiguity_categories)
         assert set(per_severity) == set(faults)
         assert set(per_cost) == set(faults)
         assert len(part_ids) >= len(faults)
@@ -161,6 +206,14 @@ def validate(service_path=None):
             assert part['vehicle_type'] == row.vehicle_type
             compatible = json.loads(part['compatible_models'])
             assert row.model in compatible, f'{row.job_id}: incompatible part {part_id}'
+            part_name = str(part['part_name']).lower()
+            facts = MODEL_FACTS[row.model]
+            if 'chain and sprocket' in part_name:
+                assert facts['has_chain'], f'{row.job_id}: chain kit on non-chain model'
+            if 'cvt' in part_name:
+                assert facts['body'] == 'scooter', f'{row.job_id}: CVT part on geared vehicle'
+            if any(term in part_name for term in ('radiator','coolant')):
+                assert facts['has_radiator'], f'{row.job_id}: radiator/coolant part on air-cooled model'
             if row.model in ('Activa 6G', 'Jupiter 110'):
                 name = str(part['part_name']).lower()
                 assert 'clutch cable' not in name and 'handbrake cable' not in name
@@ -168,7 +221,11 @@ def validate(service_path=None):
         assert set(used_by_fault) == set(faults)
         assert all(1 <= used_by_fault[f] <= 3 for f in faults), f'{row.job_id}: expected 1-3 parts per fault: {used_by_fault}'
         for category in faults:
-            assert any(cue in row.symptoms.lower() for cue in CUES[category]), f'{row.job_id}: {category} absent from symptoms'
+            if not ambiguous_row:
+                normalized = _normalize(row.symptoms).lower()
+                assert any(cue in normalized for cue in CUES[category]), f'{row.job_id}: {category} absent from symptoms'
+            else:
+                assert row.primary_fault in ambiguity_candidates and len(ambiguity_candidates)>=2
             assert per_severity[category] in LEVELS
             red_faults = detect_red_flag_faults(row.symptoms)
             if category in red_faults:
@@ -187,6 +244,8 @@ def validate(service_path=None):
         low, high = (3000, 12000) if row.vehicle_type == 'bike' else (5000, 18000)
         assert low <= annual_km <= high, f'{row.job_id}: implausible annual mileage {annual_km}'
         assert int(row.km_driven) <= (120000 if row.vehicle_type == 'bike' else 250000)
+        assert float(row.estimated_cost_min)>0 and float(row.estimated_cost_max)>=float(row.estimated_cost_min)
+        assert float(row.estimated_cost_max)/float(row.estimated_cost_min)<=1.5, f'{row.job_id}: estimate range exceeds 1.5x'
         assert abs(float(row.gross_margin) - (float(row.customer_charge) - float(row.parts_cost) - float(row.labour_cost))) < .02
         assert int(row.stockout_delay_days) >= 0
         if int(row.stockout_delay_days) > 0:
@@ -270,14 +329,49 @@ def validate(service_path=None):
         left = pd.to_numeric(monthly[column]).to_numpy(dtype=float)
         right = pd.to_numeric(aggregations[column]).to_numpy(dtype=float)
         assert (abs(left - right) < .02).all(), f'Monthly totals mismatch: {column}'
+    expected_revenue_pct = pd.to_numeric(monthly.revenue).pct_change(fill_method=None) * 100
+    expected_jobs_pct = pd.to_numeric(monthly.jobs).pct_change(fill_method=None) * 100
+    for col, expected in [('mom_change_pct', expected_revenue_pct), ('revenue_mom_change_pct', expected_revenue_pct), ('jobs_mom_change_pct', expected_jobs_pct)]:
+        actual = monthly[col].replace('', np.nan).astype(float)
+        assert pd.isna(actual.iloc[0]), f'{col}: first month must have no change'
+        assert (abs(actual.iloc[1:].to_numpy()-expected.iloc[1:].to_numpy()) < .02).all(), f'{col}: not recomputed from revenue/jobs'
+    expected_trend = ['stable'] + ['growth' if x>=5 else ('dip' if x<=-5 else 'stable') for x in expected_revenue_pct.iloc[1:]]
+    assert monthly.trend.tolist() == expected_trend, 'Trend label does not follow revenue +/-5% thresholds'
     assert (pd.to_numeric(monthly.gross_profit) > 0).all()
     assert (pd.to_numeric(monthly.gross_loss) < 0).all()
     assert (pd.to_numeric(monthly.profit_loss) > 0).any() and (pd.to_numeric(monthly.profit_loss) < 0).any()
     assert (pd.to_numeric(monthly.net_profit) != pd.to_numeric(monthly.gross_margin)).all()
     losses = (pd.to_numeric(monthly.net_profit) < 0).sum()
-    near_zero = (pd.to_numeric(monthly.net_profit).abs() < 10000).sum()
-    loss_or_near = ((pd.to_numeric(monthly.net_profit) < 0) | (pd.to_numeric(monthly.net_profit).abs() < 10000)).sum()
-    assert 3 <= loss_or_near <= 5, f'Expected 3-5 loss/near-zero months, got {loss_or_near}'
+    near_zero = (pd.to_numeric(monthly.net_profit).abs() < 20000).sum()
+    loss_or_near = ((pd.to_numeric(monthly.net_profit) < 0) | (pd.to_numeric(monthly.net_profit).abs() < 20000)).sum()
+    assert 3 <= loss_or_near <= 4, f'Expected 3-4 loss/near-zero months, got {loss_or_near}'
+
+    category_medians = service.groupby(['primary_fault','vehicle_type']).customer_charge.median().unstack()
+    ratios = category_medians.bike / category_medians.car
+    assert ratios.between(.30,.60).all(), f'Bike/car ratio out of 0.30-0.60: {ratios[~ratios.between(.30,.60)].round(3).to_dict()}'
+    assert category_medians.index.tolist(), 'No category medians'
+    # High and critical repairs must cost more than low repairs for the three
+    # safety/thermal/fuel categories, on each vehicle class.
+    per_severity_cost = []
+    for row in service.itertuples(index=False):
+        for cat, sev in json.loads(row.per_fault_severity).items():
+            per_severity_cost.append((cat,row.vehicle_type,sev,float(json.loads(row.per_fault_cost)[cat])))
+    severity_frame = pd.DataFrame(per_severity_cost,columns=['category','vehicle','severity','cost'])
+    for cat in ('Brake System','Cooling System','Fuel System'):
+        for vtype in ('bike','car'):
+            meds=severity_frame[(severity_frame.category==cat)&(severity_frame.vehicle==vtype)].groupby('severity').cost.median()
+            for sev in ('high','critical'):
+                assert sev in meds and 'low' in meds and meds[sev]>meds['low'], f'{cat}/{vtype}: {sev} median must exceed low'
+    headlight_jobs = service[(service.vehicle_type=='bike') & (service.fault_count==1) & service.faults.str.contains('Battery/Electrical',regex=False) & service.symptoms.str.contains(r'headlight|headlights|headlamp',case=False,regex=True) & service.symptoms.str.contains(r'dim|bulb',case=False,regex=True)]
+    assert len(headlight_jobs)>0, 'No standalone bike dim-headlight/bulb sample to check'
+    assert (pd.to_numeric(headlight_jobs.customer_charge)<600).all(), 'Bike dim-headlight/bulb job must be under ₹600'
+    assert int((pd.to_numeric(stock.stock)<=pd.to_numeric(stock.reorder_level)).sum())>=2, 'Snapshot must include low/out-of-stock SKUs'
+    assert (ledger.event_type=='stock_out').sum()>=1, 'Expected actual stock-out periods'
+    for (cat,vtype), med in category_medians.stack().items():
+        ref=estimate_ref[(estimate_ref.fault_category==cat)&(estimate_ref.vehicle_type==vtype)]
+        assert len(ref)>=1, f'Missing reference data for {cat}/{vtype}'
+        lo=pd.to_numeric(ref.price_min).median(); hi=pd.to_numeric(ref.price_max).median()
+        assert .75*lo<=med<=1.25*hi, f'{cat}/{vtype}: median {med:.0f} outside reference range {lo:.0f}-{hi:.0f}'
 
     print('PASS: service rows, dates, vehicle mileage, fault labels and severity rules')
     print('PASS: compatible parts, stock never negative, and inventory ledger reconciles to snapshot')
@@ -293,6 +387,8 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--service-csv')
-    validate(parser.parse_args().service_csv)
+    parser.add_argument('--data-dir')
+    args = parser.parse_args()
+    validate(args.service_csv, args.data_dir)
 
 

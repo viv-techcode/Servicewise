@@ -6,7 +6,7 @@ from backend.ml.predictor import Predictor
 def test_workshop_dataset_has_splits_and_per_fault_costs():
     import json
     df = pd.read_csv('backend/data/service_records.csv')
-    assert 4000 <= len(df) <= 6000
+    assert len(df) == 7000
     assert df.service_date.min() == '2025-01-01'
     assert df.service_date.max() == '2026-10-31'
     row = df[df.fault_count.astype(int) > 1].iloc[0]

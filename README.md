@@ -67,12 +67,20 @@ Open http://127.0.0.1:5000 in a browser.
 
 `backend/data/service_records.csv` is the app's main service dataset. The same
 directory contains the inventory snapshot, inventory event ledger, and monthly
-finance summary. Regenerate the four CSVs deterministically with:
+finance summary. Regenerate the operational CSVs deterministically with:
 
 ```powershell
 python -m backend.data.generate_workshop_data
 python -m backend.data.validate_workshop_data
 ```
+
+The generator also writes `part_price_table.csv`, an approximately 60-SKU price
+book with separate bike/car INR prices and source or estimate labels. The repair
+reference includes published product/menu evidence plus clearly marked typical
+job estimate bands for every category and vehicle class. Run
+`python -m backend.data.audit_dataset --summary` for the compact violation
+table; detailed severity and monthly fault distributions are saved to
+`backend/data/audit_report.md`.
 
 The validator checks labels and severity, vehicle mileage, parts fitment, stock
 ledger reconciliation, and monthly finance totals. `build_price_reference.py`

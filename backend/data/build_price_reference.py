@@ -6,7 +6,7 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parent
 REFERENCE = ROOT / "north_india_repair_price_reference.csv"
-ACCESS_DATE = "2026-10-28"
+ACCESS_DATE = "2026-11-03"
 STATES = ["Uttar Pradesh", "Delhi", "Haryana", "Punjab", "Rajasthan", "Uttarakhand", "Himachal Pradesh", "Jammu and Kashmir"]
 CATEGORIES = ["Battery/Electrical", "Brake System", "Cooling System", "Engine", "Fuel System", "General Maintenance", "Starting System", "Suspension", "Transmission", "Tyres/Wheels"]
 
@@ -70,6 +70,34 @@ def create_reference():
         for cat in CATEGORIES:
             if (cat,state) not in evidenced:
                 rows.append(row(cat,state,"","","","",notes="No directly comparable, public, state-specific price located during this research pass. National or location-unstated evidence is kept separately and not substituted."))
+    # Comparable full-job bands used by this synthetic demonstration data.
+    # Published menu/SKU evidence is retained above; where it does not cover a
+    # category/class, this separately labeled estimate is explicit and auditable.
+    typical_bands = {
+        "Battery/Electrical": {"bike": (500, 1500), "car": (1500, 4500)},
+        "Brake System": {"bike": (800, 3000), "car": (2200, 7000)},
+        "Cooling System": {"bike": (500, 2500), "car": (1600, 7000)},
+        "Engine": {"bike": (1200, 6500), "car": (2800, 15000)},
+        "Fuel System": {"bike": (500, 2500), "car": (1500, 7000)},
+        "General Maintenance": {"bike": (700, 3000), "car": (2200, 9000)},
+        "Starting System": {"bike": (500, 2500), "car": (1500, 7000)},
+        "Suspension": {"bike": (1200, 7000), "car": (3000, 20000)},
+        "Transmission": {"bike": (1200, 7000), "car": (4500, 26000)},
+        "Tyres/Wheels": {"bike": (800, 7000), "car": (1800, 22000)},
+    }
+    for cat in CATEGORIES:
+        for vtype in ("bike", "car"):
+            low, high = typical_bands[cat][vtype]
+            rows.append(dict(
+                fault_category=cat, state_or_city="North India (estimate)", state="", city="",
+                vehicle_type=vtype, vehicle_details="Typical mixed-scope jobs across budget/mid models",
+                repair_or_part="Typical repair job (demonstration comparison band)",
+                parts_cost=None, labour_cost=None, total_cost=None, price_min=low, price_max=high,
+                price_basis="typical-job estimate; synthetic benchmark, not a quote",
+                availability="estimated", source_name="estimate", source_url="",
+                source_location="North India planning estimate", access_date=ACCESS_DATE,
+                evidence_date="", source_detail="No comparable public job total for this category/class was located; bounded estimate based on current price book and typical labour scope.",
+                notes="Use only as a transparent plausibility band for generated demo data; not a market survey or customer quote."))
     df=pd.DataFrame(rows,columns=FIELDS)
     df.to_csv(REFERENCE,index=False)
     return df
