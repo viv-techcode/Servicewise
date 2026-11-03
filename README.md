@@ -4,8 +4,8 @@ ServiceWise is a Flask application for vehicle fault diagnosis, repair-cost esti
 
 ## Features
 
-- Predicts one or more vehicle fault categories from vehicle details and symptoms.
-- Estimates a repair-cost range and urgency.
+- Predicts one or more vehicle fault categories from symptoms and reports per-fault plus combined severity.
+- Estimates a repair-cost range from per-fault dataset quartiles; multi-fault medians receive a 10% shared-visit discount.
 - Stores diagnostic records in SQLite.
 - Accepts ratings, confirmed faults, and repair costs as feedback.
 - Provides analytics and model metrics.
@@ -63,6 +63,21 @@ python -m backend.app
 
 Open http://127.0.0.1:5000 in a browser.
 
+## Workshop data
+
+`backend/data/service_records.csv` is the app's main service dataset. The same
+directory contains the inventory snapshot, inventory event ledger, and monthly
+finance summary. Regenerate the four CSVs deterministically with:
+
+```powershell
+python -m backend.data.generate_workshop_data
+python -m backend.data.validate_workshop_data
+```
+
+The validator checks labels and severity, vehicle mileage, parts fitment, stock
+ledger reconciliation, and monthly finance totals. `build_price_reference.py`
+creates a separate sourced reference CSV and does not modify service records.
+
 ## Configuration
 
 | Variable | Purpose | Default |
@@ -89,7 +104,7 @@ listed at the top of `tear-calendar.js`.
 
 ### Diagnose a vehicle
 
-1. Open the application and provide the vehicle type, brand, model, age, kilometres driven, and symptoms. Cost estimates use a global baseline.
+1. Open the application and provide the vehicle type, brand, model, age, kilometres driven, and symptoms. Cost ranges use per-fault costs grouped by vehicle type in the active CSV.
 2. Submit the diagnosis form.
 3. Review the predicted fault categories, urgency, and estimated repair-cost range.
 4. The diagnosis is saved and can be viewed in the records area.
@@ -120,14 +135,20 @@ The current metrics are recorded in `backend/ml/model_metrics.json`.
 
 | Model result | Metric | Test value |
 | --- | --- | ---: |
-| Fault classifier | Primary fault accuracy | 0.8204 |
-| Fault classifier | Micro-F1 | 0.9379 |
-| Fault classifier | Exact-match accuracy | 0.8883 |
-| Cost regressor | Per-fault MAE | 80.42 |
-| Cost regressor | Per-fault RMSE | 519.18 |
-| Cost regressor | Per-fault R² | 0.1984 |
-| Cost regressor | Combined multi-fault total MAE | 60.01 |
-| Cost regressor | Combined multi-fault total R² | 0.8247 |
+| Fault classifier | Primary fault accuracy | 1.0000 |
+| Fault classifier | Micro-F1 | 0.9951 |
+| Fault classifier | Macro-F1 | 0.9945 |
+| Fault classifier | Exact-match accuracy | 0.9877 |
+| Fault classifier | Exact match, single-fault rows | 0.9950 (605 rows) |
+| Fault classifier | Exact match, multi-fault rows | 0.9723 (289 rows) |
+
+These values are copied from `backend/ml/model_metrics.json`. The classifier
+was trained on 2025-01 through 2026-07, with 2026-06 and 2026-07 used for
+model selection/thresholds and 2026-08 through 2026-10 held out for the final
+test. The source CSV is generated synthetic data; these scores are not
+real-world accuracy estimates. Per-fault and combined severity are rule-based
+using the shared table in `backend/ml/severity.py`, including dangerous-pair
+and three-fault escalation rules.
 
 ## Retraining
 
@@ -149,7 +170,9 @@ Restore a saved model version:
 python -m backend.ml.retrain --rollback v000
 ```
 
-Retraining compares the candidate with the current model on the fixed benchmark. A candidate is adopted only when both the micro-F1 and cost-MAE gates pass.
+Retraining compares a candidate against the current classifier on the latest
+three chronological months from `service_records.csv`. It does not use a
+random split.
 
 ## Running tests
 

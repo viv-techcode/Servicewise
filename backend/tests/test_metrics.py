@@ -12,14 +12,13 @@ def test_model_metrics_endpoint(client):
     assert r.status_code == 200
     data = r.get_json()
     assert 'classifier' in data
-    assert 'regressor' in data
     assert 'accuracy' in data['classifier']
     assert 'primary_fault_accuracy' in data['classifier']
     assert 'micro_f1' in data['classifier']
     assert 'macro_f1' in data['classifier']
     assert 'per_category' in data['classifier']
-    assert 'mae' in data['regressor']
-    assert 'rmse' in data['regressor']
-    assert 'r2' in data['regressor']
+    assert not any(key.startswith('regre') for key in data)
     assert 'training_samples' in data
-    assert data['evaluation']['split_group_overlap'] == 0
+    assert data['evaluation']['split_method'].startswith('chronological holdout')
+    assert data['evaluation']['split_months']['test'][-3:] == ['2026-08', '2026-09', '2026-10']
+    assert 'exact_match_by_fault_count' in data['classifier']

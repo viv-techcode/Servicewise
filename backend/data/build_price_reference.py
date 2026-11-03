@@ -1,19 +1,11 @@
-"""Build sourced regional price references and enrich applicable dataset rows.
-
-Prices are transcribed from public offers/tables, never extrapolated to states
-or vehicle classes not named by a source. Run from the project root.
-"""
+"""Build the standalone sourced regional repair-price reference CSV."""
 from __future__ import annotations
 
 from pathlib import Path
-import json
-import re
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parent
-DATASET = ROOT / "service_records_balanced_3000.csv"
 REFERENCE = ROOT / "north_india_repair_price_reference.csv"
-REPORT = ROOT / "north_india_price_validation_report.md"
 ACCESS_DATE = "2026-10-28"
 STATES = ["Uttar Pradesh", "Delhi", "Haryana", "Punjab", "Rajasthan", "Uttarakhand", "Himachal Pradesh", "Jammu and Kashmir"]
 CATEGORIES = ["Battery/Electrical", "Brake System", "Cooling System", "Engine", "Fuel System", "General Maintenance", "Starting System", "Suspension", "Transmission", "Tyres/Wheels"]
@@ -83,101 +75,13 @@ def create_reference():
     return df
 
 
-def enrich_dataset(ref):
-    df=pd.read_csv(DATASET)
-    # Add reference metadata without fabricating component splits. Only comparable,
-    # location-specific price ranges for matching vehicle type are applied.
-    for column in ('reference_price_min', 'reference_price_max', 'price_reference_url'):
-        if column not in df:
-            df[column] = pd.NA if column != 'price_reference_url' else ''
-    df['price_reference_url'] = df['price_reference_url'].astype(object)
-    applied=0
-    direct=ref[(ref.availability=='priced') & ref.state.isin(STATES) & ref.price_min.notna() & ref.price_max.notna() & ref.vehicle_type.ne('')]
-    for idx,r in df.iterrows():
-        try:
-            existing_fault_costs=json.loads(str(r.get('fault_costs', '{}')))
-        except (TypeError, json.JSONDecodeError):
-            existing_fault_costs={}
-        if r.primary_fault not in existing_fault_costs:
-            continue
-        matches=direct[(direct.fault_category==r.primary_fault)&(direct.state==r.state)&(direct.vehicle_type==r.vehicle_type)]
-        if matches.empty:
-            continue
-        # Match detailed scope where source-specific job language is represented.
-        chosen=None
-        for _,candidate in matches.iterrows():
-            job=candidate.repair_or_part.lower()
-            replaced=str(r.get('parts_replaced','')).lower()
-            if candidate.fault_category=='Brake System' and r.vehicle_type=='bike' and ('brake' in replaced or 'brake' in str(r.symptoms).lower()):
-                cc=re.search(r'\b(\d{3,4})\b',str(r.get('vehicle_model','')))
-                if cc and int(cc.group(1))>180: chosen=candidate; break
-            if candidate.city=='Jaipur' and candidate.fault_category in ('Battery/Electrical','General Maintenance','Brake System'):
-                if candidate.fault_category=='Battery/Electrical' and ('battery' in replaced or 'battery' in str(r.symptoms).lower()): chosen=candidate; break
-                if candidate.fault_category=='General Maintenance' and ('service' in replaced or 'service' in str(r.symptoms).lower()): chosen=candidate; break
-                if candidate.fault_category=='Brake System' and ('brake' in replaced or 'brake' in str(r.symptoms).lower()): chosen=candidate; break
-        if chosen is None:
-            continue
-        low,high=float(chosen.price_min),float(chosen.price_max)
-        midpoint=round((low+high)/2)
-        df.at[idx,'reference_price_min']=low
-        df.at[idx,'reference_price_max']=high
-        df.at[idx,'price_reference_url']=chosen.source_url
-        df.at[idx,'actual_repair_cost']=midpoint
-        fault_costs=json.loads(str(r.get('fault_costs') or '{}'))
-        fault_costs[r.primary_fault]=midpoint
-        df.at[idx,'fault_costs']=json.dumps(fault_costs,ensure_ascii=False,sort_keys=True)
-        df.at[idx,'total_repair_cost']=int(round(sum(float(value) for value in fault_costs.values())*(0.9 if len(fault_costs)>1 else 1.0)))
-        # No split when the cited offer gives only a combined total range.
-        df.at[idx,'parts_cost']=pd.NA
-        df.at[idx,'labour_cost']=pd.NA
-        applied+=1
-    # Check no fault category/row changed or removed.
-    assert len(df)==3000
-    assert df.primary_fault.value_counts().eq(300).all()
-    df.to_csv(DATASET,index=False)
-    return df,applied
-
-
 def main():
-    ref=create_reference()
-    df,applied=enrich_dataset(ref)
-    bad_ranges=int(((ref.price_min.notna()) & (ref.price_max.notna()) & (ref.price_min>ref.price_max)).sum())
-    bad_source=int(((ref.availability=='priced') & (ref.source_url=='')).sum())
-    bad_components=int(((df.parts_cost.notna() & df.labour_cost.notna()) & (df.parts_cost+df.labour_cost!=df.actual_repair_cost)).sum())
-    regional=ref[(ref.availability=='priced') & ref.state.isin(STATES)]
-    coverage=regional.groupby('state').fault_category.nunique().to_dict()
-    report=[
-        "# North India repair-price reference and validation", "",
-        f"Research/access date: {ACCESS_DATE}.",
-        "Prices are public menu/list prices transcribed from the cited pages. They are not workshop invoices or guaranteed final quotes. ‘From’ entries are lower bounds, not complete ranges.", "",
-        "## Regional evidence coverage", "",
-        f"- Regional evidence rows (named target state/city): {len(regional)}; states with at least one priced category: {', '.join(sorted(coverage)) or 'none'}.",
-        f"- Target state/category matrix: {len(STATES)*len(CATEGORIES)} combinations; directly priced combinations: {len({(r.fault_category,r.state) for _,r in regional.iterrows()})}; remaining combinations explicitly marked unavailable in the CSV.",
-        "- Evidence is concentrated in Delhi (two-wheeler brake pad/shoe menu), Ghazipur, Uttar Pradesh (starting prices for car brake, suspension, clutch, engine, service and tyre jobs), and Jaipur, Rajasthan (car battery, brake and maintenance menu prices). No state-specific comparable prices were verified in this pass for Haryana, Punjab, Uttarakhand, Himachal Pradesh, or Jammu and Kashmir.",
-        "- National/unspecified sources are retained as separate reference rows: Exide 35Ah battery MRP (part only), 185/65 R15 tyre listings (part only), and a location-unstated labour chart. These are not treated as state-specific evidence.", "",
-        "## Dataset integration", "",
-        f"- Prepared dataset rows: {len(df)}; primary category counts: exactly 300 each across all 10 categories.",
-        f"- Rows matched to a comparable, state-specific published total range: {applied}.",
-        "- For matched rows, the primary-fault cost target is the cited range midpoint and the range plus source URL are stored in `reference_price_min`, `reference_price_max`, and `price_reference_url`. Multi-fault combined totals are recalculated from the per-fault target map and the shared-visit rule. Since sources give combined totals, parts/labour are blank rather than fabricated.",
-        "- All unmatched records retain their prior per-fault costs; no state multiplier or price extrapolation was applied. Parts and labour remain separately populated only where both component amounts are available and sum to the primary-fault target.",
-        "- Original CSV remains unchanged. The multilabel classifier artifact and source CSV were not touched.", "",
-        "## Checks", "",
-        f"- Invalid price ranges (min > max): {bad_ranges}.",
-        f"- Priced rows missing source URL: {bad_source}.",
-        f"- Component-sum mismatches against primary-fault targets where both parts/labour exist: {bad_components}.",
-        f"- Duplicate matrix state/category pairs in the explicit regional coverage map: {int(regional.duplicated(['state','fault_category']).sum())}.",
-        "- Data quality caveat: public service-menu scopes and vehicle specifications are not fully comparable. Starting prices do not establish upper bounds, and listed menu services may have different inclusions. The reference CSV preserves these qualifications row by row.", "",
-        "## Files", "",
-        "- `north_india_repair_price_reference.csv` — sourced offers, parts/labour-only evidence, and explicit unavailable matrix rows.",
-        "- `service_records_balanced_3000.csv` — enriched in place while retaining 3,000 rows and 300 per primary category.",
-        "- `north_india_price_validation_report.md` — coverage and validation report.",
-        "- `build_price_reference.py` — reproducible build/integration script.", "",
-        "## Sources", "",
-    ]
-    for key,(name,url,location,evidence) in SOURCES.items():
-        report.append(f"- [{name}]({url}) — {location}; {evidence}.")
-    REPORT.write_text("\n".join(report),encoding='utf-8')
-    print(f"reference_rows={len(ref)} dataset_rows={len(df)} applied_ranges={applied} invalid_ranges={bad_ranges} bad_source={bad_source} component_mismatches={bad_components}")
+    ref = create_reference()
+    bad_ranges = int(((ref.price_min.notna()) & (ref.price_max.notna()) & (ref.price_min > ref.price_max)).sum())
+    bad_source = int(((ref.availability == 'priced') & (ref.source_url == '')).sum())
+    regional = ref[(ref.availability == 'priced') & ref.state.isin(STATES)]
+    print(f"reference_rows={len(ref)} regional_states={regional.state.nunique()} invalid_ranges={bad_ranges} priced_rows_missing_source={bad_source}")
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     main()

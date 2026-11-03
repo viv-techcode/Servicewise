@@ -123,46 +123,44 @@ def import_service_records_csv(csv_path):
     conn = get_db()
     imported = 0
     skipped = 0
+    active_keys = set()
     try:
         with open(csv_path, newline='', encoding='utf-8-sig') as handle:
             rows = list(csv.DictReader(handle))
-            active_keys = set()
             for row in rows:
-                source_key = f"{os.path.basename(csv_path)}:{row.get('record_id', '')}"
-                if not row.get('record_id'):
+                job_id = row.get('job_id', '')
+                source_key = f"{os.path.basename(csv_path)}:{job_id}"
+                if not job_id:
                     continue
                 active_keys.add(source_key)
 
-                categories = [row.get('primary_fault', ''), row.get('simultaneous_faults', '')]
-                categories = list(dict.fromkeys(
-                    category.strip() for category in categories
-                    if category and category.strip().lower() not in ('none', 'not_recorded')
-                ))
+                categories = list(dict.fromkeys(category.strip() for category in row.get('faults', '').split(';') if category.strip()))
                 if not categories:
-                    categories = [row.get('problem_category', 'General Maintenance')]
+                    categories = [row.get('primary_fault', 'General Maintenance')]
                 predicted_faults = [{'category': category, 'confidence': None} for category in categories]
-                reference_min = float(row['reference_price_min']) if row.get('reference_price_min') else None
-                reference_max = float(row['reference_price_max']) if row.get('reference_price_max') else None
-                actual_cost = float(row['actual_repair_cost']) if row.get('actual_repair_cost') else None
+                actual_cost = float(row['customer_charge']) if row.get('customer_charge') else 0.0
+                try:
+                    per_fault_cost = json.loads(row.get('per_fault_cost') or '{}')
+                except (TypeError, json.JSONDecodeError):
+                    per_fault_cost = {}
                 prediction_snapshot = {
-                    'minimum': reference_min,
-                    'maximum': reference_max,
-                    'fault_cost_breakdown': [],
+                    'minimum': None,
+                    'maximum': None,
+                    'estimate': actual_cost,
+                    'fault_cost_breakdown': [{'category': category, 'customer_charge': per_fault_cost.get(category)} for category in categories],
                     'shared_visit_discount': None,
-                    'cost_estimate_basis': 'historical CSV record'
+                    'cost_estimate_basis': 'historical workshop dataset row'
                 }
                 symptoms = row.get('symptoms', '').strip()
-                urgency = 'High' if any(word in symptoms.lower() for word in ('brake', 'overheating', 'smoke', 'failure')) else (
-                    'Medium' if any(word in symptoms.lower() for word in ('clicking', 'noise', 'starting')) else 'Low'
-                )
+                urgency = {'low': 'Low', 'medium': 'Medium', 'high': 'High', 'critical': 'High'}.get(row.get('severity', '').lower(), 'Low')
+                timestamp = f"{row.get('service_date', '')} {row.get('service_time', '00:00:00')}".strip()
                 record_values = (
-                    row.get('vehicle_type'), row.get('vehicle_brand'), row.get('vehicle_model'), 'Global',
-                    int(row['vehicle_age']) if row.get('vehicle_age') else None,
+                    row.get('vehicle_type'), row.get('brand'), row.get('model'), 'Global',
+                    int(row['age']) if row.get('age') else None,
                     int(row['km_driven']) if row.get('km_driven') else None,
-                    symptoms, row.get('problem_category') or categories[0],
+                    symptoms, row.get('primary_fault') or categories[0],
                     json.dumps(predicted_faults), json.dumps(prediction_snapshot),
-                    reference_min, reference_max, urgency, actual_cost,
-                    row.get('service_date') or None,
+                    None, None, urgency, actual_cost, timestamp,
                 )
                 existing = conn.execute(
                     '''SELECT id, vehicle_type, vehicle_brand, vehicle_model, state, vehicle_age,
@@ -201,9 +199,13 @@ def import_service_records_csv(csv_path):
                     )
                     imported += 1
 
+        # Keep imported history synchronized with the one active CSV. Rows
+        # created by app users have a NULL source key and are unaffected.
         source_prefix = f"{os.path.basename(csv_path)}:%"
-        for old in conn.execute('SELECT id, source_record_key FROM service_records WHERE source_record_key LIKE ?', (source_prefix,)).fetchall():
-            if old['source_record_key'] not in active_keys:
+        for old in conn.execute(
+            'SELECT id, source_record_key FROM service_records WHERE source_record_key IS NOT NULL'
+        ).fetchall():
+            if not old['source_record_key'].startswith(source_prefix) or old['source_record_key'] not in active_keys:
                 conn.execute('DELETE FROM feedback WHERE record_id = ?', (old['id'],))
                 conn.execute('DELETE FROM service_records WHERE id = ?', (old['id'],))
 

@@ -657,7 +657,8 @@ document.addEventListener('DOMContentLoaded', () => {
             faultList.forEach((fault, index) => {
                 const line = document.createElement('div');
                 const confidence = Number.isFinite(fault.confidence) ? ` · ${Math.round(fault.confidence * 100)}% confidence` : '';
-                line.textContent = `${index === 0 ? 'Primary: ' : 'Also: '}${fault.category}${confidence}`;
+                const severity = fault.severity ? ` · ${fault.severity} severity` : '';
+                line.textContent = `${index === 0 ? 'Primary: ' : 'Also: '}${fault.category}${severity}${confidence}`;
                 faultsNode.appendChild(line);
             });
             document.getElementById('resCost').textContent = `₹${Math.round(result.estimated_cost_min).toLocaleString('en-IN')} – ₹${Math.round(result.estimated_cost_max).toLocaleString('en-IN')}`;
@@ -675,7 +676,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const entry = document.createElement('li');
                     const low = Math.round(item.estimated_cost_min).toLocaleString('en-IN');
                     const high = Math.round(item.estimated_cost_max).toLocaleString('en-IN');
-                    const source = 'global cost model';
+                    const source = 'dataset cost lookup';
                     entry.textContent = `${item.category}: ₹${low} – ₹${high} (${source})`;
                     list.appendChild(entry);
                 });
@@ -691,8 +692,10 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('resRecommendation').textContent = result.recommendation;
 
             const badge = document.getElementById('urgencyBadge');
-            badge.textContent = `Urgency: ${result.urgency}`;
+            badge.textContent = `Combined severity: ${result.combined_severity || result.severity || 'unknown'} · Urgency: ${result.urgency}`;
             badge.className = `badge badge-${result.urgency}`;
+            const severityNode = document.getElementById('resCombinedSeverity');
+            if (severityNode) severityNode.textContent = `Combined severity: ${result.combined_severity || result.severity || 'unknown'}`;
 
             // Save pending feedback item in localStorage for prompt on next visit/re-login/reload
             const pendingFeedback = {
@@ -884,6 +887,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 tbody.innerHTML = records.map((r) => {
                     let predictedDisplay = '₹1,500 – ₹3,000';
                     let actualDisplay = '—';
+                    const predictedFaults = Array.isArray(r.predicted_faults) ? r.predicted_faults : [];
+                    const faultSummary = predictedFaults.map(f => `${f.category}${f.severity ? ` (${f.severity})` : ''}`).join(', ') || r.predicted_category || 'General';
+                    const combinedSeverity = r.combined_severity
+                        ? `<br><small>Combined severity: ${r.combined_severity}</small>` : '';
 
                     if (r.predicted_cost_min != null && r.predicted_cost_max != null) {
                         predictedDisplay = `₹${Math.round(r.predicted_cost_min).toLocaleString('en-IN')} – ₹${Math.round(r.predicted_cost_max).toLocaleString('en-IN')}`;
@@ -898,7 +905,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <td class="mono" style="color:var(--text-muted);font-weight:600;">${r.id}</td>
                         <td><strong>${r.vehicle_brand || 'Vehicle'} ${r.vehicle_model || ''}</strong> <small style="color:var(--text-muted);">(${r.vehicle_type || 'car'})</small></td>
                         <td style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${(r.symptoms || '').replace(/"/g, '&quot;')}">${r.symptoms || '—'}</td>
-                        <td><span class="mono" style="color:var(--text-primary);font-weight:500;">${(Array.isArray(r.predicted_faults) ? r.predicted_faults : []).map(f => f.category).join(', ') || r.predicted_category || 'General'}</span>${r.feedback?.corrected_faults?.length ? `<br><small style="color:${JSON.stringify([...r.feedback.corrected_faults].sort()) === JSON.stringify((r.predicted_faults || []).map(f => f.category).sort()) ? 'var(--success)' : 'var(--danger)'}">Confirmed: ${r.feedback.corrected_faults.join(', ')}</small>` : ''}</td>
+                        <td><span class="mono" style="color:var(--text-primary);font-weight:500;">${faultSummary}</span>${combinedSeverity}${r.feedback?.corrected_faults?.length ? `<br><small style="color:${JSON.stringify([...r.feedback.corrected_faults].sort()) === JSON.stringify((r.predicted_faults || []).map(f => f.category).sort()) ? 'var(--success)' : 'var(--danger)'}">Confirmed: ${r.feedback.corrected_faults.join(', ')}</small>` : ''}</td>
                         <td class="mono" style="color:var(--text-secondary);font-variant-numeric:tabular-nums;font-weight:500;">${predictedDisplay}</td>
                         <td class="mono" style="color:var(--success);font-variant-numeric:tabular-nums;font-weight:600;">${actualDisplay}</td>
                         <td><span class="badge badge-${r.urgency || 'Medium'}" style="margin:0;padding:0.15rem 0.5rem;font-size:0.75rem;">${r.urgency || 'Medium'}</span></td>
@@ -1064,10 +1071,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span class="mono" style="font-size:0.75rem;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.25);color:var(--accent);padding:0.2rem 0.5rem;border-radius:4px;">${c}</span>
                         `).join('');
                     }
-                }
-                if (data.regressor) {
-                    document.getElementById('metricRegressorMae').textContent = `₹${Math.round(data.regressor.mae).toLocaleString('en-IN')}`;
-                    document.getElementById('metricRegressorR2').textContent = data.regressor.r2_score;
                 }
                 document.getElementById('metricSamples').textContent = `${data.training_samples || 0} records`;
                 document.getElementById('metricTrainedAt').textContent = data.trained_at ? data.trained_at.split('T')[0] : '—';

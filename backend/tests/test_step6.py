@@ -77,34 +77,22 @@ def test_history_and_analytics_comparison_view(client):
 
 
 def test_candidate_gating_and_version_rollback(monkeypatch):
-    assert retrain.adoption_decision(.90, .895, 100, 105)['adopt'] is True
-    assert retrain.adoption_decision(.90, .894, 100, 104)['adopt'] is False
-    assert retrain.adoption_decision(.90, .90, 100, 105.01)['adopt'] is False
+    assert retrain.adoption_decision(.90, .895)['adopt'] is True
+    assert retrain.adoption_decision(.90, .894)['adopt'] is False
     from pathlib import Path
     tmp_path = Path('backend/data/test_versions').resolve()
     if tmp_path.exists():
         import shutil; shutil.rmtree(tmp_path)
     tmp_path.mkdir(parents=True)
-    comparison = retrain.compare_models
-    monkeypatch.setattr(retrain, 'compare_models', lambda *a, **kw: {
-        'current': {'micro_f1': .90, 'per_fault_cost_mae': 100},
-        'candidate': {'micro_f1': .894, 'per_fault_cost_mae': 104},
-        'micro_f1_tolerance': .005, 'cost_mae_max_degradation_fraction': .05,
-        'micro_f1_pass': False, 'cost_mae_pass': True, 'adopt': False,
-    })
-    assert retrain.compare_models(None, None, None, [])['micro_f1_pass'] is False
-    monkeypatch.setattr(retrain, 'compare_models', comparison)
-
     versions = tmp_path / 'versions'; versions.mkdir()
     folder = versions / 'v001'; folder.mkdir()
     monkeypatch.setattr(retrain, 'VERSIONS_DIR', versions)
     monkeypatch.setattr(retrain, 'ML_DIR', tmp_path)
-    for artifact in retrain.ARTIFACTS:
-        (folder / artifact).write_bytes(b'previous')
-        (tmp_path / artifact).write_bytes(b'current')
+    (folder / retrain.ARTIFACT).write_bytes(b'previous')
+    (tmp_path / retrain.ARTIFACT).write_bytes(b'current')
     (folder / 'metadata.json').write_text('{}')
     assert retrain.rollback('v001') == 'v001'
-    assert all((tmp_path / artifact).read_bytes() == b'previous' for artifact in retrain.ARTIFACTS)
+    assert (tmp_path / retrain.ARTIFACT).read_bytes() == b'previous'
     import shutil; shutil.rmtree(tmp_path)
 
 
@@ -120,7 +108,7 @@ def test_predictor_refreshes_when_active_version_changes(monkeypatch):
     predictor = Predictor.__new__(Predictor)
     predictor.model_version = 'v001'
     loaded = []
-    predictor._load_models = lambda: loaded.append(True)
+    predictor._load_model = lambda: loaded.append(True)
     # Exercise the version comparison directly without loading large artifacts.
     predictor.refresh_if_model_changed()
     assert loaded == [True]

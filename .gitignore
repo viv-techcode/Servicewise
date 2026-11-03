@@ -23,7 +23,6 @@ data/*.db
 *.bak
 
 # Generated training and evaluation reference artifacts
-backend/data/dataset_noise_config.json
 backend/ml/model_versions/
 backend/ml/evaluation_report.md
 backend/ml/retraining_history.jsonl

@@ -1,0 +1,22 @@
+part_id,part_name,fault_category,vehicle_type,compatible_models,opening_stock,stock,reorder_level,unit_cost,unit_price,supplier_lead_time_days,supplier,snapshot_date
+P-B-01,Battery and terminal kit,Battery/Electrical,bike,"[""Splendor Plus"", ""HF Deluxe"", ""Shine 125"", ""Activa 6G"", ""Jupiter 110""]",0,3,5,1550,2050,6,Battery/Electrical Supply Co.,2026-10-31
+P-C-02,Battery and terminal kit,Battery/Electrical,car,"[""Swift"", ""WagonR"", ""Alto K10"", ""i20"", ""Tiago""]",7,0,5,1550,2050,6,Battery/Electrical Supply Co.,2026-10-31
+P-B-03,Brake shoe and pad kit,Brake System,bike,"[""Splendor Plus"", ""HF Deluxe"", ""Shine 125"", ""Activa 6G"", ""Jupiter 110""]",10,9,8,860,1140,4,Brake Supply Co.,2026-10-31
+P-C-04,Brake pads and service kit,Brake System,car,"[""Swift"", ""WagonR"", ""Alto K10"", ""i20"", ""Tiago""]",10,5,8,860,1140,4,Brake Supply Co.,2026-10-31
+P-B-05,Radiator hose and coolant kit,Cooling System,bike,"[""Splendor Plus"", ""HF Deluxe"", ""Shine 125"", ""Activa 6G"", ""Jupiter 110""]",7,10,5,1030,1360,4,Cooling Supply Co.,2026-10-31
+P-C-06,Radiator hose and coolant kit,Cooling System,car,"[""Swift"", ""WagonR"", ""Alto K10"", ""i20"", ""Tiago""]",7,8,5,1030,1360,4,Cooling Supply Co.,2026-10-31
+P-B-07,Engine sensor and gasket kit,Engine,bike,"[""Splendor Plus"", ""HF Deluxe"", ""Shine 125"", ""Activa 6G"", ""Jupiter 110""]",7,2,5,1390,1830,6,Engine Supply Co.,2026-10-31
+P-C-08,Engine sensor and gasket kit,Engine,car,"[""Swift"", ""WagonR"", ""Alto K10"", ""i20"", ""Tiago""]",7,9,5,1390,1830,6,Engine Supply Co.,2026-10-31
+P-B-09,Fuel filter and hose kit,Fuel System,bike,"[""Splendor Plus"", ""HF Deluxe"", ""Shine 125"", ""Activa 6G"", ""Jupiter 110""]",7,12,5,695,920,5,Fuel Supply Co.,2026-10-31
+P-C-10,Fuel filter and hose kit,Fuel System,car,"[""Swift"", ""WagonR"", ""Alto K10"", ""i20"", ""Tiago""]",7,9,5,695,920,5,Fuel Supply Co.,2026-10-31
+P-B-11,Oil and air filter service kit,General Maintenance,bike,"[""Splendor Plus"", ""HF Deluxe"", ""Shine 125"", ""Activa 6G"", ""Jupiter 110""]",10,18,8,610,810,5,General Supply Co.,2026-10-31
+P-C-12,Oil and air filter service kit,General Maintenance,car,"[""Swift"", ""WagonR"", ""Alto K10"", ""i20"", ""Tiago""]",10,6,8,610,810,5,General Supply Co.,2026-10-31
+P-B-13,Starter relay and plug kit,Starting System,bike,"[""Splendor Plus"", ""HF Deluxe"", ""Shine 125"", ""Activa 6G"", ""Jupiter 110""]",7,6,5,790,1040,4,Starting Supply Co.,2026-10-31
+P-C-14,Starter relay and plug kit,Starting System,car,"[""Swift"", ""WagonR"", ""Alto K10"", ""i20"", ""Tiago""]",0,9,5,790,1040,4,Starting Supply Co.,2026-10-31
+P-B-15,Shock absorber service kit,Suspension,bike,"[""Splendor Plus"", ""HF Deluxe"", ""Shine 125"", ""Activa 6G"", ""Jupiter 110""]",7,7,5,1380,1820,5,Suspension Supply Co.,2026-10-31
+P-C-16,Shock absorber service kit,Suspension,car,"[""Swift"", ""WagonR"", ""Alto K10"", ""i20"", ""Tiago""]",7,12,5,1380,1820,5,Suspension Supply Co.,2026-10-31
+P-B-17,Clutch plate and drive chain kit,Transmission,bike,"[""Splendor Plus"", ""HF Deluxe"", ""Shine 125""]",7,15,5,1665,2200,5,Transmission Supply Co.,2026-10-31
+P-B-18,Scooter drive belt and variator kit,Transmission,bike,"[""Activa 6G"", ""Jupiter 110""]",7,7,5,1665,2200,5,Transmission Supply Co.,2026-10-31
+P-C-19,Clutch and drive kit,Transmission,car,"[""Swift"", ""WagonR"", ""Alto K10"", ""i20"", ""Tiago""]",7,11,5,1665,2200,5,Transmission Supply Co.,2026-10-31
+P-B-20,Tyre and valve kit,Tyres/Wheels,bike,"[""Splendor Plus"", ""HF Deluxe"", ""Shine 125"", ""Activa 6G"", ""Jupiter 110""]",10,11,8,2140,2820,5,Tyres/Wheels Supply Co.,2026-10-31
+P-C-21,Tyre and valve kit,Tyres/Wheels,car,"[""Swift"", ""WagonR"", ""Alto K10"", ""i20"", ""Tiago""]",10,13,8,2140,2820,5,Tyres/Wheels Supply Co.,2026-10-31

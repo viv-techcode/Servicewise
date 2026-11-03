@@ -33,29 +33,27 @@ def test_multilabel_training_targets_include_secondary_faults():
     import pandas as pd
     from backend.ml.train_models import DATA_PATH
     df = pd.read_csv(DATA_PATH)
-    assert df['primary_fault'].value_counts().eq(300).all()
-    multi = df[~df['simultaneous_faults'].isin(['none', 'not_recorded'])]
-    assert len(multi) == 1200
-    assert multi['simultaneous_faults'].str.count(';').eq(0).sum() == 1100
-    assert multi['simultaneous_faults'].str.count(';').eq(1).sum() == 100
+    assert 4000 <= len(df) <= 6000
+    assert set(df.faults.str.split(';').explode()) == set(__import__('backend.ml.train_models', fromlist=['CATEGORIES']).CATEGORIES)
+    multi = df[df['fault_count'].astype(int) > 1]
+    assert 0.25 <= (df.fault_count.astype(int) == 2).mean() <= 0.30
+    assert 0.03 <= (df.fault_count.astype(int) == 3).mean() <= 0.05
+    assert len(multi) == 1766
 
 
-def test_step5d_ambiguity_informal_and_misdiagnosis_rates():
+def test_workshop_fault_mix_and_per_fault_cost_labels():
     import json
-    from pathlib import Path
     import pandas as pd
-    from backend.ml.fault_text import INFORMAL_NOISE_NOTES, SHARED_AMBIGUOUS_SYMPTOMS
+    from pathlib import Path
     root = Path(__file__).resolve().parents[2]
-    df = pd.read_csv(root / 'backend/data/service_records_balanced_3000.csv')
-    config = json.loads((root / 'backend/data/dataset_noise_config.json').read_text(encoding='utf-8-sig'))
-    active = config['active_rates']
-    ambiguous = df.symptoms.astype(str).map(lambda text: any(phrase in text.lower() for phrase in SHARED_AMBIGUOUS_SYMPTOMS))
-    informal = df.symptoms.astype(str).map(lambda text: any(note.lower() in text.lower() for note in INFORMAL_NOISE_NOTES))
-    misdiagnosed = df.apply(lambda row: row.primary_fault not in json.loads(row.fault_costs), axis=1)
-    assert ambiguous.sum() == round(len(df) * active['ambiguous_shared_symptoms'])
-    assert informal.sum() == round(len(df) * active['typos_abbreviations_hinglish'])
-    assert misdiagnosed.sum() == round(len(df) * active['plausible_label_misdiagnoses'])
-    assert df.primary_fault.value_counts().eq(300).all()
+    df = pd.read_csv(root / 'backend/data/service_records.csv')
+    fault_labels = [label for value in df.faults for label in str(value).split(';')]
+    distribution = pd.Series(fault_labels).value_counts(normalize=True)
+    assert .18 <= distribution['General Maintenance'] <= .26
+    assert .10 <= distribution['Tyres/Wheels'] <= .16
+    for row in df.itertuples():
+        assert row.primary_fault == row.faults.split(';')[0]
+        assert set(json.loads(row.per_fault_cost)) == set(row.faults.split(';'))
 
 
 def test_predictor_returns_multiple_faults_with_confidence():
@@ -64,7 +62,6 @@ def test_predictor_returns_multiple_faults_with_confidence():
         'pipeline': StubMultiLabelPipeline([0.82, 0.76, 0.12]),
         'classes': ['Brake System', 'Tyres/Wheels', 'Engine']
     }
-    # Cost model receives the highest confidence category as its legacy label.
     result = p.predict({
         'vehicle_type': 'bike', 'vehicle_brand': 'Honda', 'vehicle_model': 'Activa 6G',
         'vehicle_age': 3, 'km_driven': 20000,
@@ -73,6 +70,8 @@ def test_predictor_returns_multiple_faults_with_confidence():
     assert [fault['category'] for fault in result['predicted_faults']] == ['Brake System', 'Tyres/Wheels']
     assert result['problem_category'] == 'Brake System'
     assert result['predicted_faults'][0]['confidence'] == 0.82
+    assert result['per_fault_severity'] == {'Brake System': 'medium', 'Tyres/Wheels': 'low'}
+    assert result['combined_severity'] == 'high'
 
 
 def test_predictor_single_fault_fallback_when_no_label_passes_threshold():
@@ -89,21 +88,16 @@ def test_predictor_single_fault_fallback_when_no_label_passes_threshold():
 
 
 def test_three_fault_cost_breakdown_applies_one_shared_visit_discount(monkeypatch):
-    import numpy as np
-
-    class CostStub:
-        feature_names_in_ = np.array(['vehicle_type', 'vehicle_brand', 'vehicle_model', 'vehicle_age', 'km_driven', 'problem_category'])
-
-        def predict(self, frame):
-            amounts = {'Battery/Electrical': 1000, 'Engine': 2000, 'Tyres/Wheels': 3000}
-            return np.array([amounts[value] for value in frame['problem_category']])
-
     p = Predictor()
     p.multilabel = {
         'pipeline': StubMultiLabelPipeline([0.91, 0.87, 0.83]),
         'classes': ['Battery/Electrical', 'Engine', 'Tyres/Wheels'],
     }
-    p.regressor = CostStub()
+    p.cost_lookup = {
+        ('Battery/Electrical', 'car'): {'q25': 800, 'median': 1000, 'q75': 1200},
+        ('Engine', 'car'): {'q25': 1600, 'median': 2000, 'q75': 2400},
+        ('Tyres/Wheels', 'car'): {'q25': 2400, 'median': 3000, 'q75': 3600},
+    }
     result = p.predict({
         'vehicle_type': 'car', 'vehicle_brand': 'Tata', 'vehicle_model': 'Tiago',
         'vehicle_age': 4, 'km_driven': 35000,
@@ -112,34 +106,26 @@ def test_three_fault_cost_breakdown_applies_one_shared_visit_discount(monkeypatc
     assert [item['category'] for item in result['fault_cost_breakdown']] == ['Battery/Electrical', 'Engine', 'Tyres/Wheels']
     assert [item['estimated_cost_min'] for item in result['fault_cost_breakdown']] == [800, 1600, 2400]
     assert result['shared_visit_discount']['rate'] == .1
+    assert result['estimated_cost'] == 5400
     assert result['combined_estimated_cost_min'] == 4320
     assert result['combined_estimated_cost_max'] == 6480
     assert result['estimated_cost_min'] == result['combined_estimated_cost_min']
 
 
 def test_composite_rows_describe_symptoms_for_every_listed_fault():
-    import pandas as pd
-    from backend.ml.train_models import DATA_PATH, CATEGORIES
-    from backend.ml.fault_text import FAULT_SYMPTOMS
-    df = pd.read_csv(DATA_PATH)
-    rows = df[~df['simultaneous_faults'].isin(['none', 'not_recorded'])]
-    assert len(rows) > 0
-    for row in rows.itertuples():
-        symptoms = row.symptoms.lower()
-        assert any(phrase.lower() in symptoms for phrase in FAULT_SYMPTOMS[row.primary_fault])
-        for secondary in row.simultaneous_faults.split(';'):
-            assert secondary in CATEGORIES
-            assert any(phrase.lower() in symptoms for phrase in FAULT_SYMPTOMS[secondary])
+    from backend.data.validate_workshop_data import validate
+    service, _, _, _ = validate()
+    assert (service.fault_count.astype(int) > 1).sum() > 0
 
 
-def test_prepared_csv_has_no_provenance_markers_or_fields():
+def test_workshop_csvs_have_current_schema_and_no_provenance_fields():
     import pandas as pd
     from pathlib import Path
     from backend.ml.train_models import DATA_PATH
     removed_fields = {'record_source', 'source_record_id', 'source_reference', 'source_type', 'cost_basis', 'price_reference_status'}
     forbidden = ('synth' + 'etic', 'gen' + 'erated', 'illustr' + 'ative')
     root = Path(__file__).resolve().parents[2]
-    files = list((root / 'backend' / 'data').glob('*.csv')) + [root / 'backend' / 'ml' / 'test_set_predictions.csv']
+    files = [root / 'backend' / 'data' / name for name in ('service_records.csv', 'inventory_stock.csv', 'inventory_log.csv', 'monthly_summary.csv')]
     for path in files:
         df = pd.read_csv(path, dtype=str, keep_default_na=False)
         assert not (removed_fields & set(df.columns)), path.name
@@ -160,31 +146,33 @@ def test_headline_and_supporting_metric_definitions():
     assert metrics['top1_accuracy_single_fault_rows'] == 1.0
     assert metrics['single_fault_test_rows'] == 2
     assert metrics['exact_match_accuracy'] == round(1 / 3, 4)
+    assert metrics['exact_match_by_fault_count']['single_fault']['rows'] == 2
+    assert metrics['exact_match_by_fault_count']['multi_fault']['rows'] == 1
 
 
-def test_cost_training_expands_individual_fault_targets_not_combined_total():
+def test_time_based_split_reserves_latest_three_months():
     import pandas as pd
-    from backend.ml.train_models import cost_training_data
-    rows = pd.DataFrame([
-        {'primary_fault': 'Engine', 'problem_category': 'Engine', 'fault_costs': '{"Engine": 1000}', 'actual_repair_cost': 1000, 'total_repair_cost': 1000, 'vehicle_type': 'car', 'vehicle_brand': 'Tata', 'vehicle_model': 'Tiago', 'vehicle_age': 2, 'km_driven': 10000, 'state': 'Delhi'},
-        {'primary_fault': 'Engine', 'problem_category': 'Engine', 'fault_costs': '{"Engine": 1200, "Fuel System": 800}', 'actual_repair_cost': 1200, 'total_repair_cost': 1800, 'vehicle_type': 'car', 'vehicle_brand': 'Tata', 'vehicle_model': 'Tiago', 'vehicle_age': 3, 'km_driven': 20000, 'state': 'Delhi'},
-    ])
-    features, targets, expanded = cost_training_data(rows, [0, 1])
-    assert len(features) == 3
-    assert list(targets) == [1000, 1200, 800]
-    assert expanded['problem_category'].tolist() == ['Engine', 'Engine', 'Fuel System']
-    assert 1800 not in targets
+    from backend.ml.train_models import DATA_PATH, time_based_split
+    df = pd.read_csv(DATA_PATH)
+    splits, months = time_based_split(df)
+    assert months['test'] == ['2026-08', '2026-09', '2026-10']
+    assert months['validation'] == ['2026-06', '2026-07']
+    assert max(df.iloc[splits['train']].service_date) < min(df.iloc[splits['validation']].service_date)
+    assert max(df.iloc[splits['validation']].service_date) < min(df.iloc[splits['test']].service_date)
 
 
-def test_provenance_wording_removed_from_runtime_and_test_sources():
+def test_cost_lookup_uses_fault_and_vehicle_type_quartiles():
+    from backend.ml.predictor import Predictor
+    lookup = Predictor._load_cost_lookup()
+    assert ('Battery/Electrical', 'bike') in lookup
+    assert lookup[('Battery/Electrical', 'bike')]['q25'] <= lookup[('Battery/Electrical', 'bike')]['median'] <= lookup[('Battery/Electrical', 'bike')]['q75']
+
+
+def test_model_metrics_disclose_synthetic_evaluation_scope():
+    import json
     from pathlib import Path
     root = Path(__file__).resolve().parents[2]
-    forbidden = ('synth' + 'etic', 'gen' + 'erated', 'illustr' + 'ative')
-    paths = [
-        root / 'backend/ml/train_models.py', root / 'backend/ml/predictor.py',
-        root / 'backend/app.py', root / 'backend/tests/test_ml.py',
-        root / 'frontend/templates/index.html', root / 'frontend/static/js/main.js',
-    ]
-    for path in paths:
-        contents = path.read_text(encoding='utf-8').lower()
-        assert not any(term in contents for term in forbidden), path.name
+    metrics = json.loads((root / 'backend/ml/model_metrics.json').read_text(encoding='utf-8'))
+    readme = (root / 'README.md').read_text(encoding='utf-8').lower()
+    assert 'synthetic' in metrics['evaluation']['metrics_scope']
+    assert 'not' in readme and 'real-world accuracy' in readme

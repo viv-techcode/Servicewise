@@ -4,7 +4,7 @@ import secrets
 import math
 from functools import wraps
 from flask import Flask, render_template, request, jsonify, session
-from backend.ml.predictor import Predictor
+from backend.ml.predictor import ModelUnavailableError, Predictor
 from backend.ml.train_models import CATEGORIES
 import backend.db as db
 from backend.vehicles import is_supported_vehicle
@@ -17,7 +17,7 @@ app.secret_key = os.environ.get('SECRET_KEY', 'servicewise_dev_secret_key_2026')
 
 # Initialize SQLite database tables automatically at startup (for Gunicorn & Render deployments)
 db.init_db()
-db.import_service_records_csv(os.path.join(os.path.dirname(__file__), 'data', 'service_records_balanced_3000.csv'))
+db.import_service_records_csv(os.path.join(os.path.dirname(__file__), 'data', 'service_records.csv'))
 
 predictor = Predictor()
 
@@ -159,13 +159,19 @@ def predict():
     if error:
         return jsonify({"error": error}), 400
 
-    result = predictor.predict(cleaned)
+    try:
+        result = predictor.predict(cleaned)
+    except ModelUnavailableError as exc:
+        return jsonify({'error': str(exc)}), 503
     prediction_snapshot = {
         'minimum': result.get('estimated_cost_min'),
         'maximum': result.get('estimated_cost_max'),
+        'estimate': result.get('estimated_cost'),
         'fault_cost_breakdown': result.get('fault_cost_breakdown', []),
         'shared_visit_discount': result.get('shared_visit_discount'),
         'cost_estimate_basis': result.get('cost_estimate_basis'),
+        'per_fault_severity': result.get('per_fault_severity', {}),
+        'combined_severity': result.get('combined_severity'),
     }
 
     record_id = None
@@ -206,21 +212,21 @@ def get_records():
             count_cur = conn.execute('SELECT COUNT(*) as total FROM service_records')
             total = count_cur.fetchone()['total']
             cursor = conn.execute(
-                f'SELECT id, user_id, vehicle_type, vehicle_brand, vehicle_model, state, vehicle_age, km_driven, symptoms, predicted_category, predicted_faults_json, predicted_cost_min, predicted_cost_max, urgency, actual_cost, timestamp FROM service_records ORDER BY id {order_sql} LIMIT ? OFFSET ?',
+                f'SELECT id, user_id, vehicle_type, vehicle_brand, vehicle_model, state, vehicle_age, km_driven, symptoms, predicted_category, predicted_faults_json, predicted_costs_json, predicted_cost_min, predicted_cost_max, urgency, actual_cost, timestamp FROM service_records ORDER BY id {order_sql} LIMIT ? OFFSET ?',
                 (per_page, offset)
             )
         elif user and user.get('role') == 'customer':
             count_cur = conn.execute('SELECT COUNT(*) as total FROM service_records WHERE user_id = ?', (user['id'],))
             total = count_cur.fetchone()['total']
             cursor = conn.execute(
-                f'SELECT id, user_id, vehicle_type, vehicle_brand, vehicle_model, state, vehicle_age, km_driven, symptoms, predicted_category, predicted_faults_json, predicted_cost_min, predicted_cost_max, urgency, actual_cost, timestamp FROM service_records WHERE user_id = ? ORDER BY id {order_sql} LIMIT ? OFFSET ?',
+                f'SELECT id, user_id, vehicle_type, vehicle_brand, vehicle_model, state, vehicle_age, km_driven, symptoms, predicted_category, predicted_faults_json, predicted_costs_json, predicted_cost_min, predicted_cost_max, urgency, actual_cost, timestamp FROM service_records WHERE user_id = ? ORDER BY id {order_sql} LIMIT ? OFFSET ?',
                 (user['id'], per_page, offset)
             )
         else:
             count_cur = conn.execute('SELECT COUNT(*) as total FROM service_records')
             total = count_cur.fetchone()['total']
             cursor = conn.execute(
-                f'SELECT id, user_id, vehicle_type, vehicle_brand, vehicle_model, state, vehicle_age, km_driven, symptoms, predicted_category, predicted_faults_json, predicted_cost_min, predicted_cost_max, urgency, actual_cost, timestamp FROM service_records ORDER BY id {order_sql} LIMIT ? OFFSET ?',
+                f'SELECT id, user_id, vehicle_type, vehicle_brand, vehicle_model, state, vehicle_age, km_driven, symptoms, predicted_category, predicted_faults_json, predicted_costs_json, predicted_cost_min, predicted_cost_max, urgency, actual_cost, timestamp FROM service_records ORDER BY id {order_sql} LIMIT ? OFFSET ?',
                 (per_page, offset)
             )
         rows = [dict(row) for row in cursor.fetchall()]
@@ -229,6 +235,12 @@ def get_records():
                 row['predicted_faults'] = json.loads(row.pop('predicted_faults_json')) if row.get('predicted_faults_json') else [{'category': row['predicted_category'], 'confidence': None}]
             except (TypeError, json.JSONDecodeError):
                 row['predicted_faults'] = [{'category': row['predicted_category'], 'confidence': None}]
+            try:
+                snapshot = json.loads(row.pop('predicted_costs_json') or '{}')
+                row['per_fault_severity'] = snapshot.get('per_fault_severity', {})
+                row['combined_severity'] = snapshot.get('combined_severity')
+            except (TypeError, json.JSONDecodeError):
+                row['per_fault_severity'], row['combined_severity'] = {}, None
             fb = conn.execute('SELECT id, review_status, corrected_faults_json, actual_cost, actual_fault_costs_json, predicted_faults_json, predicted_costs_json FROM feedback WHERE record_id = ? ORDER BY id DESC LIMIT 1', (row['id'],)).fetchone()
             row['feedback'] = dict(fb) if fb else None
             if row['feedback']:

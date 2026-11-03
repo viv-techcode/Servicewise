@@ -25,6 +25,9 @@ FAULT_SYMPTOMS = {
         'battery keeps dying and the dash flickers when the fan comes on',
         'the alternator seems weak; headlights brighten when revved',
         'horn sounds faint and electricals act up after parking overnight',
+        'battery drains overnight', 'headlights dim or flicker', 'horn or electrical parts stop working',
+        'battery needs frequent jump starts', 'dashboard lights flicker', 'battery warning light stays on',
+        'electrical power is weak', 'lights become dim at idle',
     ),
     'Brake System': (
         'the brake pedal feels soft and stopping distance has increased',
@@ -35,6 +38,9 @@ FAULT_SYMPTOMS = {
         'there is a scraping sound when I press the brake pedal',
         'handbrake will not keep the car still on a hill',
         'it veers left when braking hard; pedal feels odd',
+        'brakes squeal when stopping', 'brake pedal feels soft', 'vehicle takes longer to stop',
+        'brakes grind during use', 'parking brake does not hold', 'vehicle pulls to one side while braking',
+        'brake pedal sinks too far', 'brakes feel weak',
     ),
     'Cooling System': (
         'coolant level keeps dropping and a puddle forms under the radiator',
@@ -45,6 +51,9 @@ FAULT_SYMPTOMS = {
         'radiator fan does not kick in; temperature climbs fast',
         'there is steam under the bonnet after a short ride',
         'temp needle shoots up on climbs and coolant smells sweet',
+        'engine overheats in traffic', 'coolant leaks under the vehicle', 'radiator fan does not start',
+        'temperature rises quickly', 'steam comes from the engine bay', 'coolant level keeps dropping',
+        'engine runs hot after a short drive', 'coolant warning light comes on',
     ),
     'Engine': (
         'the engine misfires at idle and hesitates under acceleration',
@@ -55,6 +64,9 @@ FAULT_SYMPTOMS = {
         'engine makes a knocking sound under load',
         'exhaust is smoky and it is using more oil lately',
         'car cuts out at signals, then starts again after a bit',
+        'engine runs rough or misfires', 'engine loses power while driving', 'engine makes a knocking noise',
+        'exhaust smoke has increased', 'engine stalls at stops', 'engine hesitates during acceleration',
+        'engine uses too much oil', 'engine warning light stays on',
     ),
     'Fuel System': (
         'fuel economy has fallen and a strong petrol smell follows the vehicle',
@@ -65,6 +77,9 @@ FAULT_SYMPTOMS = {
         'engine bogs down like it is not getting enough fuel',
         'fuel hose looks damp and smells strongly of petrol',
         'black smoke comes out when I open the throttle',
+        'fuel mileage has dropped', 'there is a strong petrol smell', 'engine struggles during acceleration',
+        'fuel appears to be leaking', 'engine uses more fuel than usual', 'engine loses power under load',
+        'black smoke comes from the exhaust', 'fuel delivery seems uneven',
     ),
     'General Maintenance': (
         'routine oil and filter service is due along with a general inspection',
@@ -75,6 +90,9 @@ FAULT_SYMPTOMS = {
         'fluids and filters have been ignored for a while',
         'the owner wants a routine service before a long trip',
         'needs the usual tune-up; air filter looks clogged',
+        'routine service is due', 'engine oil and filter need changing', 'vehicle needs a general inspection',
+        'scheduled maintenance is overdue', 'air filter needs cleaning or replacement',
+        'vehicle is due for an oil change', 'fluids and filters need checking', 'a routine safety check is needed',
     ),
     'Starting System': (
         'the starter clicks repeatedly but the engine does not turn over',
@@ -85,6 +103,10 @@ FAULT_SYMPTOMS = {
         'slow crank on cold mornings even with a charged battery',
         'ignition takes a few tries before the motor starts',
         'kick start slips under my foot and will not turn the engine',
+        'vehicle clicks but will not start', 'engine cranks slowly', 'starter does not turn the engine',
+        'vehicle starts only after several tries', 'starter makes a grinding noise',
+        'engine struggles to start when cold', 'ignition switch works intermittently',
+        'vehicle needs repeated attempts to start',
     ),
     'Suspension': (
         'the vehicle bounces after bumps and a rear shock squeaks',
@@ -95,6 +117,9 @@ FAULT_SYMPTOMS = {
         'front fork oil is leaking; wheel thumps into potholes',
         'clunk from the front when going over speed breakers',
         'bike wanders a bit and the handlebar looks crooked',
+        'vehicle bounces over bumps', 'there is a clunk over potholes', 'a shock absorber makes noise',
+        'vehicle feels unstable on rough roads', 'suspension bottoms out over bumps',
+        'vehicle leans to one side', 'front end knocks while driving', 'ride feels unusually rough',
     ),
     'Transmission': (
         'gear changes grind and neutral is difficult to select',
@@ -105,6 +130,9 @@ FAULT_SYMPTOMS = {
         'clutch slips going uphill and the lever feels stiff',
         'chain skips under load and rattles quite a lot',
         'scooter shudders when pulling away; belt may be worn',
+        'gears are hard to change', 'gears grind while shifting', 'clutch slips during acceleration',
+        'vehicle vibrates when pulling away', 'gear changes feel rough', 'clutch pedal feels unusually stiff',
+        'transmission makes a rattling noise', 'vehicle struggles to select a gear',
     ),
     'Tyres/Wheels': (
         'the steering wheel vibrates at speed and a rim may be bent',
@@ -115,6 +143,9 @@ FAULT_SYMPTOMS = {
         'tyre keeps going soft; could be a slow puncture',
         'it pulls to one side and the tread is wearing unevenly',
         'there is a lump on the tyre after hitting a pothole',
+        'tyre pressure keeps dropping', 'vehicle pulls to one side', 'tyres are wearing unevenly',
+        'steering wheel vibrates at speed', 'a tyre has a bulge after a pothole',
+        'wheel makes a repeated noise', 'vehicle shakes while driving', 'tyre loses air between trips',
     ),
 }
 

@@ -419,9 +419,10 @@ input:disabled, select:disabled {
 
 .vehicle-type-card img {
   width: 100%;
-  height: 108px;
+  height: 100px;
   border-radius: calc(var(--radius-sm) - 2px);
-  object-fit: cover;
+  object-fit: contain;
+  padding: 0.2rem;
 }
 
 .vehicle-type-card span {
@@ -519,9 +520,10 @@ input:disabled, select:disabled {
 
 .model-card img {
   width: 100%;
-  height: 108px;
+  height: 96px;
   border-radius: calc(var(--radius-sm) - 2px);
-  object-fit: cover;
+  object-fit: contain;
+  padding: 0.2rem;
 }
 
 .model-card span {
@@ -1162,8 +1164,8 @@ body { background-image: none; }
 .vehicle-age-limit { color:var(--text-dim); font-size:.68rem; letter-spacing:.12em; padding-top:.15rem; }
 .vehicle-age-timeline { --paper-color:#fffdf5; --paper-ink:#22243c; position:relative; min-height:295px; margin-top:.7rem; padding:1.35rem 1rem 1rem; overflow:hidden; border:3px solid #252744; border-radius:18px; background-color:#5bc8ed; background-image:linear-gradient(30deg, rgba(255,255,255,.16) 12%, transparent 12.5%, transparent 87%, rgba(255,255,255,.16) 87.5%, rgba(255,255,255,.16)), linear-gradient(150deg, rgba(255,255,255,.16) 12%, transparent 12.5%, transparent 87%, rgba(255,255,255,.16) 87.5%, rgba(255,255,255,.16)); background-size:105px 182px; background-position:0 0, 0 0; cursor:ns-resize; touch-action:none; user-select:none; outline:none; }
 .vehicle-age-timeline::before, .vehicle-age-timeline::after { content:''; position:absolute; border-radius:50%; pointer-events:none; }
-.vehicle-age-timeline::before { width:130px; height:130px; top:-70px; right:-35px; background:#ff7b5c; }
-.vehicle-age-timeline::after { width:80px; height:80px; bottom:-35px; left:-24px; background:#4bc6c6; }
+.vehicle-age-timeline::before { width:110px; height:110px; top:-60px; right:0; background:#ff7b5c; }
+.vehicle-age-timeline::after { width:70px; height:70px; bottom:-30px; left:0; background:#4bc6c6; }
 .vehicle-age-timeline:focus-visible { box-shadow:0 0 0 4px #ff7b5c; }
 .paper-stack { position:relative; z-index:1; width:min(100%, 350px); height:235px; margin:0 auto 0 8%; border:3px solid #252744; border-radius:4px; background:#26485a; box-shadow:5px 6px 0 #252744; }
 .calendar-label { position:absolute; z-index:6; top:10px; left:22px; width:145px; padding:7px 4px 5px; border:2px solid #252744; background:#fff; color:#f59a0e; font:900 1.35rem/1 Georgia, serif; letter-spacing:.08em; text-align:center; box-shadow:2px 2px 0 rgba(37,39,68,.4); }
@@ -1190,7 +1192,7 @@ body { background-image: none; }
 .tear-edge { position:absolute; z-index:2; top:0; bottom:0; left:-1px; width:24px; height:100%; overflow:visible; }
 .tear-shadow { fill:none; stroke:#252744; stroke-width:2; vector-effect:non-scaling-stroke; }
 .tear-fill { fill:var(--paper-color); }
-.paper-scroll-hint { display:block; margin-top:.9rem; color:#252744; text-align:center; font:800 .64rem/1 var(--font-mono); letter-spacing:.16em; }
+.paper-scroll-hint { display:block; width:100%; margin-top:.9rem; overflow:hidden; color:#252744; text-align:center; white-space:nowrap; font:800 .64rem/1 var(--font-mono); letter-spacing:.16em; }
 .vehicle-age-controls { display:flex; align-items:center; justify-content:center; gap:1.25rem; margin-top:.8rem; }
 .vehicle-age-arrow { width:42px; height:34px; border:3px solid #252744; border-radius:10px; background:#ff7b5c; color:#252744; cursor:pointer; font:900 1.2rem/1 var(--font-sans); box-shadow:3px 3px 0 #252744; transition:transform .15s ease, opacity .2s ease; }
 .vehicle-age-arrow:hover:not(:disabled) { transform:translate(-1px, -2px) rotate(-2deg); }
@@ -1199,10 +1201,21 @@ body { background-image: none; }
 .vehicle-age-status { min-width:72px; color:var(--text-primary); font-size:.72rem; text-align:center; }
 .mileage-group > #km_driven { position: absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
 .form-card .vehicle-age-timeline + .vehicle-age-controls + #vehicle_age { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+
+/* Scale the illustration to the model-card row without changing its composition. */
+.vehicle-age-timeline { min-height:300px; padding:1.15rem .5rem .75rem; }
+.paper-stack { width:min(100%, 300px); height:235px; margin:0 auto; }
+.paper-stack::before { left:-42px; width:52px; }
+.calendar-label { left:20px; width:125px; padding:6px 3px 4px; font-size:1.15rem; }
+.calendar-spiral { left:38%; width:82px; height:70px; }
+.paper-underlay, .paper-sheet { inset:0 0 0 34px; }
+.calendar-flight { inset:0 0 0 34px !important; }
+.paper-year { font-size:clamp(5.5rem, 17vw, 8rem); }
+
 @media (max-width:480px) {
   .vehicle-age-timeline { min-height:270px; padding-left:.55rem; padding-right:.55rem; }
-  .paper-stack { height:210px; margin-left:6%; }
-  .calendar-label { width:120px; font-size:1.05rem; }
+  .paper-stack { height:225px; margin-left:auto; }
+  .calendar-label { width:112px; font-size:1rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   .paper-sheet { transition:none; }

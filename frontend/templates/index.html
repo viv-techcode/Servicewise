@@ -123,7 +123,7 @@
               </div>
               <div class="vehicle-age-timeline" id="vehicleAgeTimeline" tabindex="0" aria-label="Interactive vehicle age calendar" role="application">
                 <div class="paper-stack" aria-hidden="true">
-                  <span class="calendar-label">JUNE</span>
+                  <span class="calendar-label">YEAR</span>
                   <svg class="calendar-spiral" viewBox="0 0 100 80" preserveAspectRatio="none">
                     <path d="M52 73 C45 65 42 57 47 47 C52 37 66 40 70 29 C74 18 67 7 57 8 C49 9 44 17 47 24 C50 31 62 32 68 27"></path>
                   </svg>
@@ -152,7 +152,6 @@
               </div>
               <div class="vehicle-age-controls" aria-label="Vehicle age navigation">
                 <button type="button" class="vehicle-age-arrow" id="vehicleAgePrev" aria-label="Previous year" disabled>←</button>
-                <span class="vehicle-age-status mono" id="vehicleAgeStatus">01 / 30</span>
                 <button type="button" class="vehicle-age-arrow" id="vehicleAgeNext" aria-label="Next year">→</button>
               </div>
               <input id="vehicle_age" type="number" name="vehicle_age" min="1" max="30" value="1" required aria-required="true" tabindex="-1">
@@ -277,6 +276,7 @@
             <span class="result-label">Problem System</span>
             <div class="result-value mono" id="resCategory">—</div>
             <div id="resFaults" class="mono" aria-label="Predicted faults" style="margin-top:.55rem;color:var(--text-secondary);font-size:.9rem;"></div>
+            <div id="resCombinedSeverity" class="mono" aria-live="polite" style="margin-top:.5rem;font-size:.9rem;font-weight:600;">Combined severity: —</div>
           </div>
           <div class="result-box cost-box">
             <span class="result-label">Est. Repair Cost</span>
@@ -435,11 +435,6 @@
               <div class="result-value mono" id="metricClassifierAcc" style="font-size:1.5rem;">—</div>
               <small style="color:var(--text-muted);display:block;margin-top:0.25rem;">Weighted F1: <span id="metricClassifierF1" class="mono">—</span></small>
             </div>
-            <div class="result-box cost-box" style="padding:1.15rem 1rem;">
-              <span class="result-label">Cost Regressor MAE</span>
-              <div class="result-value mono" id="metricRegressorMae" style="font-size:1.5rem;">—</div>
-              <small style="color:var(--text-muted);display:block;margin-top:0.25rem;">R² Score: <span id="metricRegressorR2" class="mono">—</span></small>
-            </div>
           </div>
 
           <div style="border-top:1px solid var(--border-subtle);padding-top:1.25rem;">
@@ -471,7 +466,7 @@
             <h2 style="margin:0;">Active ML Architecture</h2>
           </div>
           <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:1.5rem;">
-            Dual-stage natural language symptom classifier + Random Forest multi-factor regressor.
+            A multilabel symptom classifier paired with a dataset-backed repair-cost lookup.
           </p>
 
           <div style="display:flex;flex-direction:column;gap:0.85rem;margin-bottom:1.5rem;">
@@ -485,8 +480,8 @@
             <div style="display:flex;gap:0.85rem;padding:0.85rem;background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle);border-radius:8px;">
               <div style="color:var(--success);padding-top:2px;"><i data-lucide="trending-up" style="width:20px;height:20px;"></i></div>
               <div>
-                <strong style="font-size:0.9rem;display:block;">Random Forest Regressor (100 Trees)</strong>
-                <span style="font-size:0.8rem;color:var(--text-muted);">Uses vehicle type, brand, model, age, mileage, and predicted problem to estimate a global cost range.</span>
+                <strong style="font-size:0.9rem;display:block;">Repair cost lookup</strong>
+                <span style="font-size:0.8rem;color:var(--text-muted);">Uses median and 25th–75th percentile fault costs by vehicle type from the active dataset.</span>
               </div>
             </div>
           </div>
@@ -516,7 +511,7 @@
             <h2 style="margin:0;">Quick Cost Estimator</h2>
           </div>
           <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:1.5rem;">
-            Instant average cost calculation for common vehicle problems using a global estimate.
+            A quick reference range by vehicle type and repair category. Diagnosis estimates use the current workshop dataset.
           </p>
           <div class="form-group">
             <label for="est_type">Vehicle Type</label>

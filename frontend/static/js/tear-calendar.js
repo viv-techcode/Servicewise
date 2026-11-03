@@ -94,8 +94,8 @@
         render() {
             const progress = (this.value - 1) / (this.options.maxValue - 1);
             this.display.textContent = String(this.value);
-            if (this.label) this.label.textContent = this.options.startDate.toLocaleString('en-US', { month: 'long' }).toUpperCase();
-            this.status.textContent = `${String(this.value).padStart(2, '0')} / ${this.options.maxValue}`;
+            if (this.label) this.label.textContent = 'YEAR';
+            if (this.status) this.status.textContent = '';
             this.input.value = String(this.value);
             this.previous.disabled = this.transitioning || this.value <= 1;
             this.next.disabled = this.transitioning || this.value >= this.options.maxValue;
