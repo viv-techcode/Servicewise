@@ -3,8 +3,8 @@
   "severity_accuracy": 0.9733,
   "safety_fault_recall": {
     "Brake System": 1.0,
-    "Cooling System": 1.0,
-    "Fuel System": 1.0
+    "Fuel System": 1.0,
+    "Cooling System": 1.0
   },
   "red_flag_cases": 24,
   "red_flag_underpredicted": 0,

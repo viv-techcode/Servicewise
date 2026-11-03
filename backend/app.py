@@ -18,6 +18,7 @@ app.secret_key = os.environ.get('SECRET_KEY', 'servicewise_dev_secret_key_2026')
 # Initialize SQLite database tables automatically at startup (for Gunicorn & Render deployments)
 db.init_db()
 db.import_service_records_csv(os.path.join(os.path.dirname(__file__), 'data', 'service_records.csv'))
+db.import_store_data()
 
 predictor = Predictor()
 
@@ -163,16 +164,7 @@ def predict():
         result = predictor.predict(cleaned)
     except ModelUnavailableError as exc:
         return jsonify({'error': str(exc)}), 503
-    prediction_snapshot = {
-        'minimum': result.get('estimated_cost_min'),
-        'maximum': result.get('estimated_cost_max'),
-        'estimate': result.get('estimated_cost'),
-        'fault_cost_breakdown': result.get('fault_cost_breakdown', []),
-        'shared_visit_discount': result.get('shared_visit_discount'),
-        'cost_estimate_basis': result.get('cost_estimate_basis'),
-        'per_fault_severity': result.get('per_fault_severity', {}),
-        'combined_severity': result.get('combined_severity'),
-    }
+    prediction_snapshot = dict(result)
 
     record_id = None
     user_id = session.get('user', {}).get('id') if session.get('user') else None
@@ -239,6 +231,8 @@ def get_records():
                 snapshot = json.loads(row.pop('predicted_costs_json') or '{}')
                 row['per_fault_severity'] = snapshot.get('per_fault_severity', {})
                 row['combined_severity'] = snapshot.get('combined_severity')
+                row['parts_needed'] = snapshot.get('parts_needed', [])
+                row['needs_more_info'] = bool(snapshot.get('needs_more_info', False))
             except (TypeError, json.JSONDecodeError):
                 row['per_fault_severity'], row['combined_severity'] = {}, None
             fb = conn.execute('SELECT id, review_status, corrected_faults_json, actual_cost, actual_fault_costs_json, predicted_faults_json, predicted_costs_json FROM feedback WHERE record_id = ? ORDER BY id DESC LIMIT 1', (row['id'],)).fetchone()
@@ -252,8 +246,8 @@ def get_records():
                 except (TypeError, json.JSONDecodeError): row['feedback']['predicted_faults'] = []
                 try:
                     saved_costs = json.loads(row['feedback'].pop('predicted_costs_json') or '{}')
-                    row['feedback']['predicted_cost'] = saved_costs.get('maximum')
-                    row['feedback']['predicted_cost_min'] = saved_costs.get('minimum')
+                    row['feedback']['predicted_cost'] = saved_costs.get('maximum', saved_costs.get('estimated_cost_max'))
+                    row['feedback']['predicted_cost_min'] = saved_costs.get('minimum', saved_costs.get('estimated_cost_min'))
                     row['feedback']['predicted_fault_cost_breakdown'] = saved_costs.get('fault_cost_breakdown', [])
                     row['feedback']['shared_visit_discount'] = saved_costs.get('shared_visit_discount')
                 except (TypeError, json.JSONDecodeError): row['feedback']['predicted_cost'] = None
@@ -380,6 +374,31 @@ def model_metrics():
         return jsonify({"error": "Model metrics not available."}), 404
 
 # --- Analytics Route ---
+@app.route('/api/store-data', methods=['GET'])
+@role_required(['store_owner'])
+def get_store_data():
+    conn = db.get_db()
+    stock = [dict(row) for row in conn.execute('SELECT * FROM inventory_stock ORDER BY fault_category, part_name')]
+    for row in stock:
+        row['compatible_models'] = json.loads(row.pop('compatible_models_json'))
+        row['stock_status'] = 'out_of_stock' if row['stock'] <= 0 else ('low_stock' if row['stock'] <= row['reorder_level'] else 'in_stock')
+    monthly = [dict(row) for row in conn.execute('SELECT * FROM monthly_summary ORDER BY month')]
+    top_faults = []
+    records = conn.execute("SELECT timestamp, predicted_faults_json FROM service_records WHERE source_record_key IS NOT NULL").fetchall()
+    counts = {}
+    for record in records:
+        month = (record['timestamp'] or '')[:7]
+        try: categories = json.loads(record['predicted_faults_json'] or '[]')
+        except (TypeError, json.JSONDecodeError): categories = []
+        for fault in categories:
+            category = fault.get('category') if isinstance(fault, dict) else fault
+            if category: counts[(month, category)] = counts.get((month, category), 0) + 1
+    for month in sorted({key[0] for key in counts}):
+        for (bucket_month, category), count in sorted(((key, value) for key, value in counts.items() if key[0] == month), key=lambda item: -item[1])[:5]:
+            top_faults.append({'month': bucket_month, 'category': category, 'jobs': count})
+    conn.close()
+    return jsonify({'inventory': stock, 'monthly': monthly, 'top_faults_by_month': top_faults})
+
 @app.route('/api/analytics', methods=['GET'])
 def get_analytics():
     try:

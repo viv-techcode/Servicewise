@@ -269,6 +269,8 @@
 
       <div id="resultArea" class="card result-card" role="region" aria-label="Diagnostic results" aria-live="polite" style="display:none;opacity:0;transition:opacity 0.3s ease;">
         <h2>Diagnostic Result</h2>
+        <div id="criticalBanner" role="alert" style="display:none;padding:.75rem 1rem;margin:.5rem 0;background:#7f1d1d;color:#fff;border-radius:8px;font-weight:700;">CRITICAL: Stop driving and arrange a tow and inspection now.</div>
+        <div id="needsMoreInfo" role="status" style="display:none;padding:.75rem 1rem;margin:.5rem 0;background:var(--surface-2);border-radius:8px;"></div>
         <div id="urgencyBadge" class="badge"></div>
 
         <div class="result-grid">
@@ -285,6 +287,7 @@
           </div>
         </div>
         <div id="resCostBreakdown" style="margin-top:1rem;display:none;"></div>
+        <div id="resPartsNeeded" style="margin-top:.75rem;display:none;"></div>
 
         <div class="disclaimer-box" role="note">
           <strong style="display:flex;align-items:center;gap:0.4rem;">
@@ -411,6 +414,17 @@
           <div style="height:260px;position:relative;">
             <canvas id="chartUrgency"></canvas>
           </div>
+        </div>
+        <div class="card" style="grid-column:1/-1;">
+          <h3>Monthly jobs, revenue and net profit</h3>
+          <div style="height:280px;position:relative;"><canvas id="chartMonthlyFinance"></canvas></div>
+          <div id="monthlyFinanceTable" style="overflow-x:auto;margin-top:.75rem;"></div>
+        </div>
+        <div class="card" style="grid-column:1/-1;">
+          <h3>Inventory snapshot</h3>
+          <div id="inventorySnapshot" style="max-height:360px;overflow:auto;"></div>
+          <h3 style="margin-top:1.25rem;">Top faults by month</h3>
+          <div id="topFaultsByMonth" style="max-height:260px;overflow:auto;"></div>
         </div>
       </div>
     </div>

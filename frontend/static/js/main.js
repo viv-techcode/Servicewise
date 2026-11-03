@@ -50,6 +50,7 @@ let lastSubmittedInput = null;
 let selectedRating = 0;
 let categoryChart = null;
 let urgencyChart = null;
+let monthlyFinanceChart = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     // Theme Switcher (Light / Night Mode)
@@ -648,20 +649,28 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(result => {
             currentRecordId = result.record_id;
             lastSubmittedInput = { ...data, prediction_snapshot: result.prediction_snapshot };
-            document.getElementById('resCategory').textContent = result.problem_category || 'General';
-            const faultList = Array.isArray(result.predicted_faults) && result.predicted_faults.length
+            const uncertain = Boolean(result.needs_more_info);
+            const moreInfoNode = document.getElementById('needsMoreInfo');
+            moreInfoNode.style.display = uncertain ? 'block' : 'none';
+            moreInfoNode.textContent = uncertain ? `Not sure - please describe more / inspect. ${result.clarifying_question || ''}` : '';
+            const criticalBanner = document.getElementById('criticalBanner');
+            criticalBanner.style.display = result.combined_severity === 'critical' ? 'block' : 'none';
+            document.getElementById('resCategory').textContent = uncertain ? 'Not sure - please describe more / inspect' : (result.problem_category || 'General');
+            const faultList = uncertain ? [] : (Array.isArray(result.predicted_faults) && result.predicted_faults.length
                 ? result.predicted_faults
-                : [{ category: result.problem_category || 'General', confidence: null }];
+                : [{ category: result.problem_category || 'General', confidence: null }]);
             const faultsNode = document.getElementById('resFaults');
             faultsNode.replaceChildren();
+            if (uncertain) { const line = document.createElement('div'); line.textContent = 'Not sure - please describe more / inspect'; faultsNode.appendChild(line); }
             faultList.forEach((fault, index) => {
                 const line = document.createElement('div');
                 const confidence = Number.isFinite(fault.confidence) ? ` · ${Math.round(fault.confidence * 100)}% confidence` : '';
                 const severity = fault.severity ? ` · ${fault.severity} severity` : '';
                 line.textContent = `${index === 0 ? 'Primary: ' : 'Also: '}${fault.category}${severity}${confidence}`;
+                line.className = fault.severity ? `badge badge-${String(fault.severity).toLowerCase()}` : 'badge';
                 faultsNode.appendChild(line);
             });
-            document.getElementById('resCost').textContent = `₹${Math.round(result.estimated_cost_min).toLocaleString('en-IN')} – ₹${Math.round(result.estimated_cost_max).toLocaleString('en-IN')}`;
+            document.getElementById('resCost').textContent = uncertain ? '—' : `₹${Math.round(result.estimated_cost_min).toLocaleString('en-IN')} – ₹${Math.round(result.estimated_cost_max).toLocaleString('en-IN')}`;
             const referenceNote = document.getElementById('resCostBasis');
             if (referenceNote) referenceNote.textContent = 'Combined estimate after any shared-visit adjustment.';
             const breakdown = document.getElementById('resCostBreakdown');
@@ -689,13 +698,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 breakdown.style.display = 'block';
             }
-            document.getElementById('resRecommendation').textContent = result.recommendation;
+            document.getElementById('resRecommendation').textContent = uncertain ? 'A workshop inspection is needed before showing a firm diagnosis or price.' : result.recommendation;
+            const partsNode = document.getElementById('resPartsNeeded');
+            partsNode.replaceChildren();
+            if (!uncertain && (result.parts_needed || []).length) {
+                const heading = document.createElement('strong'); heading.textContent = 'Parts availability'; partsNode.appendChild(heading);
+                result.parts_needed.forEach(part => { const item = document.createElement('div'); item.textContent = `${part.fault}: ${part.message || part.status}`; partsNode.appendChild(item); });
+                partsNode.style.display = 'block';
+            } else partsNode.style.display = 'none';
 
             const badge = document.getElementById('urgencyBadge');
-            badge.textContent = `Combined severity: ${result.combined_severity || result.severity || 'unknown'} · Urgency: ${result.urgency}`;
-            badge.className = `badge badge-${result.urgency}`;
+            badge.textContent = uncertain ? 'More information needed' : `Combined severity: ${result.combined_severity || result.severity || 'unknown'}`;
+            badge.className = uncertain ? 'badge' : `badge badge-${String(result.urgency || '').toLowerCase()}`;
             const severityNode = document.getElementById('resCombinedSeverity');
-            if (severityNode) severityNode.textContent = `Combined severity: ${result.combined_severity || result.severity || 'unknown'}`;
+            if (severityNode) severityNode.textContent = uncertain ? 'Severity: pending more information' : `Combined severity: ${result.combined_severity || result.severity || 'unknown'}`;
 
             // Save pending feedback item in localStorage for prompt on next visit/re-login/reload
             const pendingFeedback = {
@@ -885,12 +901,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 tbody.innerHTML = records.map((r) => {
-                    let predictedDisplay = '₹1,500 – ₹3,000';
+                    const uncertainRecord = Boolean(r.needs_more_info);
+                    let predictedDisplay = uncertainRecord ? 'Not sure / inspect' : '₹1,500 – ₹3,000';
                     let actualDisplay = '—';
                     const predictedFaults = Array.isArray(r.predicted_faults) ? r.predicted_faults : [];
-                    const faultSummary = predictedFaults.map(f => `${f.category}${f.severity ? ` (${f.severity})` : ''}`).join(', ') || r.predicted_category || 'General';
-                    const combinedSeverity = r.combined_severity
-                        ? `<br><small>Combined severity: ${r.combined_severity}</small>` : '';
+                    const faultSummary = uncertainRecord ? 'Not sure - please describe more / inspect' : (predictedFaults.map(f => `${f.category}${f.severity ? ` (${f.severity})` : ''}`).join(', ') || r.predicted_category || 'General');
+                    const combinedSeverity = !uncertainRecord && r.combined_severity
+                        ? `<br><small>Combined severity: ${r.combined_severity}</small>` : ''; 
+                    const partsAvailability = (r.parts_needed || []).map(p => `${p.fault}: ${p.message || p.status}`).join('; ');
 
                     if (r.predicted_cost_min != null && r.predicted_cost_max != null) {
                         predictedDisplay = `₹${Math.round(r.predicted_cost_min).toLocaleString('en-IN')} – ₹${Math.round(r.predicted_cost_max).toLocaleString('en-IN')}`;
@@ -908,7 +926,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <td><span class="mono" style="color:var(--text-primary);font-weight:500;">${faultSummary}</span>${combinedSeverity}${r.feedback?.corrected_faults?.length ? `<br><small style="color:${JSON.stringify([...r.feedback.corrected_faults].sort()) === JSON.stringify((r.predicted_faults || []).map(f => f.category).sort()) ? 'var(--success)' : 'var(--danger)'}">Confirmed: ${r.feedback.corrected_faults.join(', ')}</small>` : ''}</td>
                         <td class="mono" style="color:var(--text-secondary);font-variant-numeric:tabular-nums;font-weight:500;">${predictedDisplay}</td>
                         <td class="mono" style="color:var(--success);font-variant-numeric:tabular-nums;font-weight:600;">${actualDisplay}</td>
-                        <td><span class="badge badge-${r.urgency || 'Medium'}" style="margin:0;padding:0.15rem 0.5rem;font-size:0.75rem;">${r.urgency || 'Medium'}</span></td>
+                        <td>${partsAvailability ? `<small>${partsAvailability}</small><br>` : ''}<span class="badge badge-${String(r.urgency || 'medium').toLowerCase()}" style="margin:0;padding:0.15rem 0.5rem;font-size:0.75rem;">${r.urgency || 'Medium'}</span></td>
                         <td style="color:var(--text-muted);font-size:0.81rem;">${r.timestamp ? r.timestamp.split(' ')[0] : 'Today'}</td>
                     </tr>
                 `;}).join('');
@@ -998,6 +1016,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 renderCharts(data);
+                loadStoreData();
             });
     }
 
@@ -1056,6 +1075,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         }
+    }
+
+    function loadStoreData() {
+        fetch('/api/store-data').then(res => { if (!res.ok) throw new Error('Store data unavailable'); return res.json(); }).then(data => {
+            const inventory = document.getElementById('inventorySnapshot');
+            if (inventory) inventory.innerHTML = `<table class="data-table"><thead><tr><th>Part</th><th>Fault</th><th>Vehicle</th><th>Stock</th><th>Reorder</th><th>Unit price</th><th>Status</th></tr></thead><tbody>${(data.inventory||[]).map(x => `<tr><td>${x.part_name}</td><td>${x.fault_category}</td><td>${x.vehicle_type}</td><td>${x.stock}</td><td>${x.reorder_level}</td><td>₹${Number(x.unit_price).toLocaleString('en-IN')}</td><td><span class="badge badge-${x.stock_status === 'in_stock' ? 'low' : (x.stock_status === 'out_of_stock' ? 'critical' : 'high')}">${x.stock_status.replaceAll('_',' ')}</span></td></tr>`).join('')}</tbody></table>`;
+            const rows = data.monthly || [];
+            const canvas = document.getElementById('chartMonthlyFinance');
+            if (canvas && typeof Chart !== 'undefined') {
+                if (monthlyFinanceChart) monthlyFinanceChart.destroy();
+                monthlyFinanceChart = new Chart(canvas.getContext('2d'), {type:'line',data:{labels:rows.map(x=>x.month),datasets:[{label:'Revenue',data:rows.map(x=>x.revenue),borderColor:'#5e6ad2',yAxisID:'money'},{label:'Net profit',data:rows.map(x=>x.net_profit),borderColor:'#10b981',yAxisID:'money'},{label:'Jobs',data:rows.map(x=>x.jobs),borderColor:'#f59e0b',yAxisID:'jobs'}]},options:{responsive:true,maintainAspectRatio:false,scales:{money:{type:'linear',position:'left'},jobs:{type:'linear',position:'right',grid:{drawOnChartArea:false}},x:{ticks:{maxRotation:60,minRotation:45}}},plugins:{tooltip:{callbacks:{afterLabel:(ctx)=>{const row=rows[ctx.dataIndex];return `Trend: ${row.trend}; MoM: ${row.mom_change_pct}%`;}}}}}});
+            }
+            const finance = document.getElementById('monthlyFinanceTable');
+            if (finance) finance.innerHTML = `<table class="data-table"><thead><tr><th>Month</th><th>Jobs</th><th>Revenue</th><th>Net profit</th><th>Trend</th><th>MoM</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${x.month}</td><td>${x.jobs}</td><td>₹${Number(x.revenue).toLocaleString('en-IN')}</td><td>₹${Number(x.net_profit).toLocaleString('en-IN')}</td><td>${x.trend}</td><td>${x.mom_change_pct}%</td></tr>`).join('')}</tbody></table>`;
+            const top = document.getElementById('topFaultsByMonth');
+            if (top) top.innerHTML = `<table class="data-table"><thead><tr><th>Month</th><th>Fault</th><th>Jobs</th></tr></thead><tbody>${(data.top_faults_by_month||[]).sort((a,b)=>a.month.localeCompare(b.month)||b.jobs-a.jobs).map(x=>`<tr><td>${x.month}</td><td>${x.category}</td><td>${x.jobs}</td></tr>`).join('')}</tbody></table>`;
+        }).catch(() => {});
     }
 
     function loadMetrics() {

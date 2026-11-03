@@ -67,6 +67,28 @@ def init_db():
     conn.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_service_records_source_key ON service_records(source_record_key)')
 
     # 3. feedback table
+    conn.execute('''CREATE TABLE IF NOT EXISTS inventory_stock (
+        part_id TEXT PRIMARY KEY, part_name TEXT NOT NULL, fault_category TEXT NOT NULL,
+        vehicle_type TEXT NOT NULL, compatible_models_json TEXT NOT NULL,
+        opening_stock INTEGER NOT NULL, stock INTEGER NOT NULL, reorder_level INTEGER NOT NULL,
+        unit_cost REAL NOT NULL, unit_price REAL NOT NULL, supplier_lead_time_days INTEGER NOT NULL,
+        supplier TEXT, snapshot_date TEXT NOT NULL
+    )''')
+    conn.execute('''CREATE TABLE IF NOT EXISTS inventory_log (
+        event_id TEXT PRIMARY KEY, event_date TEXT NOT NULL, event_time TEXT NOT NULL,
+        event_type TEXT NOT NULL, job_id TEXT, part_id TEXT NOT NULL,
+        quantity_change INTEGER NOT NULL, stock_after INTEGER NOT NULL,
+        unit_cost REAL NOT NULL, unit_price REAL NOT NULL, supplier TEXT, notes TEXT
+    )''')
+    conn.execute('''CREATE TABLE IF NOT EXISTS monthly_summary (
+        month TEXT PRIMARY KEY, jobs INTEGER NOT NULL, revenue REAL NOT NULL,
+        parts_cost REAL NOT NULL, labour_cost REAL NOT NULL, gross_profit REAL NOT NULL,
+        gross_loss REAL NOT NULL, gross_margin REAL NOT NULL, discount REAL NOT NULL,
+        rent_overhead REAL NOT NULL, salary_overhead REAL NOT NULL, utilities_overhead REAL NOT NULL,
+        total_overheads REAL NOT NULL, net_profit REAL NOT NULL, profit_loss REAL NOT NULL,
+        stockout_delay_days INTEGER NOT NULL, mom_change_pct REAL, trend TEXT
+    )''')
+
     conn.execute('''CREATE TABLE IF NOT EXISTS feedback (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         record_id INTEGER NOT NULL,
@@ -201,7 +223,7 @@ def import_service_records_csv(csv_path):
 
         # Keep imported history synchronized with the one active CSV. Rows
         # created by app users have a NULL source key and are unaffected.
-        source_prefix = f"{os.path.basename(csv_path)}:%"
+        source_prefix = f"{os.path.basename(csv_path)}:"
         for old in conn.execute(
             'SELECT id, source_record_key FROM service_records WHERE source_record_key IS NOT NULL'
         ).fetchall():
@@ -253,3 +275,33 @@ def authenticate_user(username, password):
 
 if __name__ == '__main__':
     init_db()
+
+
+def import_store_data(data_dir=None):
+    """Refresh inventory snapshots, movement ledger, and monthly finance tables from source CSVs."""
+    data_dir = data_dir or os.path.join(os.path.dirname(__file__), 'data')
+    init_db()
+    conn = get_db()
+    try:
+        specs = {
+            'inventory_stock': ('inventory_stock.csv', 'part_id'),
+            'inventory_log': ('inventory_log.csv', 'event_id'),
+            'monthly_summary': ('monthly_summary.csv', 'month'),
+        }
+        for table, (filename, key) in specs.items():
+            path = os.path.join(data_dir, filename)
+            with open(path, newline='', encoding='utf-8-sig') as handle:
+                rows = list(csv.DictReader(handle))
+            source_columns = list(rows[0]) if rows else []
+            if not source_columns: continue
+            columns = ['compatible_models_json' if col == 'compatible_models' else col for col in source_columns]
+            conn.execute(f'DELETE FROM {table}')
+            placeholders = ','.join('?' for _ in columns)
+            names = ','.join(columns)
+            for row in rows:
+                values = [json.dumps(json.loads(row[col]), ensure_ascii=False) if col == 'compatible_models' else row[col] for col in source_columns]
+                conn.execute(f'INSERT INTO {table} ({names}) VALUES ({placeholders})', values)
+        conn.commit()
+        return {table: conn.execute(f'SELECT COUNT(*) FROM {table}').fetchone()[0] for table in specs}
+    finally:
+        conn.close()

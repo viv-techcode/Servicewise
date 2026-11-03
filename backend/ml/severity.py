@@ -19,11 +19,11 @@ SEVERITY_RULE_TABLE = {
         'Tyres/Wheels': ['sidewall blowout'],
     },
     'category_high_terms': {
-        'Battery/Electrical': ['battery charge will not hold', 'electrical power cuts out', 'battery repeatedly needs jump starts'],
+        'Battery/Electrical': ['battery charge will not hold', 'battery will not hold charge', 'electrical power cuts out', 'battery repeatedly needs jump starts'],
         'Brake System': ['pedal sinks', 'stopping distance is longer', 'pedal travels farther', 'takes much longer to stop', 'takes longer to stop', 'brake pedal feels soft', 'brake lever feels soft'],
-        'Cooling System': ['engine temperature rises', 'engine temperature keeps climbing', 'temperature rises in traffic', 'temperature gauge climbs', 'temperature gauge rises', 'temperature gauge still rises', 'radiator fan does not start', 'cooling fan cuts out'],
+        'Cooling System': ['engine temperature rises', 'temperature rises', 'engine overheats', 'overheats', 'engine temperature keeps climbing', 'temperature rises in traffic', 'temperature gauge climbs', 'temperature gauge rises', 'temperature gauge still rises', 'radiator fan does not start', 'cooling fan cuts out'],
         'Engine': ['stalls at signals', 'stalls at traffic signals', 'engine misfires', 'engine misfires under load', 'misfire', 'loud engine knock', 'engine knocks', 'engine taps', 'engine taps under load', 'engine stalls', 'stalls every time'],
-        'Fuel System': ['strong petrol smell'], 'Transmission': ['clutch slips', 'clutch slip is severe', 'clutch slip'],
+        'Fuel System': ['strong petrol smell', 'petrol leak', 'fuel leak'], 'Transmission': ['clutch slips', 'clutch slip is severe', 'clutch slip'],
         'Starting System': ['does not start after several', 'will not start after several', 'fails to start after repeated', 'still will not start', 'will not start after the battery was charged', 'start nahi ho rahi'],
         'Suspension': ['shock has failed', 'suspension bottoms out'],
         'Tyres/Wheels': ['bearing noise', 'wheel bearing hum'],
@@ -55,7 +55,7 @@ SEVERITY_RULE_TABLE = {
 FAULT_CUES = {
     'Battery/Electrical': ('battery', 'alternator', 'electrical', 'headlight', 'headlights', 'headlamp', 'bulb', 'horn', 'dashboard', 'charge', 'voltage', 'wiring', 'fuse'),
     'Brake System': ('brake', 'brakes', 'braking', 'stopping', 'stop', 'abs', 'brake pedal', 'brake lever', 'pads', 'shoes'),
-    'Cooling System': ('coolant', 'radiator', 'overheat', 'temperature', 'steam', 'cooling fan', 'cooling fin', 'cooling fins', 'engine heat', 'garam'),
+    'Cooling System': ('coolant', 'radiator', 'overheat', 'overheats', 'temperature', 'steam', 'cooling fan', 'cooling fin', 'cooling fins', 'engine heat', 'garam'),
     'Engine': ('engine bay', 'oil pressure', 'misfire', 'stall', 'exhaust smoke', 'burning smell', 'engine taps', 'engine knocks', 'engine misfires', 'engine knocks loudly'),
     'Fuel System': ('fuel', 'petrol', 'gasoline', 'injector', 'fuel line', 'fuel leak', 'petrol smell', 'fuel economy', 'mileage'),
     'General Maintenance': ('oil change', 'service', 'maintenance', 'filter', 'inspection', 'routine check', 'scheduled', 'check'),
@@ -69,8 +69,8 @@ FAULT_CUES = {
 # escalate that fault and never lower the model's assigned severity.
 RED_FLAG_RULES = {
     'Brake System': [(r'\bbrake failure\b', 'critical'), (r'\bno brakes?\b(?!\s+(?:failure|problem|issue|fault))', 'critical'), (r'\bbrakes? (?:are )?(?:not working|failed|fail(?:ed)?)\b', 'critical'), (r'\bbrake nahi lag\s*(?:ta|raha|rahi)\b', 'critical'), (r'\b(?:cannot|can\'t) stop\b', 'critical')],
-    'Cooling System': [(r'\b(?:overheat(?:ing)?|temperature (?:is )?(?:red|critical|high)).{0,45}\bsteam\b', 'critical'), (r'\bsteam (?:is )?(?:coming|visible|pouring|pours|escapes)|\bsteam nikal\b', 'critical'), (r'\bengine (?:is )?overheat(?:ing)? rapidly\b', 'critical'), (r'\bgaadi garam ho rahi\b.{0,30}\bsteam\b', 'critical')],
-    'Fuel System': [(r'\b(?:fuel|petrol|gasoline) (?:is )?(?:leaking heavily|leak(?:ing)? badly|pouring)\b', 'critical'), (r'\bpetrol (?:smell|odor)\b.{0,35}\bsmoke\b', 'critical'), (r'\bstrong petrol smell\b', 'high')],
+    'Cooling System': [(r'\b(?:overheat(?:ing)?|temperature (?:is )?(?:red|critical|high)).{0,45}\bsteam\b', 'critical'), (r'\bsteam (?:is )?(?:coming|visible|pouring|pours|escapes)|\bsteam nikal\b|\bcoolant steams? out\b', 'critical'), (r'\bengine (?:is )?overheat(?:ing)? rapidly\b', 'critical'), (r'\bgaadi garam ho rahi\b.{0,30}\bsteam\b', 'critical')],
+    'Fuel System': [(r'\b(?:fuel|petrol|gasoline) (?:is )?(?:leaking heavily|leak(?:ing)? badly|pouring)\b', 'critical'), (r'\bpetrol (?:smell|odor)\b.{0,35}\bsmoke\b', 'critical'), (r'\bstrong petrol smell\b', 'high'), (r'\b(?:petrol|fuel) leaks?\b', 'high')],
     'Engine': [(r'\boil pressure (?:warning|light)\b.{0,40}\b(?:knock|noise|smoke)\b', 'critical'), (r'\bengine (?:is )?burning\b', 'critical'), (r'\bburning smell\b', 'high')],
     'Battery/Electrical': [(r'\b(?:electrical|wiring|battery) (?:is )?burning\b', 'critical'), (r'\bburning smell\b', 'high')],
     'Tyres/Wheels': [(r'\b(?:tyre|tire) (?:has )?(?:burst|blown|blowout|blew out)\b', 'critical'), (r'\bsidewall (?:burst|blowout|split)\b', 'critical')],

@@ -1280,3 +1280,8 @@ body { background-image: none; }
   .hero-meta { flex-wrap: wrap; gap: .65rem; }
   .section-heading { align-items: flex-start; flex-direction: column; gap: .6rem; }
 }
+
+.badge-critical { background:#7f1d1d; color:#fff; }
+.badge-high { background:#b45309; color:#fff; }
+.badge-medium { background:#1d4ed8; color:#fff; }
+.badge-low { background:#15803d; color:#fff; }

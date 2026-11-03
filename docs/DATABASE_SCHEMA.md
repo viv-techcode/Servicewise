@@ -104,3 +104,8 @@ Stores user-submitted verification ratings and actual workshop costs to audit ML
 | **Submit Feedback & Rating** | Yes | Yes | Yes |
 | **Workshop Business Analytics** | Summary | Summary | Full metrics & distribution charts |
 | **Model Evaluation & Health** | Standard view | Standard view | Multilabel fault-classification metrics |
+
+
+## Imported store data
+
+`inventory_stock` stores the current part snapshot and compatible model list imported from `backend/data/inventory_stock.csv`. `inventory_log` stores stock openings, sales, restocks, and stock-out events from `inventory_log.csv`. `monthly_summary` stores job counts, revenue, margins, fixed overheads, net profit, month-over-month change, and trend from `monthly_summary.csv`. Startup refreshes these operational tables from their CSV sources. Store owners can read them through `GET /api/store-data`; the response includes stock-level status and per-month fault counts.

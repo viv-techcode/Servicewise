@@ -16,6 +16,8 @@ from backend.discount_rules import MULTI_FAULT_DISCOUNT_RATE
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(BASE_DIR, '..', 'data', 'service_records.csv')
+INVENTORY_PATH = os.path.join(BASE_DIR, '..', 'data', 'inventory_stock.csv')
+MIN_COST_SAMPLES = 20
 
 
 class ModelUnavailableError(RuntimeError):
@@ -26,6 +28,7 @@ class Predictor:
     def __init__(self):
         self._load_model()
         self.cost_lookup = self._load_cost_lookup()
+        self.inventory = self._load_inventory()
 
     def _load_model(self):
         model_path = os.path.join(BASE_DIR, 'multilabel_classifier.pkl')
@@ -58,15 +61,22 @@ class Predictor:
                 except (TypeError, ValueError):
                     continue
                 if value >= 0:
+                    grouped.setdefault((category, row.model), []).append(value)
                     grouped.setdefault((category, row.vehicle_type), []).append(value)
         return {
             key: {
+                'count': len(values),
                 'median': float(pd.Series(values).median()),
                 'q25': float(pd.Series(values).quantile(.25)),
                 'q75': float(pd.Series(values).quantile(.75)),
             }
             for key, values in grouped.items()
         }
+
+    @staticmethod
+    def _load_inventory():
+        frame = pd.read_csv(INVENTORY_PATH)
+        return frame.to_dict('records')
 
     def refresh_if_model_changed(self):
         version_path = os.path.join(BASE_DIR, 'active_model_version.json')
@@ -125,9 +135,11 @@ class Predictor:
         breakdown = []
         for fault in faults:
             category = fault['category']
-            stats = self.cost_lookup.get((category, input_data['vehicle_type']))
-            if stats is None:
-                stats = self.cost_lookup.get((category, 'car'), {'q25': 0, 'median': 0, 'q75': 0})
+            stats = self.cost_lookup.get((category, input_data.get('vehicle_model')))
+            if not stats or stats.get('count', MIN_COST_SAMPLES) < MIN_COST_SAMPLES:
+                stats = self.cost_lookup.get((category, input_data['vehicle_type']))
+            if not stats or stats.get('count', MIN_COST_SAMPLES) < MIN_COST_SAMPLES:
+                stats = {'q25': 0, 'median': 0, 'q75': 0, 'count': 0}
             breakdown.append({
                 'category': category,
                 'confidence': fault['confidence'],
@@ -141,7 +153,7 @@ class Predictor:
         # The primary fault is the most severe; ties go to the higher median cost.
         primary = max(faults, key=lambda fault: (
             LEVEL_RANK[per_fault_severity[fault['category']]],
-            self.cost_lookup.get((fault['category'], input_data['vehicle_type']), {}).get('median', 0),
+            self.cost_lookup.get((fault['category'], input_data.get('vehicle_model')), self.cost_lookup.get((fault['category'], input_data['vehicle_type']), {})).get('median', 0),
         ))
         faults.sort(key=lambda item: (-LEVEL_RANK[per_fault_severity[item['category']]], -item['confidence']))
 
@@ -165,7 +177,24 @@ class Predictor:
         timing = {'critical': 'Stop driving and arrange a tow and inspection now.', 'high': 'Arrange an inspection within 24 hours.', 'medium': 'Arrange an inspection this week.', 'low': 'Raise this at the next scheduled service.'}[combined]
         specific = [advice[fault['category']] for fault in faults if fault['category'] in advice]
         recommendation = ' '.join([timing, *dict.fromkeys(specific)])
-        return {
+        parts_needed = []
+        for fault in faults:
+            candidates = [part for part in self.inventory
+                          if part['fault_category'] == fault['category']
+                          and input_data.get('vehicle_model') in json.loads(part['compatible_models'])]
+            if not candidates:
+                parts_needed.append({'fault': fault['category'], 'status': 'unknown', 'parts': [], 'lead_time_days': None})
+                continue
+            part = max(candidates, key=lambda item: (int(item['stock']) > 0, -int(item['unit_price'])))
+            available = int(part['stock']) > 0
+            parts_needed.append({'fault': fault['category'], 'status': 'in_stock' if available else 'out_of_stock',
+                'part_id': part['part_id'], 'part_name': part['part_name'], 'stock': int(part['stock']),
+                'lead_time_days': int(part['supplier_lead_time_days']),
+                'message': 'In stock' if available else f"Out of stock - ready in {int(part['supplier_lead_time_days'])} days"})
+        max_confidence = max(float(fault['confidence']) for fault in faults)
+        needs_more_info = max_confidence < .60
+        confidence_question = 'Could you describe when the issue happens and any warning lights, sounds, leaks, or recent changes?'
+        result = {
             'problem_category': primary['category'],
             'model_version': self.model_version,
             'predicted_faults': faults,
@@ -183,4 +212,18 @@ class Predictor:
             'price_reference': None,
             'urgency': combined,
             'recommendation': recommendation,
+            'parts_needed': parts_needed,
+            'needs_more_info': needs_more_info,
+            'clarifying_question': confidence_question if needs_more_info else None,
         }
+        if needs_more_info:
+            result['problem_category'] = None
+            result['severity'] = result['combined_severity'] = result['urgency'] = None
+            result['estimated_cost'] = result['estimated_cost_min'] = result['estimated_cost_max'] = None
+            result['combined_estimated_cost_min'] = result['combined_estimated_cost_max'] = None
+            result['predicted_faults'] = []
+            result['per_fault_severity'] = {}
+            result['parts_needed'] = []
+            result['fault_cost_breakdown'] = []
+        return result
+
