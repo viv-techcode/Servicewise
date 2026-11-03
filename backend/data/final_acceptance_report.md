@@ -1,6 +1,6 @@
 # Final acceptance evidence
 
-Verified on branch `cleanup-single-model` after Phase 1.
+Verified on branch `cleanup-single-model` after Phase 5.
 
 | Check | Result |
 |---|---|
@@ -15,3 +15,4 @@ Verified on branch `cleanup-single-model` after Phase 1.
 | Rebuilt SQLite | service rows 5033 (CSV 5033, non-CSV 0); stock 63; ledger 14174; months 22 |
 
 The final brake primary-fault medians are bike ₹345 and car ₹1,146 (0.30 ratio), each within the vehicle-specific reference tolerance. Severity shares remain approximate generator targets; the difference reflects rule-based phrase labels and multi-fault escalation. SQLite was rebuilt after tests, leaving no test-created service records.
+

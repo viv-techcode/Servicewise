@@ -8,7 +8,7 @@ from backend.ml.severity import LEVEL_RANK
 ROOT = Path(__file__).resolve().parents[2]
 CASES_PATH = Path(__file__).with_name('challenge_cases.json')
 METRICS_PATH = ROOT / 'backend' / 'ml' / 'challenge_metrics.json'
-SAFETY = {'Brake System', 'Cooling System', 'Fuel System'}
+SAFETY = ('Brake System', 'Cooling System', 'Fuel System')
 
 
 def evaluate_challenge_cases():
@@ -63,3 +63,4 @@ def test_challenge_set_targets_and_reports_every_miss():
     assert metrics['red_flag_underpredicted'] == 0, json.dumps(metrics['misses'], ensure_ascii=False)
     assert all(metrics['safety_fault_recall'][category] >= .98 for category in SAFETY), json.dumps(metrics['misses'], ensure_ascii=False)
     assert metrics['severity_accuracy'] >= .90, json.dumps(metrics['misses'], ensure_ascii=False)
+
