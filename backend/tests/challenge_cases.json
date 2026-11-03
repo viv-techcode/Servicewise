@@ -416,7 +416,7 @@
     "expected_per_fault_severity": {
       "Engine": "medium"
     },
-    "expected_severity": "medium",
+    "expected_severity": "high",
     "red_flag": false
   },
   {
@@ -848,7 +848,7 @@
     "expected_per_fault_severity": {
       "Suspension": "medium"
     },
-    "expected_severity": "medium",
+    "expected_severity": "low",
     "red_flag": false
   },
   {
@@ -1618,7 +1618,7 @@
       "Cooling System": "medium",
       "Engine": "medium"
     },
-    "expected_severity": "high",
+    "expected_severity": "critical",
     "red_flag": false
   },
   {

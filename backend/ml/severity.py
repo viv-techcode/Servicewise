@@ -26,7 +26,7 @@ SEVERITY_RULE_TABLE = {
         'Fuel System': ['strong petrol smell', 'petrol leak', 'fuel leak'], 'Transmission': ['clutch slips', 'clutch slip is severe', 'clutch slip'],
         'Starting System': ['does not start after several', 'will not start after several', 'fails to start after repeated', 'still will not start', 'will not start after the battery was charged', 'start nahi ho rahi'],
         'Suspension': ['shock has failed', 'suspension bottoms out'],
-        'Tyres/Wheels': ['bearing noise', 'wheel bearing hum'],
+        'Tyres/Wheels': ['bearing noise', 'wheel bearing hum', 'wheel bearing hums'],
     },
     'category_medium_terms': {
         'Battery/Electrical': ['warning light', 'drops overnight', 'flicker', 'battery', 'electrical'],
@@ -45,7 +45,7 @@ SEVERITY_RULE_TABLE = {
     'dangerous_combo_increase': 1,
     'three_fault_increase': 1,
     'category_low_terms': {
-        'Battery/Electrical': ['headlamp beam is weak', 'headlamp is weak', 'headlights dim', 'headlight dim', 'dim headlight', 'dim lights', 'headlamp beam is weak', 'headlamp is weak'],
+        'Battery/Electrical': ['headlamp beam is weak', 'headlamp is weak', 'headlights dim', 'headlight dim', 'headlight is dim', 'dim headlight', 'dim lights', 'headlamp beam is weak', 'headlamp is weak'],
         'General Maintenance': ['oil and filter service is due', 'oil change due', 'oil change is due', 'oil and filter are due', 'oil and filter service is due', 'oil and filter service is due before', 'scheduled oil change', 'scheduled maintenance is due', 'scheduled maintenance is due after the latest service interval', 'owner requests a periodic inspection before a long trip', 'general inspection and lubrication service', 'service filters need their routine check', 'routine check', 'no specific symptom described', 'regular service karani'],
         'Suspension': ['shock absorber squeaks', 'suspension squeaks', 'suspension squeak'],
         'Brake System': ['brake pads rub occasionally', 'soft squeak', 'squeak happens', 'squeal at low speed', 'squeaks but still stop normally', 'squeal under light pressure', 'squeak happens while parking', 'soft squeak', 'squeak', 'squeal', 'brake pads rub occasionally', 'brake pads rub while stopping'],
