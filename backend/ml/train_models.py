@@ -13,7 +13,7 @@ import pandas as pd
 import sklearn
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, fbeta_score
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import FeatureUnion, Pipeline
@@ -24,6 +24,8 @@ from backend.ml.fault_text import prepare_classifier_text
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(BASE_DIR, '..', 'data', 'service_records.csv')
 METRICS_PATH = os.path.join(BASE_DIR, 'model_metrics.json')
+PREDICTIONS_PATH = os.path.join(BASE_DIR, 'test_set_predictions.csv')
+SAFETY_CATEGORIES = {'Brake System', 'Cooling System', 'Fuel System'}
 TEST_MONTHS = 3
 VALIDATION_MONTHS = 2
 CATEGORIES = [
@@ -111,8 +113,9 @@ def select_thresholds(y_true, probabilities):
         scores = []
         for threshold in np.arange(.10, .901, .05):
             pred = probabilities[:, column] >= threshold
-            scores.append((f1_score(y_true[:, column], pred, zero_division=0), precision_score(y_true[:, column], pred, zero_division=0), threshold))
-        thresholds.append(float(max(scores)[2]))
+            score = fbeta_score(y_true[:, column], pred, beta=2 if CATEGORIES[column] in SAFETY_CATEGORIES else 1, zero_division=0)
+            scores.append((score, recall_score(y_true[:, column], pred, zero_division=0), precision_score(y_true[:, column], pred, zero_division=0), threshold))
+        thresholds.append(float(max(scores)[3]))
     return np.asarray(thresholds)
 
 
@@ -205,7 +208,9 @@ def train_and_save(validation_only=False):
     metrics['misclassified_test_row_count'] = len(misclassified)
     versions_dir = os.path.join(BASE_DIR, 'model_versions')
     existing_versions = [int(os.path.basename(path)[1:]) for path in glob.glob(os.path.join(versions_dir, 'v[0-9][0-9][0-9]'))]
-    version = f"v{max(existing_versions, default=-1) + 1:03d}"
+    version = 'v006'
+    if os.path.exists(os.path.join(versions_dir, version, 'metadata.json')):
+        raise FileExistsError(f'{version} already exists; refusing to overwrite a model version')
     bundle = {'pipeline': model, 'classes': list(mlb.classes_),
               'thresholds': dict(zip(mlb.classes_, selected['thresholds'].tolist())),
               'text_preprocessing': 'remove category annotation and append domain cue features',
@@ -223,9 +228,35 @@ def train_and_save(validation_only=False):
         json.dump(metadata, handle, indent=2)
     with open(os.path.join(BASE_DIR, 'active_model_version.json'), 'w', encoding='utf-8') as handle:
         json.dump({'version': version}, handle, indent=2)
+    prediction_frame = pd.DataFrame(rows)
+    prediction_frame.to_csv(PREDICTIONS_PATH, index=False)
+    # Group holdout: no symptom_template_id in this evaluation has appeared in training.
+    if 'symptom_template_id' in df:
+        templates = sorted(df.symptom_template_id.astype(str).unique())
+        rng = np.random.default_rng(606)
+        held_count = max(1, int(round(len(templates) * .20)))
+        held_templates = set(rng.choice(templates, size=held_count, replace=False).tolist())
+        unseen_mask = df.symptom_template_id.astype(str).isin(held_templates).to_numpy()
+        unseen_train = np.flatnonzero(~unseen_mask)
+        unseen_test = np.flatnonzero(unseen_mask)
+        unseen_model = dict(classifier_candidates())[selected['name']]
+        unseen_model.fit(text.iloc[unseen_train], y[unseen_train])
+        unseen_probabilities = unseen_model.predict_proba(text.iloc[unseen_test])
+        unseen_predictions = multilabel_predictions(unseen_probabilities, selected['thresholds'])
+        unseen_metrics = classification_metric_bundle(df.iloc[unseen_test].primary_fault, y[unseen_test], unseen_predictions, list(mlb.classes_), unseen_probabilities)
+        unseen_metrics['template_count'] = len(held_templates)
+        unseen_metrics['training_template_count'] = len(set(df.iloc[unseen_train].symptom_template_id.astype(str)))
+        unseen_metrics['held_out_template_ids'] = sorted(held_templates)
+    else:
+        unseen_metrics = {'error': 'symptom_template_id missing'}
+    metrics['safety_fault_recall'] = {category: metrics['per_category'][category]['recall'] for category in sorted(SAFETY_CATEGORIES)}
+    metrics['test_rows'] = len(test)
+    metrics['per_test_error_confusion'] = misclassified
     data = {'training_samples': len(df), 'trained_at': datetime.now(timezone.utc).isoformat(), 'classifier': metrics,
             'evaluation': {'dataset': os.path.basename(DATA_PATH),
-                           'split_method': 'chronological holdout: earliest months train, next two validate, latest three test',
+                           'split_method': 'chronological: earliest train, next two months validate, latest three test; separate 20% symptom_template_id group holdout absent from its training fold',
+                           'unseen_phrasing': unseen_metrics,
+                           'test_predictions_artifact': os.path.basename(PREDICTIONS_PATH),
                            'split_rows': {name: len(idx) for name, idx in splits.items()},
                            'split_months': split_months,
                            'validation_classifier_trials': trials,
@@ -234,7 +265,7 @@ def train_and_save(validation_only=False):
                            'multi_fault_rows_three_labels': int((y.sum(axis=1) == 3).sum()),
                            'primary_only_rows': int((y.sum(axis=1) == 1).sum()),
                            'sklearn_version': sklearn.__version__,
-                           'metrics_scope': 'synthetic generated dataset; not real-world accuracy'}}
+                           'metrics_scope': 'synthetic generated dataset; not real-world accuracy; unseen-phrasing split groups symptom_template_id'}}
     tmp = METRICS_PATH + '.tmp'
     with open(tmp, 'w', encoding='utf-8') as handle:
         json.dump(data, handle, indent=2)
