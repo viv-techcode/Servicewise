@@ -5,23 +5,23 @@ Rows: 5033; stock SKUs: 63; ledger events: 14964; vague/typo/Hinglish proxy shar
 ## Median job charge vs reference range
 | Category | Vehicle | n | Dataset median | Ref median low | Ref median high |
 |---|---:|---:|---:|---:|---:|
-| Battery/Electrical | bike | 248 | 2703 | n/a | n/a |
+| Battery/Electrical | bike | 248 | 2672 | n/a | n/a |
 | Battery/Electrical | car | 290 | 5342 | 3029.5 | 4469.5 |
 | Brake System | bike | 223 | 310 | 224.0 | 299.0 |
 | Brake System | car | 319 | 3322 | 600.0 | 2729.5 |
-| Cooling System | bike | 182 | 984 | n/a | n/a |
+| Cooling System | bike | 181 | 882 | n/a | n/a |
 | Cooling System | car | 266 | 1483 | 685.0 | 1420.0 |
 | Engine | bike | 216 | 3601 | n/a | n/a |
 | Engine | car | 301 | 7564 | 8500.0 | 18000.0 |
-| Fuel System | bike | 126 | 612 | n/a | n/a |
+| Fuel System | bike | 126 | 546 | n/a | n/a |
 | Fuel System | car | 173 | 935 | 560.0 | 810.0 |
-| General Maintenance | bike | 507 | 1866 | n/a | n/a |
+| General Maintenance | bike | 508 | 1866 | n/a | n/a |
 | General Maintenance | car | 590 | 3550 | 1599.0 | 5499.0 |
-| Starting System | bike | 180 | 1859 | n/a | n/a |
+| Starting System | bike | 180 | 1843 | n/a | n/a |
 | Starting System | car | 220 | 3560 | n/a | n/a |
-| Suspension | bike | 162 | 3569 | n/a | n/a |
+| Suspension | bike | 162 | 3540 | n/a | n/a |
 | Suspension | car | 239 | 7935 | 800.0 | n/a |
-| Transmission | bike | 113 | 1105 | n/a | n/a |
+| Transmission | bike | 113 | 1041 | n/a | n/a |
 | Transmission | car | 160 | 1762 | 925.0 | 1550.0 |
 | Tyres/Wheels | bike | 220 | 3930 | n/a | n/a |
 | Tyres/Wheels | car | 298 | 7852 | 399.5 | 10299.0 |
@@ -29,15 +29,15 @@ Rows: 5033; stock SKUs: 63; ledger events: 14964; vague/typo/Hinglish proxy shar
 ## Bike-to-car median job charge
 | Fault | Bike median | Car median | Ratio |
 |---|---:|---:|---:|
-| Battery/Electrical | 2703 | 5342 | 0.51 |
+| Battery/Electrical | 2672 | 5342 | 0.50 |
 | Brake System | 310 | 3322 | 0.09 |
-| Cooling System | 984 | 1483 | 0.66 |
+| Cooling System | 882 | 1483 | 0.59 |
 | Engine | 3601 | 7564 | 0.48 |
-| Fuel System | 612 | 935 | 0.66 |
+| Fuel System | 546 | 935 | 0.58 |
 | General Maintenance | 1866 | 3550 | 0.53 |
-| Starting System | 1859 | 3560 | 0.52 |
-| Suspension | 3569 | 7935 | 0.45 |
-| Transmission | 1105 | 1762 | 0.63 |
+| Starting System | 1843 | 3560 | 0.52 |
+| Suspension | 3540 | 7935 | 0.45 |
+| Transmission | 1041 | 1762 | 0.59 |
 | Tyres/Wheels | 3930 | 7852 | 0.50 |
 ## Combined severity distribution by primary fault
 | Fault | Severity | Jobs |
@@ -52,7 +52,7 @@ Rows: 5033; stock SKUs: 63; ledger events: 14964; vague/typo/Hinglish proxy shar
 | Brake System | medium | 148 |
 | Cooling System | critical | 63 |
 | Cooling System | high | 47 |
-| Cooling System | medium | 338 |
+| Cooling System | medium | 337 |
 | Engine | critical | 152 |
 | Engine | high | 178 |
 | Engine | medium | 187 |
@@ -62,7 +62,7 @@ Rows: 5033; stock SKUs: 63; ledger events: 14964; vague/typo/Hinglish proxy shar
 | General Maintenance | critical | 1 |
 | General Maintenance | high | 9 |
 | General Maintenance | low | 372 |
-| General Maintenance | medium | 715 |
+| General Maintenance | medium | 716 |
 | Starting System | critical | 7 |
 | Starting System | high | 76 |
 | Starting System | medium | 317 |

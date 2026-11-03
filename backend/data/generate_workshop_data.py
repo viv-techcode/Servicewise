@@ -45,9 +45,9 @@ CATEGORIES = [
 ]
 PRICE_FACTORS = {
     'Brake System': {'bike': .135, 'car': .73},
-    'Cooling System': {'bike': .51, 'car': .42},
-    'Fuel System': {'bike': .26, 'car': .24},
-    'Transmission': {'bike': .275, 'car': .220},
+    'Cooling System': {'bike': .46, 'car': .42},
+    'Fuel System': {'bike': .23, 'car': .24},
+    'Transmission': {'bike': .26, 'car': .220},
 }
 FAULT_WEIGHTS = {
     'General Maintenance': .30, 'Tyres/Wheels': .13, 'Brake System': .12,
