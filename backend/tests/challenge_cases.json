@@ -1,0 +1,1882 @@
+[
+  {
+    "id": "challenge-001",
+    "input": "At idle both headlights dim, then brighten when I rev the engine.",
+    "expected_faults": [
+      "Battery/Electrical"
+    ],
+    "expected_per_fault_severity": {
+      "Battery/Electrical": "low"
+    },
+    "expected_severity": "low",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-002",
+    "input": "The battery is flat again after one night parked.",
+    "expected_faults": [
+      "Battery/Electrical"
+    ],
+    "expected_per_fault_severity": {
+      "Battery/Electrical": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-003",
+    "input": "The alternator warning stays lit through the whole commute.",
+    "expected_faults": [
+      "Battery/Electrical"
+    ],
+    "expected_per_fault_severity": {
+      "Battery/Electrical": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-004",
+    "input": "Dashboard voltage jumps around when the horn is used.",
+    "expected_faults": [
+      "Battery/Electrical"
+    ],
+    "expected_per_fault_severity": {
+      "Battery/Electrical": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-005",
+    "input": "The battery charge will not hold after a full recharge.",
+    "expected_faults": [
+      "Battery/Electrical"
+    ],
+    "expected_per_fault_severity": {
+      "Battery/Electrical": "high"
+    },
+    "expected_severity": "high",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-006",
+    "input": "Electrical power cuts out briefly at road speed.",
+    "expected_faults": [
+      "Battery/Electrical"
+    ],
+    "expected_per_fault_severity": {
+      "Battery/Electrical": "high"
+    },
+    "expected_severity": "high",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-007",
+    "input": "The wiring near the battery is burning and smells hot.",
+    "expected_faults": [
+      "Battery/Electrical"
+    ],
+    "expected_per_fault_severity": {
+      "Battery/Electrical": "critical"
+    },
+    "expected_severity": "critical",
+    "red_flag": true
+  },
+  {
+    "id": "challenge-008",
+    "input": "The headlamp beam is weak at red lights, but normal at speed.",
+    "expected_faults": [
+      "Battery/Electrical"
+    ],
+    "expected_per_fault_severity": {
+      "Battery/Electrical": "low"
+    },
+    "expected_severity": "low",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-009",
+    "input": "No smoke is present; the battery warning lamp still flickers.",
+    "expected_faults": [
+      "Battery/Electrical"
+    ],
+    "expected_per_fault_severity": {
+      "Battery/Electrical": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-010",
+    "input": "Battery bar bar drain ho rahi hai after overnight parking.",
+    "expected_faults": [
+      "Battery/Electrical"
+    ],
+    "expected_per_fault_severity": {
+      "Battery/Electrical": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-011",
+    "input": "The front brakes squeal under light pressure; stopping stays normal.",
+    "expected_faults": [
+      "Brake System"
+    ],
+    "expected_per_fault_severity": {
+      "Brake System": "low"
+    },
+    "expected_severity": "low",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-012",
+    "input": "A scrape comes from the brake rotor at walking pace.",
+    "expected_faults": [
+      "Brake System"
+    ],
+    "expected_per_fault_severity": {
+      "Brake System": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-013",
+    "input": "The brake pedal travels farther before it grips.",
+    "expected_faults": [
+      "Brake System"
+    ],
+    "expected_per_fault_severity": {
+      "Brake System": "high"
+    },
+    "expected_severity": "high",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-014",
+    "input": "It takes much longer to stop even with a firm pedal.",
+    "expected_faults": [
+      "Brake System"
+    ],
+    "expected_per_fault_severity": {
+      "Brake System": "high"
+    },
+    "expected_severity": "high",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-015",
+    "input": "Brake failure left the car unable to stop at the junction.",
+    "expected_faults": [
+      "Brake System"
+    ],
+    "expected_per_fault_severity": {
+      "Brake System": "critical"
+    },
+    "expected_severity": "critical",
+    "red_flag": true
+  },
+  {
+    "id": "challenge-016",
+    "input": "No brakes are available on this downhill stretch.",
+    "expected_faults": [
+      "Brake System"
+    ],
+    "expected_per_fault_severity": {
+      "Brake System": "critical"
+    },
+    "expected_severity": "critical",
+    "red_flag": true
+  },
+  {
+    "id": "challenge-017",
+    "input": "There is no brake failure; a soft squeak happens while parking.",
+    "expected_faults": [
+      "Brake System"
+    ],
+    "expected_per_fault_severity": {
+      "Brake System": "low"
+    },
+    "expected_severity": "low",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-018",
+    "input": "brake nahi lag raha, pedal neeche tak ja raha hai.",
+    "expected_faults": [
+      "Brake System"
+    ],
+    "expected_per_fault_severity": {
+      "Brake System": "critical"
+    },
+    "expected_severity": "critical",
+    "red_flag": true
+  },
+  {
+    "id": "challenge-019",
+    "input": "The rear brake lever feels weak in wet weather.",
+    "expected_faults": [
+      "Brake System"
+    ],
+    "expected_per_fault_severity": {
+      "Brake System": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-020",
+    "input": "Brake pads rub occasionally, but the vehicle stops promptly.",
+    "expected_faults": [
+      "Brake System"
+    ],
+    "expected_per_fault_severity": {
+      "Brake System": "low"
+    },
+    "expected_severity": "low",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-021",
+    "input": "Coolant level sits just below the mark after a long trip.",
+    "expected_faults": [
+      "Cooling System"
+    ],
+    "expected_per_fault_severity": {
+      "Cooling System": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-022",
+    "input": "The cooling fan starts late when the car waits in traffic.",
+    "expected_faults": [
+      "Cooling System"
+    ],
+    "expected_per_fault_severity": {
+      "Cooling System": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-023",
+    "input": "The temperature gauge climbs steadily while idling.",
+    "expected_faults": [
+      "Cooling System"
+    ],
+    "expected_per_fault_severity": {
+      "Cooling System": "high"
+    },
+    "expected_severity": "high",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-024",
+    "input": "Coolant is dripping from the hose onto the driveway.",
+    "expected_faults": [
+      "Cooling System"
+    ],
+    "expected_per_fault_severity": {
+      "Cooling System": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-025",
+    "input": "The engine overheats quickly and steam pours from the bonnet.",
+    "expected_faults": [
+      "Cooling System"
+    ],
+    "expected_per_fault_severity": {
+      "Cooling System": "critical"
+    },
+    "expected_severity": "critical",
+    "red_flag": true
+  },
+  {
+    "id": "challenge-026",
+    "input": "No steam is visible; the temperature gauge still rises uphill.",
+    "expected_faults": [
+      "Cooling System"
+    ],
+    "expected_per_fault_severity": {
+      "Cooling System": "high"
+    },
+    "expected_severity": "high",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-027",
+    "input": "The radiator fan does not start even after the temperature climbs.",
+    "expected_faults": [
+      "Cooling System"
+    ],
+    "expected_per_fault_severity": {
+      "Cooling System": "high"
+    },
+    "expected_severity": "high",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-028",
+    "input": "engin overheatng with steem coming from under the hood.",
+    "expected_faults": [
+      "Cooling System"
+    ],
+    "expected_per_fault_severity": {
+      "Cooling System": "critical"
+    },
+    "expected_severity": "critical",
+    "red_flag": true
+  },
+  {
+    "id": "challenge-029",
+    "input": "Gaadi garam ho rahi hai and steam nikal rahi hai.",
+    "expected_faults": [
+      "Cooling System"
+    ],
+    "expected_per_fault_severity": {
+      "Cooling System": "critical"
+    },
+    "expected_severity": "critical",
+    "red_flag": true
+  },
+  {
+    "id": "challenge-030",
+    "input": "Cooling fins are packed with dust after a dry ride.",
+    "expected_faults": [
+      "Cooling System"
+    ],
+    "expected_per_fault_severity": {
+      "Cooling System": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-031",
+    "input": "A metallic knock repeats for a few seconds after cold start.",
+    "expected_faults": [
+      "Engine"
+    ],
+    "expected_per_fault_severity": {
+      "Engine": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-032",
+    "input": "The engine stalls at traffic signals and restarts slowly.",
+    "expected_faults": [
+      "Engine"
+    ],
+    "expected_per_fault_severity": {
+      "Engine": "high"
+    },
+    "expected_severity": "high",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-033",
+    "input": "Oil pressure warning comes on with a loud engine knock.",
+    "expected_faults": [
+      "Engine"
+    ],
+    "expected_per_fault_severity": {
+      "Engine": "critical"
+    },
+    "expected_severity": "critical",
+    "red_flag": true
+  },
+  {
+    "id": "challenge-034",
+    "input": "A misfire shakes the cabin during uphill acceleration.",
+    "expected_faults": [
+      "Engine"
+    ],
+    "expected_per_fault_severity": {
+      "Engine": "high"
+    },
+    "expected_severity": "high",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-035",
+    "input": "No smoke is visible, but the engine taps under load.",
+    "expected_faults": [
+      "Engine"
+    ],
+    "expected_per_fault_severity": {
+      "Engine": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-036",
+    "input": "The engine uses more oil between regular services.",
+    "expected_faults": [
+      "Engine"
+    ],
+    "expected_per_fault_severity": {
+      "Engine": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-037",
+    "input": "Exhaust smoke has increased while oil pressure remains normal.",
+    "expected_faults": [
+      "Engine"
+    ],
+    "expected_per_fault_severity": {
+      "Engine": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-038",
+    "input": "engin makes a knocking clack when pulling away.",
+    "expected_faults": [
+      "Engine"
+    ],
+    "expected_per_fault_severity": {
+      "Engine": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-039",
+    "input": "A burning smell comes from the engine bay after a short drive.",
+    "expected_faults": [
+      "Engine"
+    ],
+    "expected_per_fault_severity": {
+      "Engine": "high"
+    },
+    "expected_severity": "high",
+    "red_flag": true
+  },
+  {
+    "id": "challenge-040",
+    "input": "There is no oil pressure warning; the engine still idles unevenly.",
+    "expected_faults": [
+      "Engine"
+    ],
+    "expected_per_fault_severity": {
+      "Engine": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-041",
+    "input": "Fuel economy has worsened on the same daily route.",
+    "expected_faults": [
+      "Fuel System"
+    ],
+    "expected_per_fault_severity": {
+      "Fuel System": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-042",
+    "input": "A petrol smell lingers beside the filler cap.",
+    "expected_faults": [
+      "Fuel System"
+    ],
+    "expected_per_fault_severity": {
+      "Fuel System": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-043",
+    "input": "A strong petrol smell is mixed with smoke near the tailpipe.",
+    "expected_faults": [
+      "Fuel System"
+    ],
+    "expected_per_fault_severity": {
+      "Fuel System": "critical"
+    },
+    "expected_severity": "critical",
+    "red_flag": true
+  },
+  {
+    "id": "challenge-044",
+    "input": "Fuel is leaking heavily from the hose joint.",
+    "expected_faults": [
+      "Fuel System"
+    ],
+    "expected_per_fault_severity": {
+      "Fuel System": "critical"
+    },
+    "expected_severity": "critical",
+    "red_flag": true
+  },
+  {
+    "id": "challenge-045",
+    "input": "The injector feed hesitates when accelerating onto the road.",
+    "expected_faults": [
+      "Fuel System"
+    ],
+    "expected_per_fault_severity": {
+      "Fuel System": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-046",
+    "input": "A damp fuel line leaves a few drops under the vehicle.",
+    "expected_faults": [
+      "Fuel System"
+    ],
+    "expected_per_fault_severity": {
+      "Fuel System": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-047",
+    "input": "No petrol smell is present; fuel use has risen sharply.",
+    "expected_faults": [
+      "Fuel System"
+    ],
+    "expected_per_fault_severity": {
+      "Fuel System": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-048",
+    "input": "petorl aa rahi hai near the tank after refuelling.",
+    "expected_faults": [
+      "Fuel System"
+    ],
+    "expected_per_fault_severity": {
+      "Fuel System": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-049",
+    "input": "Raw fuel is pouring from the cracked line under the tank.",
+    "expected_faults": [
+      "Fuel System"
+    ],
+    "expected_per_fault_severity": {
+      "Fuel System": "critical"
+    },
+    "expected_severity": "critical",
+    "red_flag": true
+  },
+  {
+    "id": "challenge-050",
+    "input": "Mileage falls each week although the route has not changed.",
+    "expected_faults": [
+      "Fuel System"
+    ],
+    "expected_per_fault_severity": {
+      "Fuel System": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-051",
+    "input": "The next oil change is due; there is no other complaint.",
+    "expected_faults": [
+      "General Maintenance"
+    ],
+    "expected_per_fault_severity": {
+      "General Maintenance": "low"
+    },
+    "expected_severity": "low",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-052",
+    "input": "Please replace the air filter at the regular service visit.",
+    "expected_faults": [
+      "General Maintenance"
+    ],
+    "expected_per_fault_severity": {
+      "General Maintenance": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-053",
+    "input": "A scheduled inspection is requested before a long trip.",
+    "expected_faults": [
+      "General Maintenance"
+    ],
+    "expected_per_fault_severity": {
+      "General Maintenance": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-054",
+    "input": "The owner wants the periodic maintenance items checked.",
+    "expected_faults": [
+      "General Maintenance"
+    ],
+    "expected_per_fault_severity": {
+      "General Maintenance": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-055",
+    "input": "Routine check requested; no specific symptom described.",
+    "expected_faults": [
+      "General Maintenance"
+    ],
+    "expected_per_fault_severity": {
+      "General Maintenance": "low"
+    },
+    "expected_severity": "low",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-056",
+    "input": "Oil and filter service is due before the next journey.",
+    "expected_faults": [
+      "General Maintenance"
+    ],
+    "expected_per_fault_severity": {
+      "General Maintenance": "low"
+    },
+    "expected_severity": "low",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-057",
+    "input": "A tune-up and basic service are overdue by a few weeks.",
+    "expected_faults": [
+      "General Maintenance"
+    ],
+    "expected_per_fault_severity": {
+      "General Maintenance": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-058",
+    "input": "Bas regular service karani hai, koi problem clear nahi hai.",
+    "expected_faults": [
+      "General Maintenance"
+    ],
+    "expected_per_fault_severity": {
+      "General Maintenance": "low"
+    },
+    "expected_severity": "low",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-059",
+    "input": "Please inspect wear items during the normal maintenance visit.",
+    "expected_faults": [
+      "General Maintenance"
+    ],
+    "expected_per_fault_severity": {
+      "General Maintenance": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-060",
+    "input": "No repair symptom today; owner asks for a scheduled service.",
+    "expected_faults": [
+      "General Maintenance"
+    ],
+    "expected_per_fault_severity": {
+      "General Maintenance": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-061",
+    "input": "The starter clicks once but the engine does not crank.",
+    "expected_faults": [
+      "Starting System"
+    ],
+    "expected_per_fault_severity": {
+      "Starting System": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-062",
+    "input": "The ignition key turns but the starter stays silent.",
+    "expected_faults": [
+      "Starting System"
+    ],
+    "expected_per_fault_severity": {
+      "Starting System": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-063",
+    "input": "It needs two attempts to start on cold mornings.",
+    "expected_faults": [
+      "Starting System"
+    ],
+    "expected_per_fault_severity": {
+      "Starting System": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-064",
+    "input": "The starter relay clicks intermittently after parking.",
+    "expected_faults": [
+      "Starting System"
+    ],
+    "expected_per_fault_severity": {
+      "Starting System": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-065",
+    "input": "The car will not start after several tries, even with fuel.",
+    "expected_faults": [
+      "Starting System"
+    ],
+    "expected_per_fault_severity": {
+      "Starting System": "high"
+    },
+    "expected_severity": "high",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-066",
+    "input": "The engine fails to start after repeated button presses.",
+    "expected_faults": [
+      "Starting System"
+    ],
+    "expected_per_fault_severity": {
+      "Starting System": "high"
+    },
+    "expected_severity": "high",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-067",
+    "input": "A slow crank is worse after the vehicle sits overnight.",
+    "expected_faults": [
+      "Starting System"
+    ],
+    "expected_per_fault_severity": {
+      "Starting System": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-068",
+    "input": "gaadi start nahi ho rahi despite a charged battery.",
+    "expected_faults": [
+      "Starting System"
+    ],
+    "expected_per_fault_severity": {
+      "Starting System": "high"
+    },
+    "expected_severity": "high",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-069",
+    "input": "The ignition switch only works after being moved twice.",
+    "expected_faults": [
+      "Starting System"
+    ],
+    "expected_per_fault_severity": {
+      "Starting System": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-070",
+    "input": "Starter spins but the engine will not turn over.",
+    "expected_faults": [
+      "Starting System"
+    ],
+    "expected_per_fault_severity": {
+      "Starting System": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-071",
+    "input": "The shock absorber squeaks over the entrance ramp.",
+    "expected_faults": [
+      "Suspension"
+    ],
+    "expected_per_fault_severity": {
+      "Suspension": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-072",
+    "input": "The front forks feel loose across patched pavement.",
+    "expected_faults": [
+      "Suspension"
+    ],
+    "expected_per_fault_severity": {
+      "Suspension": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-073",
+    "input": "The rear end bounces twice after a speed bump.",
+    "expected_faults": [
+      "Suspension"
+    ],
+    "expected_per_fault_severity": {
+      "Suspension": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-074",
+    "input": "The car leans more than usual through a gentle corner.",
+    "expected_faults": [
+      "Suspension"
+    ],
+    "expected_per_fault_severity": {
+      "Suspension": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-075",
+    "input": "Steering locked while turning into the parking space.",
+    "expected_faults": [
+      "Suspension"
+    ],
+    "expected_per_fault_severity": {
+      "Suspension": "critical"
+    },
+    "expected_severity": "critical",
+    "red_flag": true
+  },
+  {
+    "id": "challenge-076",
+    "input": "A clunk comes from the left suspension over potholes.",
+    "expected_faults": [
+      "Suspension"
+    ],
+    "expected_per_fault_severity": {
+      "Suspension": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-077",
+    "input": "The steering locks for a moment at low speed.",
+    "expected_faults": [
+      "Suspension"
+    ],
+    "expected_per_fault_severity": {
+      "Suspension": "high"
+    },
+    "expected_severity": "high",
+    "red_flag": true
+  },
+  {
+    "id": "challenge-078",
+    "input": "No steering lock, but suspension still clunks on rough roads.",
+    "expected_faults": [
+      "Suspension"
+    ],
+    "expected_per_fault_severity": {
+      "Suspension": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-079",
+    "input": "The shock has failed and the rear keeps bouncing.",
+    "expected_faults": [
+      "Suspension"
+    ],
+    "expected_per_fault_severity": {
+      "Suspension": "high"
+    },
+    "expected_severity": "high",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-080",
+    "input": "Handlebars shake whenever the front wheel crosses a ridge.",
+    "expected_faults": [
+      "Suspension"
+    ],
+    "expected_per_fault_severity": {
+      "Suspension": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-081",
+    "input": "Second gear grinds if I shift before slowing down.",
+    "expected_faults": [
+      "Transmission"
+    ],
+    "expected_per_fault_severity": {
+      "Transmission": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-082",
+    "input": "The scooter CVT belt vibrates as it moves away from a stop.",
+    "expected_faults": [
+      "Transmission"
+    ],
+    "expected_per_fault_severity": {
+      "Transmission": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-083",
+    "input": "The drive chain skips under load on an uphill road.",
+    "expected_faults": [
+      "Transmission"
+    ],
+    "expected_per_fault_severity": {
+      "Transmission": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-084",
+    "input": "The clutch slips whenever the car climbs a steep ramp.",
+    "expected_faults": [
+      "Transmission"
+    ],
+    "expected_per_fault_severity": {
+      "Transmission": "high"
+    },
+    "expected_severity": "high",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-085",
+    "input": "The gearbox hesitates before selecting reverse.",
+    "expected_faults": [
+      "Transmission"
+    ],
+    "expected_per_fault_severity": {
+      "Transmission": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-086",
+    "input": "The AMT takes a moment to change gears after slowing.",
+    "expected_faults": [
+      "Transmission"
+    ],
+    "expected_per_fault_severity": {
+      "Transmission": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-087",
+    "input": "No chain noise; the CVT drive still feels smooth.",
+    "expected_faults": [
+      "Transmission"
+    ],
+    "expected_per_fault_severity": {
+      "Transmission": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-088",
+    "input": "The cluch slips under acceleration after warming up.",
+    "expected_faults": [
+      "Transmission"
+    ],
+    "expected_per_fault_severity": {
+      "Transmission": "high"
+    },
+    "expected_severity": "high",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-089",
+    "input": "Gear badalna hard ho raha hai in slow traffic.",
+    "expected_faults": [
+      "Transmission"
+    ],
+    "expected_per_fault_severity": {
+      "Transmission": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-090",
+    "input": "The transmission case rattles at steady highway speed.",
+    "expected_faults": [
+      "Transmission"
+    ],
+    "expected_per_fault_severity": {
+      "Transmission": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-091",
+    "input": "The front tyre loses air slowly between evening and morning.",
+    "expected_faults": [
+      "Tyres/Wheels"
+    ],
+    "expected_per_fault_severity": {
+      "Tyres/Wheels": "low"
+    },
+    "expected_severity": "low",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-092",
+    "input": "A small nail puncture causes a gradual pressure loss.",
+    "expected_faults": [
+      "Tyres/Wheels"
+    ],
+    "expected_per_fault_severity": {
+      "Tyres/Wheels": "low"
+    },
+    "expected_severity": "low",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-093",
+    "input": "The steering wheel vibrates at about eighty kilometres per hour.",
+    "expected_faults": [
+      "Tyres/Wheels"
+    ],
+    "expected_per_fault_severity": {
+      "Tyres/Wheels": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-094",
+    "input": "A bulge has appeared on the tyre sidewall after a curb hit.",
+    "expected_faults": [
+      "Tyres/Wheels"
+    ],
+    "expected_per_fault_severity": {
+      "Tyres/Wheels": "low"
+    },
+    "expected_severity": "low",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-095",
+    "input": "A wheel bearing hum grows louder as road speed rises.",
+    "expected_faults": [
+      "Tyres/Wheels"
+    ],
+    "expected_per_fault_severity": {
+      "Tyres/Wheels": "high"
+    },
+    "expected_severity": "high",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-096",
+    "input": "The rear tyre burst while crossing the flyover.",
+    "expected_faults": [
+      "Tyres/Wheels"
+    ],
+    "expected_per_fault_severity": {
+      "Tyres/Wheels": "critical"
+    },
+    "expected_severity": "critical",
+    "red_flag": true
+  },
+  {
+    "id": "challenge-097",
+    "input": "The front tire blew out near the junction.",
+    "expected_faults": [
+      "Tyres/Wheels"
+    ],
+    "expected_per_fault_severity": {
+      "Tyres/Wheels": "critical"
+    },
+    "expected_severity": "critical",
+    "red_flag": true
+  },
+  {
+    "id": "challenge-098",
+    "input": "tyer pressure drops slowly after I park outside.",
+    "expected_faults": [
+      "Tyres/Wheels"
+    ],
+    "expected_per_fault_severity": {
+      "Tyres/Wheels": "low"
+    },
+    "expected_severity": "low",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-099",
+    "input": "No puncture found; tread wear is uneven across the tyre.",
+    "expected_faults": [
+      "Tyres/Wheels"
+    ],
+    "expected_per_fault_severity": {
+      "Tyres/Wheels": "low"
+    },
+    "expected_severity": "low",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-100",
+    "input": "Wheel alignment pulls left although both tyres hold pressure.",
+    "expected_faults": [
+      "Tyres/Wheels"
+    ],
+    "expected_per_fault_severity": {
+      "Tyres/Wheels": "low"
+    },
+    "expected_severity": "low",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-101",
+    "input": "Only the headlight is dim; there is no burning smell.",
+    "expected_faults": [
+      "Battery/Electrical"
+    ],
+    "expected_per_fault_severity": {
+      "Battery/Electrical": "low"
+    },
+    "expected_severity": "low",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-102",
+    "input": "Battery voltage is low after a night outdoors.",
+    "expected_faults": [
+      "Battery/Electrical"
+    ],
+    "expected_per_fault_severity": {
+      "Battery/Electrical": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-103",
+    "input": "No brake failure was found, only a faint squeal at low speed.",
+    "expected_faults": [
+      "Brake System"
+    ],
+    "expected_per_fault_severity": {
+      "Brake System": "low"
+    },
+    "expected_severity": "low",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-104",
+    "input": "The brake pedal sinks and the stopping distance has doubled.",
+    "expected_faults": [
+      "Brake System"
+    ],
+    "expected_per_fault_severity": {
+      "Brake System": "high"
+    },
+    "expected_severity": "high",
+    "red_flag": true
+  },
+  {
+    "id": "challenge-105",
+    "input": "No steam, but engine temperature keeps climbing in traffic.",
+    "expected_faults": [
+      "Cooling System"
+    ],
+    "expected_per_fault_severity": {
+      "Cooling System": "high"
+    },
+    "expected_severity": "high",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-106",
+    "input": "Coolant leak is minor and the engine never heats up.",
+    "expected_faults": [
+      "Cooling System"
+    ],
+    "expected_per_fault_severity": {
+      "Cooling System": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-107",
+    "input": "No smoke from the tailpipe, yet the engine still knocks.",
+    "expected_faults": [
+      "Engine"
+    ],
+    "expected_per_fault_severity": {
+      "Engine": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-108",
+    "input": "Engine stalls every time the signal turns green.",
+    "expected_faults": [
+      "Engine"
+    ],
+    "expected_per_fault_severity": {
+      "Engine": "high"
+    },
+    "expected_severity": "high",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-109",
+    "input": "Petrol smell aa rahi hai with smoke behind the vehicle.",
+    "expected_faults": [
+      "Fuel System"
+    ],
+    "expected_per_fault_severity": {
+      "Fuel System": "critical"
+    },
+    "expected_severity": "critical",
+    "red_flag": true
+  },
+  {
+    "id": "challenge-110",
+    "input": "No fuel is leaking; the mileage has fallen this month.",
+    "expected_faults": [
+      "Fuel System"
+    ],
+    "expected_per_fault_severity": {
+      "Fuel System": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-111",
+    "input": "Vehicle is fine; a routine check is all I need.",
+    "expected_faults": [
+      "General Maintenance"
+    ],
+    "expected_per_fault_severity": {
+      "General Maintenance": "low"
+    },
+    "expected_severity": "low",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-112",
+    "input": "Please do the filter and oil service before winter.",
+    "expected_faults": [
+      "General Maintenance"
+    ],
+    "expected_per_fault_severity": {
+      "General Maintenance": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-113",
+    "input": "It still will not start after the battery was charged.",
+    "expected_faults": [
+      "Starting System"
+    ],
+    "expected_per_fault_severity": {
+      "Starting System": "high"
+    },
+    "expected_severity": "high",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-114",
+    "input": "The key turns slowly and ignition response is delayed.",
+    "expected_faults": [
+      "Starting System"
+    ],
+    "expected_per_fault_severity": {
+      "Starting System": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-115",
+    "input": "No steering lock, but the front fork knocks on bumps.",
+    "expected_faults": [
+      "Suspension"
+    ],
+    "expected_per_fault_severity": {
+      "Suspension": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-116",
+    "input": "Steering locked suddenly when I turned into my street.",
+    "expected_faults": [
+      "Suspension"
+    ],
+    "expected_per_fault_severity": {
+      "Suspension": "critical"
+    },
+    "expected_severity": "critical",
+    "red_flag": true
+  },
+  {
+    "id": "challenge-117",
+    "input": "CVT belt makes a brief squeal during takeoff.",
+    "expected_faults": [
+      "Transmission"
+    ],
+    "expected_per_fault_severity": {
+      "Transmission": "medium"
+    },
+    "expected_severity": "medium",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-118",
+    "input": "Clutch slip is severe when carrying a passenger uphill.",
+    "expected_faults": [
+      "Transmission"
+    ],
+    "expected_per_fault_severity": {
+      "Transmission": "high"
+    },
+    "expected_severity": "high",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-119",
+    "input": "Tyre hawa kam ho rahi hai, but no puncture is visible.",
+    "expected_faults": [
+      "Tyres/Wheels"
+    ],
+    "expected_per_fault_severity": {
+      "Tyres/Wheels": "low"
+    },
+    "expected_severity": "low",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-120",
+    "input": "A sidewall blowout happened at speed; vehicle is stopped safely.",
+    "expected_faults": [
+      "Tyres/Wheels"
+    ],
+    "expected_per_fault_severity": {
+      "Tyres/Wheels": "critical"
+    },
+    "expected_severity": "critical",
+    "red_flag": true
+  },
+  {
+    "id": "challenge-121",
+    "input": "Brakes scrape softly while the front tire has a sidewall bulge.",
+    "expected_faults": [
+      "Brake System",
+      "Tyres/Wheels"
+    ],
+    "expected_per_fault_severity": {
+      "Brake System": "medium",
+      "Tyres/Wheels": "low"
+    },
+    "expected_severity": "high",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-122",
+    "input": "Brake failure at speed; a tire burst at the same time.",
+    "expected_faults": [
+      "Brake System",
+      "Tyres/Wheels"
+    ],
+    "expected_per_fault_severity": {
+      "Brake System": "critical",
+      "Tyres/Wheels": "critical"
+    },
+    "expected_severity": "critical",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-123",
+    "input": "Stopping distance is longer and a nail has punctured the tyre.",
+    "expected_faults": [
+      "Brake System",
+      "Tyres/Wheels"
+    ],
+    "expected_per_fault_severity": {
+      "Brake System": "high",
+      "Tyres/Wheels": "low"
+    },
+    "expected_severity": "critical",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-124",
+    "input": "brake nahi lag raha and rear tyre hawa is gone.",
+    "expected_faults": [
+      "Brake System",
+      "Tyres/Wheels"
+    ],
+    "expected_per_fault_severity": {
+      "Brake System": "critical",
+      "Tyres/Wheels": "low"
+    },
+    "expected_severity": "critical",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-125",
+    "input": "Brake lever feels soft; front wheel wobbles on smooth road.",
+    "expected_faults": [
+      "Brake System",
+      "Tyres/Wheels"
+    ],
+    "expected_per_fault_severity": {
+      "Brake System": "high",
+      "Tyres/Wheels": "medium"
+    },
+    "expected_severity": "critical",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-126",
+    "input": "Brake pedal sinks while the front suspension clunks over ridges.",
+    "expected_faults": [
+      "Brake System",
+      "Suspension"
+    ],
+    "expected_per_fault_severity": {
+      "Brake System": "high",
+      "Suspension": "medium"
+    },
+    "expected_severity": "critical",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-127",
+    "input": "No brakes on the slope and the steering locks when turning.",
+    "expected_faults": [
+      "Brake System",
+      "Suspension"
+    ],
+    "expected_per_fault_severity": {
+      "Brake System": "critical",
+      "Suspension": "critical"
+    },
+    "expected_severity": "critical",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-128",
+    "input": "Light brake squeak accompanies a shock absorber knock.",
+    "expected_faults": [
+      "Brake System",
+      "Suspension"
+    ],
+    "expected_per_fault_severity": {
+      "Brake System": "low",
+      "Suspension": "medium"
+    },
+    "expected_severity": "high",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-129",
+    "input": "It takes longer to stop; both shocks bounce after a bump.",
+    "expected_faults": [
+      "Brake System",
+      "Suspension"
+    ],
+    "expected_per_fault_severity": {
+      "Brake System": "high",
+      "Suspension": "medium"
+    },
+    "expected_severity": "critical",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-130",
+    "input": "Brake failure and a loose rear suspension make the ride unsafe.",
+    "expected_faults": [
+      "Brake System",
+      "Suspension"
+    ],
+    "expected_per_fault_severity": {
+      "Brake System": "critical",
+      "Suspension": "medium"
+    },
+    "expected_severity": "critical",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-131",
+    "input": "Temperature rises in traffic while the engine begins knocking.",
+    "expected_faults": [
+      "Cooling System",
+      "Engine"
+    ],
+    "expected_per_fault_severity": {
+      "Cooling System": "high",
+      "Engine": "medium"
+    },
+    "expected_severity": "critical",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-132",
+    "input": "Steam escapes from the radiator and the engine stalls on hills.",
+    "expected_faults": [
+      "Cooling System",
+      "Engine"
+    ],
+    "expected_per_fault_severity": {
+      "Cooling System": "critical",
+      "Engine": "high"
+    },
+    "expected_severity": "critical",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-133",
+    "input": "The cooling fan cuts out; engine knocks after warming.",
+    "expected_faults": [
+      "Cooling System",
+      "Engine"
+    ],
+    "expected_per_fault_severity": {
+      "Cooling System": "medium",
+      "Engine": "medium"
+    },
+    "expected_severity": "high",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-134",
+    "input": "Overheating with steam plus an oil pressure warning and knock.",
+    "expected_faults": [
+      "Cooling System",
+      "Engine"
+    ],
+    "expected_per_fault_severity": {
+      "Cooling System": "critical",
+      "Engine": "critical"
+    },
+    "expected_severity": "critical",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-135",
+    "input": "Coolant puddle below the car; engine misfires under load.",
+    "expected_faults": [
+      "Cooling System",
+      "Engine"
+    ],
+    "expected_per_fault_severity": {
+      "Cooling System": "medium",
+      "Engine": "high"
+    },
+    "expected_severity": "critical",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-136",
+    "input": "Fuel leaks heavily while the engine misfires at speed.",
+    "expected_faults": [
+      "Fuel System",
+      "Engine"
+    ],
+    "expected_per_fault_severity": {
+      "Fuel System": "critical",
+      "Engine": "high"
+    },
+    "expected_severity": "critical",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-137",
+    "input": "Petrol smell with exhaust smoke and a rough engine idle.",
+    "expected_faults": [
+      "Fuel System",
+      "Engine"
+    ],
+    "expected_per_fault_severity": {
+      "Fuel System": "critical",
+      "Engine": "medium"
+    },
+    "expected_severity": "critical",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-138",
+    "input": "Fuel economy falls as the engine develops a steady knock.",
+    "expected_faults": [
+      "Fuel System",
+      "Engine"
+    ],
+    "expected_per_fault_severity": {
+      "Fuel System": "medium",
+      "Engine": "medium"
+    },
+    "expected_severity": "high",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-139",
+    "input": "Injector flow drops and the engine stalls at each stop sign.",
+    "expected_faults": [
+      "Fuel System",
+      "Engine"
+    ],
+    "expected_per_fault_severity": {
+      "Fuel System": "medium",
+      "Engine": "high"
+    },
+    "expected_severity": "critical",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-140",
+    "input": "Strong petrol fumes and oil pressure warning with a heavy knock.",
+    "expected_faults": [
+      "Fuel System",
+      "Engine"
+    ],
+    "expected_per_fault_severity": {
+      "Fuel System": "high",
+      "Engine": "critical"
+    },
+    "expected_severity": "critical",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-141",
+    "input": "Brake pedal sinks, front tyre is bulging, and suspension clunks on turns.",
+    "expected_faults": [
+      "Brake System",
+      "Tyres/Wheels",
+      "Suspension"
+    ],
+    "expected_per_fault_severity": {
+      "Brake System": "high",
+      "Tyres/Wheels": "low",
+      "Suspension": "medium"
+    },
+    "expected_severity": "critical",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-142",
+    "input": "No brakes, steering locked, and the rear wheel has a sidewall split.",
+    "expected_faults": [
+      "Brake System",
+      "Suspension",
+      "Tyres/Wheels"
+    ],
+    "expected_per_fault_severity": {
+      "Brake System": "critical",
+      "Suspension": "critical",
+      "Tyres/Wheels": "critical"
+    },
+    "expected_severity": "critical",
+    "red_flag": true
+  },
+  {
+    "id": "challenge-143",
+    "input": "Engine temperature climbs, oil pressure warning glows, and fuel is leaking.",
+    "expected_faults": [
+      "Cooling System",
+      "Engine",
+      "Fuel System"
+    ],
+    "expected_per_fault_severity": {
+      "Cooling System": "high",
+      "Engine": "critical",
+      "Fuel System": "critical"
+    },
+    "expected_severity": "critical",
+    "red_flag": true
+  },
+  {
+    "id": "challenge-144",
+    "input": "Coolant steams out, petrol pours from the line, engine knocks loudly.",
+    "expected_faults": [
+      "Cooling System",
+      "Fuel System",
+      "Engine"
+    ],
+    "expected_per_fault_severity": {
+      "Cooling System": "critical",
+      "Fuel System": "critical",
+      "Engine": "critical"
+    },
+    "expected_severity": "critical",
+    "red_flag": true
+  },
+  {
+    "id": "challenge-145",
+    "input": "The battery cuts out, brakes take longer to stop, tyre pressure falls.",
+    "expected_faults": [
+      "Battery/Electrical",
+      "Brake System",
+      "Tyres/Wheels"
+    ],
+    "expected_per_fault_severity": {
+      "Battery/Electrical": "high",
+      "Brake System": "high",
+      "Tyres/Wheels": "low"
+    },
+    "expected_severity": "critical",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-146",
+    "input": "Starter clicks, CVT belt shudders, and front suspension bounces.",
+    "expected_faults": [
+      "Starting System",
+      "Transmission",
+      "Suspension"
+    ],
+    "expected_per_fault_severity": {
+      "Starting System": "medium",
+      "Transmission": "medium",
+      "Suspension": "medium"
+    },
+    "expected_severity": "high",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-147",
+    "input": "Oil change is due, battery warning flickers, and a tyre is punctured.",
+    "expected_faults": [
+      "General Maintenance",
+      "Battery/Electrical",
+      "Tyres/Wheels"
+    ],
+    "expected_per_fault_severity": {
+      "General Maintenance": "low",
+      "Battery/Electrical": "medium",
+      "Tyres/Wheels": "low"
+    },
+    "expected_severity": "high",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-148",
+    "input": "Fuel smell, brake failure, and a steering lock appeared together.",
+    "expected_faults": [
+      "Fuel System",
+      "Brake System",
+      "Suspension"
+    ],
+    "expected_per_fault_severity": {
+      "Fuel System": "high",
+      "Brake System": "critical",
+      "Suspension": "critical"
+    },
+    "expected_severity": "critical",
+    "red_flag": true
+  },
+  {
+    "id": "challenge-149",
+    "input": "Coolant drops, transmission grinds, and the wheel bearing hums.",
+    "expected_faults": [
+      "Cooling System",
+      "Transmission",
+      "Tyres/Wheels"
+    ],
+    "expected_per_fault_severity": {
+      "Cooling System": "medium",
+      "Transmission": "medium",
+      "Tyres/Wheels": "high"
+    },
+    "expected_severity": "critical",
+    "red_flag": false
+  },
+  {
+    "id": "challenge-150",
+    "input": "Engine stalls, starter will not crank, and dashboard lights go dark.",
+    "expected_faults": [
+      "Engine",
+      "Starting System",
+      "Battery/Electrical"
+    ],
+    "expected_per_fault_severity": {
+      "Engine": "high",
+      "Starting System": "high",
+      "Battery/Electrical": "medium"
+    },
+    "expected_severity": "critical",
+    "red_flag": false
+  }
+]

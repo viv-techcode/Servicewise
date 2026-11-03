@@ -1,0 +1,71 @@
+{
+  "cases": 150,
+  "severity_accuracy": 0.9733,
+  "safety_fault_recall": {
+    "Brake System": 1.0,
+    "Cooling System": 1.0,
+    "Fuel System": 1.0
+  },
+  "red_flag_cases": 24,
+  "red_flag_underpredicted": 0,
+  "misses": [
+    {
+      "id": "challenge-035",
+      "input": "No smoke is visible, but the engine taps under load.",
+      "expected_faults": [
+        "Engine"
+      ],
+      "predicted_faults": [
+        "Engine"
+      ],
+      "expected_severity": "medium",
+      "predicted_severity": "high",
+      "red_flag_underpredicted": false
+    },
+    {
+      "id": "challenge-101",
+      "input": "Only the headlight is dim; there is no burning smell.",
+      "expected_faults": [
+        "Battery/Electrical"
+      ],
+      "predicted_faults": [
+        "Battery/Electrical"
+      ],
+      "expected_severity": "low",
+      "predicted_severity": "medium",
+      "red_flag_underpredicted": false
+    },
+    {
+      "id": "challenge-133",
+      "input": "The cooling fan cuts out; engine knocks after warming.",
+      "expected_faults": [
+        "Cooling System",
+        "Engine"
+      ],
+      "predicted_faults": [
+        "Cooling System",
+        "Engine"
+      ],
+      "expected_severity": "high",
+      "predicted_severity": "critical",
+      "red_flag_underpredicted": false
+    },
+    {
+      "id": "challenge-149",
+      "input": "Coolant drops, transmission grinds, and the wheel bearing hums.",
+      "expected_faults": [
+        "Cooling System",
+        "Transmission",
+        "Tyres/Wheels"
+      ],
+      "predicted_faults": [
+        "Cooling System",
+        "Transmission",
+        "Tyres/Wheels"
+      ],
+      "expected_severity": "critical",
+      "predicted_severity": "high",
+      "red_flag_underpredicted": false
+    }
+  ]
+}

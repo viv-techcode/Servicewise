@@ -8,7 +8,10 @@ import joblib
 import pandas as pd
 
 from backend.ml.fault_text import prepare_classifier_text
-from backend.ml.severity import combined_severity, severity_for_fault
+from backend.ml.severity import (
+    LEVEL_RANK, combined_severity, detect_fault_categories,
+    detect_red_flag_faults, severity_for_fault,
+)
 from backend.discount_rules import MULTI_FAULT_DISCOUNT_RATE
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -88,16 +91,30 @@ class Predictor:
             thresholds = [float(thresholds.get(category, self.multilabel.get('threshold', .35))) for category in classes]
         else:
             thresholds = float(self.multilabel.get('threshold', .35))
+        probabilities_by_category = {category: float(probability) for category, probability in zip(classes, probabilities)}
         faults = [
             {'category': category, 'confidence': float(probability)}
             for index, (category, probability) in enumerate(zip(classes, probabilities))
             if probability >= (thresholds[index] if isinstance(thresholds, list) else thresholds)
         ]
+        # Explicit system cues and safety red flags supplement the learned model.
+        # A lexical safety flag must not disappear because a model threshold is high.
+        detected = detect_fault_categories(symptoms := input_data['symptoms'])
+        # When explicit system evidence exists, do not add unrelated model guesses.
+        # For vague complaints the multilabel model remains the fallback.
+        if detected:
+            faults = [item for item in faults if item['category'] in detected]
+        existing = {item['category'] for item in faults}
+        for category in detected - existing:
+            if category not in classes:
+                continue
+            confidence = probabilities_by_category.get(category, 0.0)
+            floor = .95 if category in detect_red_flag_faults(symptoms) else .64
+            faults.append({'category': category, 'confidence': max(confidence, floor)})
         if not faults:
             best = int(probabilities.argmax())
             faults = [{'category': classes[best], 'confidence': float(probabilities[best])}]
         faults.sort(key=lambda item: item['confidence'], reverse=True)
-        symptoms = input_data['symptoms']
         per_fault_severity = {
             fault['category']: severity_for_fault(fault['category'], symptoms)
             for fault in faults
@@ -121,6 +138,13 @@ class Predictor:
                 'price_reference': None,
             })
 
+        # The primary fault is the most severe; ties go to the higher median cost.
+        primary = max(faults, key=lambda fault: (
+            LEVEL_RANK[per_fault_severity[fault['category']]],
+            self.cost_lookup.get((fault['category'], input_data['vehicle_type']), {}).get('median', 0),
+        ))
+        faults.sort(key=lambda item: (-LEVEL_RANK[per_fault_severity[item['category']]], -item['confidence']))
+
         discount_rate = MULTI_FAULT_DISCOUNT_RATE if len(breakdown) > 1 else 0.0
         raw_min = sum(item['estimated_cost_min'] for item in breakdown)
         raw_max = sum(item['estimated_cost_max'] for item in breakdown)
@@ -133,9 +157,16 @@ class Predictor:
             'amount_max': raw_max - total_max,
             'rule': '10% once on combined estimate when multiple faults are serviced in one visit' if discount_rate else 'No multi-fault visit discount',
         }
-        urgency = {'low': 'Low', 'medium': 'Medium', 'high': 'High', 'critical': 'High'}[combined]
+        advice = {
+            'Brake System': 'Avoid riding or driving until the brake system has been inspected.',
+            'Cooling System': 'If temperature is rising or steam is present, stop safely and let the engine cool before inspection.',
+            'Fuel System': 'If fuel is leaking or fumes are strong, switch off the engine and keep ignition sources away.',
+        }
+        timing = {'critical': 'Stop driving and arrange a tow and inspection now.', 'high': 'Arrange an inspection within 24 hours.', 'medium': 'Arrange an inspection this week.', 'low': 'Raise this at the next scheduled service.'}[combined]
+        specific = [advice[fault['category']] for fault in faults if fault['category'] in advice]
+        recommendation = ' '.join([timing, *dict.fromkeys(specific)])
         return {
-            'problem_category': faults[0]['category'],
+            'problem_category': primary['category'],
             'model_version': self.model_version,
             'predicted_faults': faults,
             'per_fault_severity': per_fault_severity,
@@ -150,6 +181,6 @@ class Predictor:
             'shared_visit_discount': discount,
             'cost_estimate_basis': 'main dataset per-fault cost quartiles; median totals receive a 10% multi-fault discount',
             'price_reference': None,
-            'urgency': urgency,
-            'recommendation': 'Professional mechanical inspection recommended.',
+            'urgency': combined,
+            'recommendation': recommendation,
         }
