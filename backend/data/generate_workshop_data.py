@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 from collections import Counter, defaultdict
 from datetime import date, datetime, time, timedelta
+from itertools import combinations
 from pathlib import Path
 
 import numpy as np
@@ -17,9 +18,9 @@ SEASONAL = {
     7: 1.14, 8: 1.10, 9: 1.00, 10: 1.22, 11: 1.16, 12: 0.92,
 }
 SEASONAL_FAULT = {
-    'Battery/Electrical': {12: 1.35, 1: 1.45, 2: 1.3, 7: 1.2, 8: 1.15},
-    'Starting System': {12: 1.3, 1: 1.5, 2: 1.3},
-    'Cooling System': {4: 1.15, 5: 1.5, 6: 1.6},
+    'Battery/Electrical': {12: 2.0, 1: 2.1, 2: 1.9, 7: 1.2, 8: 1.15},
+    'Starting System': {12: 1.9, 1: 2.1, 2: 1.9},
+    'Cooling System': {1: .55, 2: .60, 3: .75, 4: 3.2, 5: 4.8, 6: 4.5},
     'Tyres/Wheels': {6: 1.25, 7: 1.55, 8: 1.5, 9: 1.25},
     'Brake System': {6: 1.2, 7: 1.35, 8: 1.3, 9: 1.15},
 }
@@ -131,52 +132,41 @@ FAULT_PHRASES = {
 
 def part_catalog():
     rows = []
-    cost_ranges = {
-        'Battery/Electrical': (700, 2400, 6), 'Brake System': (120, 1600, 4),
-        'Cooling System': (160, 1900, 4), 'Engine': (180, 2600, 6),
-        'Fuel System': (90, 1300, 5), 'General Maintenance': (120, 1100, 5),
-        'Starting System': (80, 1500, 4), 'Suspension': (160, 2600, 5),
-        'Transmission': (130, 3200, 5), 'Tyres/Wheels': (80, 4200, 5),
+    bases = {
+        'Battery/Electrical': (450, 1100, 6, 'Battery, bulb and terminal kit'),
+        'Brake System': (120, 900, 4, 'Brake pad and shoe kit'),
+        'Cooling System': (150, 800, 4, 'Cooling hose, coolant and fin-clean kit'),
+        'Engine': (300, 1800, 6, 'Engine gasket, plug and sensor kit'),
+        'Fuel System': (120, 750, 5, 'Fuel filter and hose kit'),
+        'General Maintenance': (180, 850, 5, 'Oil, air filter and service kit'),
+        'Starting System': (150, 700, 4, 'Starter relay and spark plug kit'),
+        'Suspension': (300, 1600, 5, 'Shock absorber and bush kit'),
+        'Transmission': (250, 1800, 5, 'Transmission service kit'),
+        'Tyres/Wheels': (250, 2200, 5, 'Tyre, tube and valve kit'),
     }
     for category in CATEGORIES:
-        low, high, lead = cost_ranges[category]
+        low, high, lead, name = bases[category]
         for vtype in ('bike', 'car'):
-            compatible = [model for brand, models in VEHICLES[vtype].items() for model in models]
-            groups = [compatible]
+            models = [m for brand, ms in VEHICLES[vtype].items() for m in ms]
+            groups = [models]
             if category == 'Transmission' and vtype == 'bike':
-                scooters = [model for model in compatible if MODEL_FACTS[model]['body'] == 'scooter']
-                manual = [model for model in compatible if model not in scooters]
-                groups = [manual, scooters]
-            base_part_name = {
-                'Battery/Electrical': 'Battery and terminal kit',
-                'Brake System': 'Brake pads and service kit' if vtype == 'car' else 'Brake shoe and pad kit',
-                'Cooling System': 'Radiator hose and coolant kit',
-                'Engine': 'Engine sensor and gasket kit',
-                'Fuel System': 'Fuel filter and hose kit',
-                'General Maintenance': 'Oil and air filter service kit',
-                'Starting System': 'Starter relay and plug kit',
-                'Suspension': 'Shock absorber service kit',
-                'Transmission': 'Clutch and drive kit',
-                'Tyres/Wheels': 'Tyre and valve kit',
-            }[category]
-            for model_group in groups:
-                if not model_group:
-                    continue
-                name = base_part_name
-                if category == 'Transmission' and vtype == 'bike':
-                    name = 'Scooter drive belt and variator kit' if MODEL_FACTS[model_group[0]]['body'] == 'scooter' else 'Clutch plate and drive chain kit'
-                pid = f"P-{vtype[:1].upper()}-{len(rows)+1:02d}"
-                unit_cost = int((low + high) / 2)
-                unit_price = int(round(unit_cost * 1.32 / 10) * 10)
-                reorder = 8 if category in ('General Maintenance', 'Brake System', 'Tyres/Wheels') else 5
-                opening = 0 if len(rows) % 13 == 0 else reorder + 2
-                rows.append({
-                    'part_id': pid, 'part_name': name, 'fault_category': category,
-                    'vehicle_type': vtype, 'compatible_models': json.dumps(model_group),
-                    'opening_stock': opening, 'stock': opening, 'reorder_level': reorder,
-                    'unit_cost': unit_cost, 'unit_price': unit_price,
-                    'supplier_lead_time_days': lead, 'supplier': f'{category.split()[0]} Supply Co.',
-                })
+                groups = [[m for m in models if MODEL_FACTS[m]['body'] == body] for body in ('geared_bike', 'scooter')]
+            for group in filter(None, groups):
+                for tier, factor in (('budget', .78), ('standard', 1.0), ('premium', 1.32)):
+                    vehicle_factor = 1.0 if vtype == 'bike' else 2.0
+                    model_factor = sum(1.18 if MODEL_FACTS[m]['price_tier'] == 'mid' else .92 for m in group) / len(group)
+                    cost = int(round(((low + high) / 2) * vehicle_factor * model_factor * factor / 10) * 10)
+                    retail = int(round(cost * 1.28 / 10) * 10)
+                    label = name
+                    if category == 'Transmission' and vtype == 'bike':
+                        label = 'CVT belt and variator kit' if MODEL_FACTS[group[0]]['body'] == 'scooter' else 'Clutch plate and chain kit'
+                    if category == 'Cooling System' and vtype == 'bike': label = 'Cooling fin and airflow service kit'
+                    reorder = 8 if tier == 'budget' else 5
+                    rows.append({'part_id': f'P-{vtype[0].upper()}-{len(rows)+1:03d}', 'part_name': f'{tier.title()} {label}',
+                        'fault_category': category, 'vehicle_type': vtype, 'compatible_models': json.dumps(group),
+                        'opening_stock': reorder + 4, 'stock': reorder + 4, 'reorder_level': reorder,
+                        'unit_cost': cost, 'unit_price': retail, 'supplier_lead_time_days': lead,
+                        'supplier': f'{category.split()[0]} Supply Co.'})
     return rows
 
 
@@ -208,17 +198,14 @@ def seasonal_fault_weights(day: date):
 
 
 def make_job_faults(count, day, rng, multi_number):
-    # Cycle deliberately chosen cross-system pairs into the labels as well as
-    # sampling naturally from the non-uniform annual fault mix.
-    spanning_pairs = [
-        ('Tyres/Wheels', 'Battery/Electrical'), ('Brake System', 'Suspension'),
-        ('Engine', 'Cooling System'), ('Fuel System', 'Engine'),
-        ('General Maintenance', 'Brake System'), ('Starting System', 'Battery/Electrical'),
-        ('Transmission', 'Tyres/Wheels'), ('Cooling System', 'Battery/Electrical'),
-        ('Suspension', 'Tyres/Wheels'), ('Fuel System', 'General Maintenance'),
-    ]
-    if count >= 2 and multi_number % 7 == 0:
-        chosen = list(spanning_pairs[(multi_number // 7) % len(spanning_pairs)])
+    if count >= 2:
+        all_pairs = list(combinations(CATEGORIES, 2))
+        dangerous_pairs = [('Brake System','Tyres/Wheels'),('Brake System','Suspension'),('Cooling System','Engine'),('Fuel System','Engine')]
+        if multi_number <= 240:
+            chosen = list(dangerous_pairs[(multi_number - 1) % len(dangerous_pairs)])
+        else:
+            ordinary = [pair for pair in all_pairs if pair not in dangerous_pairs and tuple(reversed(pair)) not in dangerous_pairs]
+            chosen = list(ordinary[(multi_number - 241) % len(ordinary)])
         if count == 3:
             remaining = [category for category in CATEGORIES if category not in chosen]
             weights = np.asarray(seasonal_fault_weights(day))
@@ -239,39 +226,92 @@ def choose_vehicle(rng):
     vtype = str(rng.choice(['car', 'bike'], p=[.55, .45]))
     choices = [(brand, model) for brand, models in VEHICLES[vtype].items() for model in models]
     brand, model = choices[int(rng.integers(0, len(choices)))]
-    age = int(rng.integers(1, 19))
-    annual = float(rng.uniform(4000, 18000) if vtype == 'bike' else rng.uniform(6000, 20000))
-    km = int(round(age * annual * rng.uniform(.85, 1.15) / 100) * 100)
+    age_cap = 120000 if vtype == 'bike' else 250000
+    age = int(rng.integers(1, min(18, 2026 - MODEL_FACTS[model]['launch_year'], age_cap // (12000 if vtype == 'bike' else 18000)) + 1))
+    annual = float(rng.uniform(3000, 12000) if vtype == 'bike' else rng.uniform(5000, 18000))
+    km = int(round(age * annual / 100) * 100)
     return vtype, brand, model, age, km
 
 
-def phrase_for(category, day, rng):
-    phrase = str(rng.choice(FAULT_PHRASES[category]))
+def phrase_for(category, day, rng, vtype, model):
+    phrase_index = int(rng.integers(0, len(FAULT_PHRASES[category])))
+    phrase = str(FAULT_PHRASES[category][phrase_index])
+    facts = MODEL_FACTS[model]
+    if vtype == 'car':
+        phrase = phrase.replace('riding', 'driving').replace('Bike does not start', 'Car does not start')
+    else:
+        phrase = phrase.replace('driving', 'riding').replace('Brake pedal', 'Brake lever')
+    if facts['body'] == 'scooter' and category == 'Transmission':
+        phrase = str(rng.choice([
+            'The CVT drive belt shudders as the scooter pulls away.',
+            'The scooter hesitates when its automatic transmission engages.',
+            'A rattling sound comes from the scooter transmission at low speed.',
+            'The CVT belt slips briefly under acceleration.',
+            'The scooter drive feels jerky when moving off from a stop.',
+            'The variator vibrates during slow takeoff.',
+            'The automatic drive belt makes a brief squeal under load.',
+            'The scooter transmission feels rough on uphill starts.',
+        ]))
+    elif category == 'Transmission' and vtype == 'car':
+        phrase = str(rng.choice([
+            'Gear changes feel stiff in slow traffic.', 'The manual clutch slips under load on an uphill road.',
+            'The transmission shifts roughly after the car warms up.', 'A grinding sound occurs while selecting a lower gear.',
+            'The gearbox hesitates between shifts.', 'The clutch pedal feels unusually heavy.',
+            'An automatic shift feels delayed when pulling away.', 'A transmission vibration appears at steady road speed.',
+        ]))
+    if facts['cooling'] == 'air' and category == 'Cooling System':
+        phrase = str(rng.choice([
+            'Engine heat rises in slow traffic and the cooling fins need inspection.',
+            'The engine runs hotter than usual on a long ride.', 'Airflow around the engine feels restricted after dusty roads.',
+            'The temperature warning appears during a slow uphill ride.', 'Cooling fins are clogged with dust and debris.',
+            'Engine heat builds up at idle and eases while moving.', 'The engine feels unusually hot after a short trip.',
+            'A fan noise is absent while the engine is hot.',
+        ]))
+    elif category == 'Cooling System' and vtype == 'car':
+        phrase = phrase.replace('riding', 'driving')
+    # Natural openings and sentence endings provide independent phrasings;
+    # template IDs preserve a leakage-safe split key.
+    openings = ['', 'Lately, ', 'During the last few trips, ', 'At normal road speed, ', 'After the morning start, ', 'In stop-and-go traffic, ', 'On the recent commute, ', 'Over the past week, ']
+    endings = ['', ' The issue is intermittent.', ' It is more noticeable under load.', ' It happens on most trips.', ' The owner noticed it this week.', ' The symptom is getting more frequent.', ' No repair has been attempted yet.', ' It remains after restarting the vehicle.']
+    phrase = str(rng.choice(openings)) + phrase
+    phrase += str(rng.choice(endings))
     if day.month in (6, 7, 8, 9) and category in ('Tyres/Wheels', 'Brake System', 'Battery/Electrical'):
         phrase += ' Water spray has made the issue more noticeable.'
     if day.month in (4, 5, 6) and category == 'Cooling System':
         phrase += ' It happens most often in afternoon traffic.'
-    wrapper = str(rng.choice(['Customer reports: ', 'Workshop note: ', 'Driver says: ', 'Inspection found: ', 'The owner mentions: ']))
-    if rng.random() < .025:
-        phrase += ' The noise comes and goes, but the listed fault is still present.'
-    return wrapper + phrase
+    if rng.random() < .08:
+        phrase = {
+            'Brake System': 'brake nahi lag raha, stopping feels weak.',
+            'Battery/Electrical': 'headlight dim ho rahi hai.',
+            'Cooling System': 'engine bahut garam ho raha hai.',
+            'Engine': 'engin knocking sound aa rahi hai.', 'Fuel System': 'petrol smell aa rahi hai near the tank.',
+            'General Maintenance': 'oil change due hai.', 'Starting System': 'gaadi start nahi ho rahi.',
+            'Suspension': 'suspension mein awaaz aa rahi hai on bumps.', 'Transmission': 'drive system rough ho raha hai.',
+            'Tyres/Wheels': 'tyre hawa slowly kam ho rahi hai.',
+        }[category]
+        if facts['body'] == 'scooter' and category == 'Transmission': phrase = 'automatic drive feels rough.'
+    template_id = f"{category.replace('/', '_').replace(' ', '_')}:{facts['body']}:{phrase_index}:{len(phrase)}"
+    return phrase, template_id
 
 
-def find_part(parts_by_key, category, vehicle_type, model):
-    return parts_by_key[(category, vehicle_type, model)]
+def find_part(parts_by_key, category, vehicle_type, model, rng):
+    available = parts_by_key[(category, vehicle_type, model)]
+    quantity = int(rng.integers(1, min(3, len(available)) + 1))
+    return [available[int(i)] for i in rng.choice(len(available), size=quantity, replace=False)]
 
 
 def generate():
     rng = np.random.default_rng(SEED)
     dates = [START + timedelta(days=offset) for offset in range((END - START).days + 1)]
-    daily_counts = {day: max(1, int(rng.poisson(day_factor(day)))) for day in dates}
+    closed = {'2025-01-26','2025-03-14','2025-08-15','2025-10-02','2025-10-20','2025-10-21','2025-11-05','2026-01-26','2026-03-04','2026-08-15','2026-10-02','2026-10-20'}
+    daily_counts = {day: (0 if day.weekday()==6 or day.isoformat() in closed else max(1, int(rng.poisson(day_factor(day))))) for day in dates}
     total_jobs = sum(daily_counts.values())
     n_faults = np.asarray(rng.choice([1, 2, 3], size=total_jobs, p=[.69, .27, .04]), dtype=int)
     parts = part_catalog()
-    parts_by_key = {
-        (row['fault_category'], row['vehicle_type'], model): row
-        for row in parts for model in json.loads(row['compatible_models'])
-    }
+    parts_by_key = defaultdict(list)
+    for part in parts:
+        for model in json.loads(part['compatible_models']):
+            parts_by_key[(part['fault_category'], part['vehicle_type'], model)].append(part)
     jobs = []
     row_idx = 0
     multi_number = 0
@@ -280,17 +320,30 @@ def generate():
             count = int(n_faults[row_idx])
             if count > 1:
                 multi_number += 1
+            vague_general = rng.random() < .03
+            if vague_general:
+                count = 1
             faults = make_job_faults(count, day, rng, multi_number)
+            if vague_general: faults = ['General Maintenance']
             vtype, brand, model, age, km = choose_vehicle(rng)
-            symptom_by_fault = {category: phrase_for(category, day, rng) for category in faults}
+            phrased = {category: phrase_for(category, day, rng, vtype, model) for category in faults}
+            symptom_by_fault = {category: value[0] for category,value in phrased.items()}
+            template_ids = {category: value[1] for category,value in phrased.items()}
+            if vague_general:
+                symptom_by_fault['General Maintenance'] = 'Routine check requested; no specific symptom described.'
+                template_ids['General Maintenance'] = 'General_Maintenance:vague:unspecified'
             symptoms = ' '.join(symptom_by_fault[category] for category in faults)
+            if vtype == 'bike': symptoms = symptoms.replace('driving', 'riding')
+            else: symptoms = symptoms.replace('riding', 'driving')
             severity_map = {category: severity_for_fault(category, symptom_by_fault[category]) for category in faults}
             combined = combined_severity(faults, severity_map)
-            part_rows = [find_part(parts_by_key, category, vtype, model) for category in faults]
+            parts_by_fault = [find_part(parts_by_key, category, vtype, model, rng) for category in faults]
+            part_rows = [part for group in parts_by_fault for part in group]
             base_parts = sum(part['unit_cost'] for part in part_rows)
             labor_costs = [int(rng.integers(160, 960) * (1.18 if vtype == 'car' else .78)) for _ in faults]
             labor_total = sum(labor_costs)
-            invoice = sum(part['unit_price'] + labor for part, labor in zip(part_rows, labor_costs))
+            invoice_by_fault = [sum(part['unit_price'] for part in group) + labor for group, labor in zip(parts_by_fault, labor_costs)]
+            invoice = sum(invoice_by_fault)
             warranty = rng.random() < .018
             # A limited February voucher campaign creates a few modest loss
             # jobs and one negative month without overwhelming the whole file.
@@ -303,18 +356,24 @@ def generate():
             # Allocate the final customer charge by each fault's invoice share.
             # This remains exact for full warranty write-offs, where an equal
             # discount split could otherwise exceed a cheap individual fault.
-            line_totals = [int(part['unit_price'] + labor) for part, labor in zip(part_rows, labor_costs)]
+            line_totals = invoice_by_fault
             allocations = [int(charge * line / invoice) for line in line_totals]
             remainder = charge - sum(allocations)
             for index in range(remainder):
                 allocations[index % len(allocations)] += 1
             per_fault_cost = {category: allocation for category, allocation in zip(faults, allocations)}
+            faults = sorted(faults, key=lambda f: (SEVERITY_RULE_TABLE['levels'].index(severity_map[f]), per_fault_cost[f]), reverse=True)
+            per_fault_cost = {f: per_fault_cost[f] for f in faults}
+            severity_map = {f: severity_map[f] for f in faults}
+            template_ids = {f: template_ids[f] for f in faults}
+            part_rows = [p for f in faults for p in parts_by_fault[[*symptom_by_fault].index(f)]]
             jobs.append({
                 'job_id': f'J{row_idx + 1:06d}', 'planned_date': day,
                 'service_time': (datetime.combine(day, time(8, 0)) + timedelta(minutes=int(rng.integers(0, 600)))).strftime('%H:%M:%S'),
                 'vehicle_type': vtype, 'brand': brand, 'model': model, 'age': age, 'km_driven': km,
                 'primary_fault': faults[0], 'faults': faults, 'fault_count': count,
                 'symptoms': symptoms, 'per_fault_severity': severity_map, 'severity': combined,
+                'symptom_template_id': template_ids,
                 'parts': part_rows, 'per_fault_cost': per_fault_cost,
                 'customer_charge': charge, 'parts_cost': base_parts, 'labour_cost': labor_total,
                 'discount': discount, 'gross_margin': charge - base_parts - labor_total,
@@ -395,6 +454,8 @@ def generate():
     for day in dates:
         receive_due(day)
         waiting.extend(jobs_by_day[day])
+        if day.weekday() == 6 or day.isoformat() in closed:
+            continue
         for job in list(waiting):
             missing = [part['part_id'] for part in job['parts'] if stock[part['part_id']] < 1]
             if missing:
@@ -428,6 +489,14 @@ def generate():
     # Keep deliveries inside the snapshot boundary; future purchase orders are
     # not current stock or completed stock movements.
     ledger = [row for row in ledger if date.fromisoformat(row['event_date']) <= END]
+    old_ids = {job['job_id']: job for job in jobs}
+    jobs.sort(key=lambda job: (job['service_date'], job['service_time'], job['job_id']))
+    id_map = {}
+    for index, job in enumerate(jobs, 1):
+        old_id = job['job_id']; new_id = f'J{index:06d}'
+        id_map[old_id] = new_id; job['job_id'] = new_id
+    for event in ledger:
+        if event['job_id'] in id_map: event['job_id'] = id_map[event['job_id']]
     ledger.sort(key=lambda row: (row['event_date'], row['event_time'], row['event_id']))
     running = {row['part_id']: 0 for row in parts}
     for row in ledger:
@@ -448,6 +517,7 @@ def generate():
             'service_time': job['service_time'], 'vehicle_type': job['vehicle_type'],
             'brand': job['brand'], 'model': job['model'], 'age': job['age'],
             'km_driven': job['km_driven'], 'symptoms': job['symptoms'],
+            'symptom_template_id': json.dumps(job['symptom_template_id'], ensure_ascii=False, sort_keys=True),
             'primary_fault': job['primary_fault'], 'faults': ';'.join(faults),
             'fault_count': job['fault_count'],
             'per_fault_severity': json.dumps(job['per_fault_severity'], ensure_ascii=False, sort_keys=True),

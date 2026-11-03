@@ -56,7 +56,7 @@ CUES = {
 }
 SERVICE_COLUMNS = [
     'job_id', 'service_date', 'service_time', 'vehicle_type', 'brand', 'model', 'age', 'km_driven',
-    'symptoms', 'primary_fault', 'faults', 'fault_count', 'per_fault_severity', 'severity', 'parts_used',
+    'symptoms', 'symptom_template_id', 'primary_fault', 'faults', 'fault_count', 'per_fault_severity', 'severity', 'parts_used',
     'per_fault_cost', 'customer_charge', 'parts_cost', 'labour_cost', 'gross_margin', 'discount',
     'stockout_delay_days', 'status',
 ]

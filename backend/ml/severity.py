@@ -40,11 +40,19 @@ SEVERITY_RULE_TABLE = {
     ],
     'dangerous_combo_increase': 1,
     'three_fault_increase': 1,
+    'category_low_terms': {
+        'Battery/Electrical': ['headlights dim', 'headlight dim', 'dim headlight', 'dim lights'],
+        'General Maintenance': ['oil change due', 'oil and filter are due', 'scheduled oil change', 'no specific symptom described'],
+        'Brake System': ['squeal at low speed', 'squeaks but still stop normally'],
+        'Tyres/Wheels': ['pressure drops slowly'],
+    },
 }
 
 
 def severity_for_fault(category: str, symptom: str) -> str:
     text = symptom.lower()
+    if any(term in text for term in SEVERITY_RULE_TABLE.get('category_low_terms', {}).get(category, [])):
+        return 'low'
     if any(term in text for term in SEVERITY_RULE_TABLE['category_critical_terms'].get(category, [])):
         return 'critical'
     if any(term in text for term in SEVERITY_RULE_TABLE['category_high_terms'].get(category, [])):

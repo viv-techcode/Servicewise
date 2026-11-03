@@ -52,7 +52,9 @@ for r in SERVICE.itertuples(index=False):
     month_category.extend((r.service_date[:7],r.service_date[5:7],f) for f in faults)
     severity_rows.append((r.primary_fault,r.severity))
     if not any(phrase in r.symptoms.lower() for phrase in ('dim', 'oil and filter are due')) and r.primary_fault=='General Maintenance' and 'oil change' in r.symptoms.lower() and r.severity!='low': bad('d oil change due severity',r.job_id,r.severity)
-    if 'headlights dim' in r.symptoms.lower() and r.severity!='low': bad('d dim lights severity',r.job_id,r.severity)
+    if 'headlight' in r.symptoms.lower() and 'dim' in r.symptoms.lower():
+        dim = [s for f,s in pf.items() if f=='Battery/Electrical']
+        if dim and dim[0] != 'low': bad('d dim lights severity',r.job_id,dim[0])
 
 # c price parity; d reference bands by category/type (recorded, not adjudicated
 # when the reference source has no prices for that segment).
@@ -86,10 +88,15 @@ for p in DANGEROUS:
     if pairs[tuple(sorted(p))]<60: bad('g dangerous pair','-',f'{" + ".join(sorted(p))}: {pairs[tuple(sorted(p))]} < 60')
 
 # h template diversity (full-symptom unique count proxy until template ids exist)
-for (cat,sev), rows in SERVICE.groupby(['primary_fault','severity']):
-    n=rows.symptoms.nunique()
+template_rows=[]
+for r in SERVICE.itertuples(index=False):
+    t=json.loads(r.symptom_template_id) if 'symptom_template_id' in SERVICE.columns else {}
+    p=json.loads(r.per_fault_severity)
+    for cat,sev in p.items(): template_rows.append((cat,sev,t.get(cat,'')))
+template_counts=pd.DataFrame(template_rows,columns=['category','severity','template']).groupby(['category','severity']).template.nunique()
+for (cat,sev), n in template_counts.items():
     if n<8: bad('h template diversity','-',f'{cat}/{sev}: {n} distinct symptom strings')
-vague=SERVICE.symptoms.str.contains(r'\b(gaadi|nahi|problem|issue|not working|noise)\b|typo|brke|battrey|engin\b',case=False,regex=True)
+vague=SERVICE.symptoms.str.contains(r'\b(?:gaadi|nahi|problem|not working|engin\b|brke\b|battrey\b|hai|mein)\b|ho raha|ho rahi|aa rahi',case=False,regex=True)
 vague_share=float(vague.mean())
 if not .04<=vague_share<=.13: bad('h vague/typo/Hinglish share','-',f'{vague_share:.1%}; target approximately 8%')
 

@@ -16,8 +16,8 @@ VEHICLES = {
 # Physical facts used by data generation, validation, inventory compatibility,
 # and the UI's mirrored catalogue. Values are intentionally conservative.
 MODEL_FACTS = {
-    'Splendor Plus': {'launch_year': 2004, 'body': 'geared_bike', 'drivetrain': 'manual', 'cooling': 'air', 'has_chain': True, 'has_clutch_lever': False, 'has_radiator': False, 'price_tier': 'budget'},
-    'HF Deluxe': {'launch_year': 2005, 'body': 'geared_bike', 'drivetrain': 'manual', 'cooling': 'air', 'has_chain': True, 'has_clutch_lever': False, 'has_radiator': False, 'price_tier': 'budget'},
+    'Splendor Plus': {'launch_year': 2004, 'body': 'geared_bike', 'drivetrain': 'manual', 'cooling': 'air', 'has_chain': True, 'has_clutch_lever': True, 'has_radiator': False, 'price_tier': 'budget'},
+    'HF Deluxe': {'launch_year': 2005, 'body': 'geared_bike', 'drivetrain': 'manual', 'cooling': 'air', 'has_chain': True, 'has_clutch_lever': True, 'has_radiator': False, 'price_tier': 'budget'},
     'Shine 125': {'launch_year': 2006, 'body': 'geared_bike', 'drivetrain': 'manual', 'cooling': 'air', 'has_chain': True, 'has_clutch_lever': True, 'has_radiator': False, 'price_tier': 'budget'},
     'Activa 6G': {'launch_year': 2020, 'body': 'scooter', 'drivetrain': 'CVT', 'cooling': 'air', 'has_chain': False, 'has_clutch_lever': False, 'has_radiator': False, 'price_tier': 'mid'},
     'Jupiter 110': {'launch_year': 2013, 'body': 'scooter', 'drivetrain': 'CVT', 'cooling': 'air', 'has_chain': False, 'has_clutch_lever': False, 'has_radiator': False, 'price_tier': 'mid'},
