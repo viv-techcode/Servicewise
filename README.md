@@ -142,9 +142,11 @@ The active classifier is v006. Evaluation artifacts are in
 | Unseen-template exact match | 0.9940 (1,168 rows) |
 | Unseen-template single-fault exact match | 1.0000 |
 | Unseen-template multi-fault exact match | 0.9770 |
-| Challenge cases | 0.9733 severity accuracy (150 hand-authored cases) |
+| Challenge cases | 0.9667 severity accuracy (150 hand-authored cases) |
 | Challenge Brake/Cooling/Fuel recall | 1.000 / 1.000 / 1.000 |
 | Challenge red-flag under-predictions | 0 |
+
+The regenerated jobs have combined severity shares of 26.6% low, 44.1% medium, 18.3% high, and 11.0% critical. These remain approximate targets because the shared rule table and multi-fault escalations determine final job tiers.
 
 The chronological test uses the last three months (2026-08 through 2026-10).
 The separate unseen-template test holds out `symptom_template_id` groups absent

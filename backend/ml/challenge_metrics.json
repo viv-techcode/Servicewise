@@ -1,6 +1,6 @@
 {
   "cases": 150,
-  "severity_accuracy": 0.9733,
+  "severity_accuracy": 0.9667,
   "safety_fault_recall": {
     "Fuel System": 1.0,
     "Cooling System": 1.0,
@@ -20,6 +20,19 @@
       ],
       "expected_severity": "medium",
       "predicted_severity": "high",
+      "red_flag_underpredicted": false
+    },
+    {
+      "id": "challenge-071",
+      "input": "The shock absorber squeaks over the entrance ramp.",
+      "expected_faults": [
+        "Suspension"
+      ],
+      "predicted_faults": [
+        "Suspension"
+      ],
+      "expected_severity": "medium",
+      "predicted_severity": "low",
       "red_flag_underpredicted": false
     },
     {
