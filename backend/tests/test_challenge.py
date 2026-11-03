@@ -30,7 +30,7 @@ def evaluate_challenge_cases():
         expected = set(case['expected_faults'])
         severity_correct = result['combined_severity'] == case['expected_severity']
         total_severity_correct += int(severity_correct)
-        for category in SAFETY & expected:
+        for category in set(SAFETY) & expected:
             safety_actual[category] += 1
             safety_found[category] += int(category in predicted)
         red_under = case.get('red_flag', False) and LEVEL_RANK[result['combined_severity']] < LEVEL_RANK[case['expected_severity']]
@@ -63,4 +63,5 @@ def test_challenge_set_targets_and_reports_every_miss():
     assert metrics['red_flag_underpredicted'] == 0, json.dumps(metrics['misses'], ensure_ascii=False)
     assert all(metrics['safety_fault_recall'][category] >= .98 for category in SAFETY), json.dumps(metrics['misses'], ensure_ascii=False)
     assert metrics['severity_accuracy'] >= .90, json.dumps(metrics['misses'], ensure_ascii=False)
+
 
