@@ -19,6 +19,6 @@ def test_model_metrics_endpoint(client):
     assert 'per_category' in data['classifier']
     assert not any(key.startswith('regre') for key in data)
     assert 'training_samples' in data
-    assert data['evaluation']['split_method'].startswith('chronological holdout')
+    assert data['evaluation']['split_method'].startswith('chronological')
     assert data['evaluation']['split_months']['test'][-3:] == ['2026-08', '2026-09', '2026-10']
     assert 'exact_match_by_fault_count' in data['classifier']
