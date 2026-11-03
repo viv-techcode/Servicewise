@@ -6,9 +6,9 @@ ServiceWise is a Flask application for vehicle fault diagnosis, repair-cost esti
 
 - Predicts one or more vehicle fault categories from symptoms and reports per-fault plus combined severity.
 - Estimates a repair-cost range from per-fault dataset quartiles; multi-fault medians receive a 10% shared-visit discount.
-- Stores diagnostic records in SQLite.
+- Stores diagnostic records, inventory snapshots/ledger, and monthly summaries in SQLite.
 - Accepts ratings, confirmed faults, and repair costs as feedback.
-- Provides analytics and model metrics.
+- Provides model analytics plus monthly finance, inventory, and fault-by-month views for store owners.
 - Retrains models with approved feedback and supports version rollback.
 
 ## Tech stack
@@ -131,24 +131,40 @@ Approval uses `POST /api/feedback/<feedback_id>/review` with `approved` or `reje
 
 ## Model results
 
-The current metrics are recorded in `backend/ml/model_metrics.json`.
+The active classifier is v006. Evaluation artifacts are in
+`backend/ml/model_metrics.json` and `backend/ml/test_set_predictions.csv`.
 
-| Model result | Metric | Test value |
-| --- | --- | ---: |
-| Fault classifier | Primary fault accuracy | 1.0000 |
-| Fault classifier | Micro-F1 | 0.9951 |
-| Fault classifier | Macro-F1 | 0.9945 |
-| Fault classifier | Exact-match accuracy | 0.9877 |
-| Fault classifier | Exact match, single-fault rows | 0.9950 (605 rows) |
-| Fault classifier | Exact match, multi-fault rows | 0.9723 (289 rows) |
+| Evaluation | Result |
+| --- | ---: |
+| Chronological test exact match | 0.9960 (747 rows) |
+| Single-fault exact match | 1.0000 (510 rows) |
+| Multi-fault exact match | 0.9873 (237 rows) |
+| Unseen-template exact match | 0.9940 (1,168 rows) |
+| Unseen-template single-fault exact match | 1.0000 |
+| Unseen-template multi-fault exact match | 0.9770 |
+| Challenge cases | 0.9733 severity accuracy (150 hand-authored cases) |
+| Challenge Brake/Cooling/Fuel recall | 1.000 / 1.000 / 1.000 |
+| Challenge red-flag under-predictions | 0 |
 
-These values are copied from `backend/ml/model_metrics.json`. The classifier
-was trained on 2025-01 through 2026-07, with 2026-06 and 2026-07 used for
-model selection/thresholds and 2026-08 through 2026-10 held out for the final
-test. The source CSV is generated synthetic data; these scores are not
-real-world accuracy estimates. Per-fault and combined severity are rule-based
-using the shared table in `backend/ml/severity.py`, including dangerous-pair
-and three-fault escalation rules.
+The chronological test uses the last three months (2026-08 through 2026-10).
+The separate unseen-template test holds out `symptom_template_id` groups absent
+from its training fold. The chronological test had three multilabel mismatches;
+each is listed in the model metrics artifact. These metrics measure fit to the
+synthetic dataset and are not estimates of real-world diagnostic performance or real-world accuracy.
+Per-fault and combined severity use the shared rules in
+`backend/ml/severity.py`.
+
+## Known limitations
+
+- The records, challenge labels, costs, inventory movements, and finance are
+  synthetic demonstration data. No real-world diagnostic accuracy is claimed.
+- The repair reference contains sparse bike pricing outside the brake category;
+  bike cost medians in those categories use generated vehicle-specific rates.
+- The bike-to-car brake job median ratio is 0.09 because the available Delhi
+  bike brake reference is far below the car brake menu range; this exception
+  preserves the sourced ranges rather than forcing the general 0.3-0.6 ratio.
+- A low-confidence complaint returns a clarifying question and suppresses a
+  firm diagnosis, severity, parts list, and price until more information is given.
 
 ## Retraining
 
