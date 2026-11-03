@@ -114,3 +114,24 @@ def test_predictor_refreshes_when_active_version_changes(monkeypatch):
     assert loaded == [True]
     marker.unlink()
     tmp_path.rmdir()
+
+
+def test_csv_import_keeps_full_history_and_store_snapshots(monkeypatch):
+    from pathlib import Path
+    test_db = Path('backend/data/test_store_import.sqlite').resolve()
+    test_db.parent.mkdir(parents=True, exist_ok=True)
+    test_db.unlink(missing_ok=True)
+    monkeypatch.setattr(db, 'DB_PATH', str(test_db))
+    try:
+        db.init_db()
+        source = Path('backend/data/service_records.csv').resolve()
+        result = db.import_service_records_csv(str(source))
+        assert result['imported'] == 5033
+        counts = db.import_store_data()
+        assert counts == {'inventory_stock': 63, 'inventory_log': 14964, 'monthly_summary': 22}
+        conn = db.get_db()
+        assert conn.execute('SELECT COUNT(*) FROM service_records WHERE source_record_key IS NOT NULL').fetchone()[0] == 5033
+        assert conn.execute('SELECT COUNT(*) FROM service_records WHERE source_record_key IS NULL').fetchone()[0] == 0
+        conn.close()
+    finally:
+        test_db.unlink(missing_ok=True)
