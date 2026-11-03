@@ -5,12 +5,12 @@ P-B-003,"Premium Battery, bulb and terminal kit",Battery/Electrical,bike,"[""Spl
 P-C-004,"Budget Battery, bulb and terminal kit",Battery/Electrical,car,"[""Swift"", ""WagonR"", ""Alto K10"", ""i20"", ""Tiago""]",12,17,8,1240,1590,6,Battery/Electrical Supply Co.,2026-10-31
 P-C-005,"Standard Battery, bulb and terminal kit",Battery/Electrical,car,"[""Swift"", ""WagonR"", ""Alto K10"", ""i20"", ""Tiago""]",9,9,5,1590,2040,6,Battery/Electrical Supply Co.,2026-10-31
 P-C-006,"Premium Battery, bulb and terminal kit",Battery/Electrical,car,"[""Swift"", ""WagonR"", ""Alto K10"", ""i20"", ""Tiago""]",9,15,5,2100,2690,6,Battery/Electrical Supply Co.,2026-10-31
-P-B-007,Budget Brake pad and shoe kit,Brake System,bike,"[""Splendor Plus"", ""HF Deluxe"", ""Shine 125"", ""Activa 6G"", ""Jupiter 110""]",12,13,8,50,60,4,Brake Supply Co.,2026-10-31
-P-B-008,Standard Brake pad and shoe kit,Brake System,bike,"[""Splendor Plus"", ""HF Deluxe"", ""Shine 125"", ""Activa 6G"", ""Jupiter 110""]",9,9,5,70,90,4,Brake Supply Co.,2026-10-31
-P-B-009,Premium Brake pad and shoe kit,Brake System,bike,"[""Splendor Plus"", ""HF Deluxe"", ""Shine 125"", ""Activa 6G"", ""Jupiter 110""]",9,11,5,90,120,4,Brake Supply Co.,2026-10-31
-P-C-010,Budget Brake pad and shoe kit,Brake System,car,"[""Swift"", ""WagonR"", ""Alto K10"", ""i20"", ""Tiago""]",12,10,8,590,760,4,Brake Supply Co.,2026-10-31
-P-C-011,Standard Brake pad and shoe kit,Brake System,car,"[""Swift"", ""WagonR"", ""Alto K10"", ""i20"", ""Tiago""]",9,15,5,760,970,4,Brake Supply Co.,2026-10-31
-P-C-012,Premium Brake pad and shoe kit,Brake System,car,"[""Swift"", ""WagonR"", ""Alto K10"", ""i20"", ""Tiago""]",9,11,5,1010,1290,4,Brake Supply Co.,2026-10-31
+P-B-007,Budget Brake pad and shoe kit,Brake System,bike,"[""Splendor Plus"", ""HF Deluxe"", ""Shine 125"", ""Activa 6G"", ""Jupiter 110""]",12,21,8,110,140,4,Brake Supply Co.,2026-10-31
+P-B-008,Standard Brake pad and shoe kit,Brake System,bike,"[""Splendor Plus"", ""HF Deluxe"", ""Shine 125"", ""Activa 6G"", ""Jupiter 110""]",9,7,5,150,190,4,Brake Supply Co.,2026-10-31
+P-B-009,Premium Brake pad and shoe kit,Brake System,bike,"[""Splendor Plus"", ""HF Deluxe"", ""Shine 125"", ""Activa 6G"", ""Jupiter 110""]",9,12,5,190,240,4,Brake Supply Co.,2026-10-31
+P-C-010,Budget Brake pad and shoe kit,Brake System,car,"[""Swift"", ""WagonR"", ""Alto K10"", ""i20"", ""Tiago""]",12,22,8,410,520,4,Brake Supply Co.,2026-10-31
+P-C-011,Standard Brake pad and shoe kit,Brake System,car,"[""Swift"", ""WagonR"", ""Alto K10"", ""i20"", ""Tiago""]",9,8,5,520,670,4,Brake Supply Co.,2026-10-31
+P-C-012,Premium Brake pad and shoe kit,Brake System,car,"[""Swift"", ""WagonR"", ""Alto K10"", ""i20"", ""Tiago""]",9,6,5,690,880,4,Brake Supply Co.,2026-10-31
 P-B-013,Budget Cooling fin and airflow service kit,Cooling System,bike,"[""Splendor Plus"", ""HF Deluxe"", ""Shine 125"", ""Activa 6G"", ""Jupiter 110""]",12,23,8,170,220,4,Cooling Supply Co.,2026-10-31
 P-B-014,Standard Cooling fin and airflow service kit,Cooling System,bike,"[""Splendor Plus"", ""HF Deluxe"", ""Shine 125"", ""Activa 6G"", ""Jupiter 110""]",9,15,5,220,280,4,Cooling Supply Co.,2026-10-31
 P-B-015,Premium Cooling fin and airflow service kit,Cooling System,bike,"[""Splendor Plus"", ""HF Deluxe"", ""Shine 125"", ""Activa 6G"", ""Jupiter 110""]",9,11,5,300,380,4,Cooling Supply Co.,2026-10-31

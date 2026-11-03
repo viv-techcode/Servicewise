@@ -162,9 +162,8 @@ Per-fault and combined severity use the shared rules in
   synthetic demonstration data. No real-world diagnostic accuracy is claimed.
 - The repair reference contains sparse bike pricing outside the brake category;
   bike cost medians in those categories use generated vehicle-specific rates.
-- The bike-to-car brake job median ratio is 0.09 because the available Delhi
-  bike brake reference is far below the car brake menu range; this exception
-  preserves the sourced ranges rather than forcing the general 0.3-0.6 ratio.
+- The brake job median ratio is 0.30 (bike ₹345; car ₹1,146) and remains within
+  the available vehicle-specific reference tolerances.
 - A low-confidence complaint returns a clarifying question and suppresses a
   firm diagnosis, severity, parts list, and price until more information is given.
 

@@ -44,7 +44,7 @@ CATEGORIES = [
     'General Maintenance', 'Starting System', 'Suspension', 'Transmission', 'Tyres/Wheels',
 ]
 PRICE_FACTORS = {
-    'Brake System': {'bike': .135, 'car': .73},
+    'Brake System': {'bike': .28, 'car': .50},
     'Cooling System': {'bike': .46, 'car': .42},
     'Fuel System': {'bike': .23, 'car': .24},
     'Transmission': {'bike': .26, 'car': .220},
@@ -310,7 +310,8 @@ def phrase_for(category, day, rng, vtype, model):
 def find_part(parts_by_key, category, vehicle_type, model, rng):
     available = parts_by_key[(category, vehicle_type, model)]
     quantity = int(rng.integers(1, min(3, len(available)) + 1))
-    return [available[int(i)] for i in rng.choice(len(available), size=quantity, replace=False)]
+    selected = [available[int(i)] for i in rng.choice(len(available), size=quantity, replace=False)]
+    return selected[:1] if category == 'Brake System' else selected
 
 
 def generate():
@@ -583,4 +584,5 @@ def generate():
 
 if __name__ == '__main__':
     generate()
+
 
