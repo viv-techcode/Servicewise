@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
 from collections import Counter, defaultdict
 from datetime import date, timedelta
@@ -11,7 +12,7 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from backend.vehicles import MODEL_FACTS, VEHICLES
 from backend.discount_rules import MULTI_FAULT_DISCOUNT_RATE
-from backend.ml.severity import combined_severity
+from backend.ml.severity import combined_severity, severity_for_fault, detect_red_flag_faults
 
 ROOT = Path(__file__).resolve().parent
 SERVICE_DATE_MIN, SERVICE_DATE_MAX = '2025-01-01', '2026-10-31'
@@ -88,8 +89,8 @@ def combined_for(faults, per_fault):
     return LEVELS[min(index, 3)]
 
 
-def validate():
-    service = pd.read_csv(ROOT / 'service_records.csv', keep_default_na=False)
+def validate(service_path=None):
+    service = pd.read_csv(service_path or ROOT / 'service_records.csv', keep_default_na=False)
     stock = pd.read_csv(ROOT / 'inventory_stock.csv', keep_default_na=False)
     ledger = pd.read_csv(ROOT / 'inventory_log.csv', keep_default_na=False)
     monthly = pd.read_csv(ROOT / 'monthly_summary.csv', keep_default_na=False)
@@ -138,7 +139,7 @@ def validate():
     jobs = service.set_index('job_id')
     for row in service.itertuples(index=False):
         faults = row.faults.split(';')
-        assert row.primary_fault == faults[0]
+        assert row.primary_fault in faults, f'{row.job_id}: primary fault is absent from fault labels'
         assert int(row.fault_count) == len(faults) and 1 <= len(faults) <= 3
         fault_count_counts[len(faults)] += 1
         assert len(set(faults)) == len(faults)
@@ -169,6 +170,9 @@ def validate():
         for category in faults:
             assert any(cue in row.symptoms.lower() for cue in CUES[category]), f'{row.job_id}: {category} absent from symptoms'
             assert per_severity[category] in LEVELS
+            red_faults = detect_red_flag_faults(row.symptoms)
+            if category in red_faults:
+                assert LEVELS.index(per_severity[category]) >= LEVELS.index(severity_for_fault(category, row.symptoms)), f'{row.job_id}: red flag under-predicted for {category}'
             assert float(per_cost[category]) >= 0
             fault_counts[category] += 1
         assert row.severity == combined_for(faults, per_severity), f'{row.job_id}: combined severity mismatch'
@@ -187,6 +191,49 @@ def validate():
         assert int(row.stockout_delay_days) >= 0
         if int(row.stockout_delay_days) > 0:
             assert row.job_id in stockout_jobs
+    # Every offered catalogue model must be represented and no unoffered tuple may occur.
+    offered = {(kind, brand, model) for kind, brands in VEHICLES.items() for brand, models in brands.items() for model in models}
+    observed = set(zip(service.vehicle_type, service.brand, service.model))
+    assert observed <= offered, f'Uncatalogued vehicle tuples: {sorted(observed - offered)[:3]}'
+    missing = offered - observed
+    assert not missing, f'Offered vehicles without service rows: {sorted(missing)[:6]}'
+    # All 45 unordered fault pairs and all four declared dangerous pairs need coverage.
+    from itertools import combinations
+    pair_counts = Counter()
+    for row in service.itertuples(index=False):
+        faults = row.faults.split(';')
+        for pair in combinations(sorted(faults), 2): pair_counts[pair] += 1
+    expected_pairs = {tuple(sorted(pair)) for pair in combinations(CUES, 2)}
+    assert expected_pairs <= set(pair_counts), f'Missing category pairs: {sorted(expected_pairs-set(pair_counts))}'
+    assert all(pair_counts[pair] >= 25 for pair in expected_pairs), 'One or more category pairs below 25 rows'
+    for pair in DANGEROUS:
+        assert pair_counts[tuple(sorted(pair))] >= 60, f'Dangerous pair below 60 rows: {pair}'
+    # Vehicle class compatibility rules catch impossible cooling and drivetrain mentions.
+    incompatible = []
+    for row in service.itertuples(index=False):
+        text = row.symptoms.lower()
+        facts = MODEL_FACTS[row.model]
+        forbidden = []
+        if not facts.get('has_chain', False): forbidden += ['chain', 'sprocket']
+        if not facts.get('has_clutch_lever', False): forbidden += ['clutch lever']
+        if not facts.get('has_radiator', False): forbidden += ['radiator', 'coolant']
+        if row.vehicle_type == 'car': forbidden += ['riding']
+        if row.vehicle_type == 'bike': forbidden += ['driving']
+        if any(re.search(rf'\b{re.escape(term)}\b', text) for term in forbidden): incompatible.append(row.job_id)
+    assert not incompatible, f'Incompatible vehicle symptom wording: {incompatible[:3]}'
+    # Seasonality is measured against winter/early-year baselines.
+    seasonal = service.assign(month=pd.to_datetime(service.service_date).dt.month)
+    counts_by_month = seasonal.groupby('month').size()
+    for category, months, baseline_months, ratio in [
+        ('Cooling System', [4,5,6], [12,1], 1.4),
+        ('Battery/Electrical', [12,1,2], [4,5,6], 1.1),
+        ('Starting System', [12,1,2], [4,5,6], 1.1),
+        ('Tyres/Wheels', [7,8,9], [1,2,3], 1.05),
+    ]:
+        cat = seasonal[seasonal.faults.str.contains(category, regex=False)]
+        numerator = cat[cat.month.isin(months)].shape[0] / max(1, sum(counts_by_month[m] for m in months))
+        denominator = cat[cat.month.isin(baseline_months)].shape[0] / max(1, sum(counts_by_month[m] for m in baseline_months))
+        assert numerator >= denominator * ratio, f'{category} seasonal share too low: {numerator/denominator:.2f}x'
     assert set(fault_counts) == set(CUES)
     assert .25 <= fault_count_counts[2] / len(service) <= .30
     assert .03 <= fault_count_counts[3] / len(service) <= .05
@@ -243,4 +290,8 @@ def validate():
 
 
 if __name__ == '__main__':
-    validate()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--service-csv')
+    validate(parser.parse_args().service_csv)
+
