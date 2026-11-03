@@ -146,7 +146,7 @@ The active classifier is v006. Evaluation artifacts are in
 | Challenge Brake/Cooling/Fuel recall | 1.000 / 1.000 / 1.000 |
 | Challenge red-flag under-predictions | 0 |
 
-The regenerated jobs have combined severity shares of 26.6% low, 44.1% medium, 18.3% high, and 11.0% critical. These remain approximate targets because the shared rule table and multi-fault escalations determine final job tiers.
+The regenerated jobs have combined severity shares of 25.1% low, 42.0% medium, 21.7% high, and 11.2% critical. These remain approximate targets because the shared rule table and multi-fault escalations determine final job tiers.
 
 The chronological test uses the last three months (2026-08 through 2026-10).
 The separate unseen-template test holds out `symptom_template_id` groups absent

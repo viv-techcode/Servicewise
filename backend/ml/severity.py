@@ -19,14 +19,14 @@ SEVERITY_RULE_TABLE = {
         'Tyres/Wheels': ['sidewall blowout'],
     },
     'category_high_terms': {
-        'Battery/Electrical': ['battery charge will not hold', 'battery will not hold charge', 'electrical power cuts out', 'battery repeatedly needs jump starts'],
+        'Battery/Electrical': ['battery charge will not hold', 'battery will not hold charge', 'electrical power cuts out', 'battery repeatedly needs jump starts', 'needs a jump start every few days'],
         'Brake System': ['pedal sinks', 'stopping distance is longer', 'pedal travels farther', 'takes much longer to stop', 'takes longer to stop', 'brake pedal feels soft', 'brake lever feels soft'],
         'Cooling System': ['engine temperature rises', 'temperature rises', 'engine overheats', 'overheats', 'engine temperature keeps climbing', 'temperature rises in traffic', 'temperature gauge climbs', 'temperature gauge rises', 'temperature gauge still rises', 'radiator fan does not start', 'cooling fan cuts out'],
         'Engine': ['stalls at signals', 'stalls at traffic signals', 'engine misfires', 'engine misfires under load', 'misfire', 'loud engine knock', 'engine knocks', 'engine taps', 'engine taps under load', 'engine stalls', 'stalls every time'],
         'Fuel System': ['strong petrol smell', 'petrol leak', 'fuel leak'], 'Transmission': ['clutch slips', 'clutch slip is severe', 'clutch slip'],
-        'Starting System': ['does not start after several', 'will not start after several', 'fails to start after repeated', 'still will not start', 'will not start after the battery was charged', 'start nahi ho rahi'],
+        'Starting System': ['does not start after several', 'will not start after several', 'fails to start after repeated', 'still will not start', 'will not start after the battery was charged', 'starter clicks but the engine will not turn over', 'engine will not turn over', 'start nahi ho rahi'],
         'Suspension': ['shock has failed', 'suspension bottoms out'],
-        'Tyres/Wheels': ['bearing noise', 'wheel bearing hum', 'wheel bearing hums'],
+        'Tyres/Wheels': ['bearing noise', 'wheel bearing hum', 'wheel bearing hums', 'tyre has a sidewall bulge', 'tire has a sidewall bulge'],
     },
     'category_medium_terms': {
         'Battery/Electrical': ['warning light', 'drops overnight', 'flicker', 'battery', 'electrical'],

@@ -1450,7 +1450,7 @@
       "Brake System": "medium",
       "Tyres/Wheels": "low"
     },
-    "expected_severity": "high",
+    "expected_severity": "critical",
     "red_flag": false
   },
   {

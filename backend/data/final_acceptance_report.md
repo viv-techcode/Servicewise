@@ -10,7 +10,7 @@ Verified on branch `cleanup-single-model` after Phase 1.
 | `node --check frontend/static/js/main.js` | PASS |
 | Model | v006; chronological exact match 0.9960; unseen-template 0.9940 |
 | Challenge set | 150 cases; severity accuracy 1.0000; red-flag under-predictions 0; misses 0 |
-| Combined severity mix | low 26.6%; medium 44.1%; high 18.3%; critical 11.0% |
+| Combined severity mix | low 25.1%; medium 42.0%; high 21.7%; critical 11.2% |
 | Rebuilt SQLite | service rows 5033 (CSV 5033, non-CSV 0); stock 63; ledger 14964; months 22 |
 
 The severity shares remain approximate generator targets; the difference reflects rule-based phrase labels and multi-fault escalation. SQLite was rebuilt after tests, leaving no test-created service records.

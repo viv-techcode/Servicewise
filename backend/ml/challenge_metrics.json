@@ -2,8 +2,8 @@
   "cases": 150,
   "severity_accuracy": 1.0,
   "safety_fault_recall": {
-    "Fuel System": 1.0,
     "Brake System": 1.0,
+    "Fuel System": 1.0,
     "Cooling System": 1.0
   },
   "red_flag_cases": 24,
