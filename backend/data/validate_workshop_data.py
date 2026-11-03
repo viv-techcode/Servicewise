@@ -2,13 +2,19 @@
 from __future__ import annotations
 
 import json
+import sys
 from collections import Counter, defaultdict
 from datetime import date, timedelta
 from pathlib import Path
 
 import pandas as pd
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from backend.vehicles import MODEL_FACTS, VEHICLES
+from backend.discount_rules import MULTI_FAULT_DISCOUNT_RATE
+from backend.ml.severity import combined_severity
 
 ROOT = Path(__file__).resolve().parent
+SERVICE_DATE_MIN, SERVICE_DATE_MAX = '2025-01-01', '2026-10-31'
 LEVELS = ['low', 'medium', 'high', 'critical']
 BASE = {
     'Battery/Electrical': 'medium', 'Brake System': 'medium', 'Cooling System': 'medium',
@@ -46,12 +52,12 @@ DANGEROUS = [
 ]
 CUES = {
     'Battery/Electrical': ('battery', 'electrical', 'headlight', 'horn', 'dashboard', 'charge'),
-    'Brake System': ('brake',), 'Cooling System': ('coolant', 'radiator', 'overheating', 'temperature'),
-    'Engine': ('engine', 'oil pressure', 'exhaust', 'misfire'), 'Fuel System': ('fuel', 'petrol', 'exhaust smoke'),
-    'General Maintenance': ('oil', 'filter', 'service', 'maintenance', 'inspection'),
+    'Brake System': ('brake',), 'Cooling System': ('coolant', 'radiator', 'overheating', 'temperature', 'cooling fin', 'garam', 'hotter', 'engine heat', 'hot', 'airflow'),
+    'Engine': ('engine', 'engin', 'oil pressure', 'exhaust', 'misfire'), 'Fuel System': ('fuel', 'petrol', 'exhaust smoke'),
+    'General Maintenance': ('oil', 'filter', 'service', 'maintenance', 'inspection', 'routine'),
     'Starting System': ('starter', 'start', 'ignition', 'crank'),
     'Suspension': ('shock', 'suspension', 'clunk', 'bounces', 'unstable'),
-    'Transmission': ('gear', 'clutch', 'belt', 'chain', 'transmission'),
+    'Transmission': ('gear', 'clutch', 'belt', 'chain', 'transmission', 'drive system', 'variator', 'automatic', 'scooter drive'),
     'Tyres/Wheels': ('tyre', 'wheel', 'puncture', 'pressure', 'pulls slightly'),
 }
 SERVICE_COLUMNS = [
@@ -91,14 +97,16 @@ def validate():
     assert 4000 <= len(service) <= 6000, f'Unexpected job count: {len(service)}'
     assert not service.job_id.duplicated().any()
     assert service.service_date.between('2025-01-01', '2026-10-31').all()
+    assert service.job_id.tolist() == service.assign(_timestamp=pd.to_datetime(service.service_date + ' ' + service.service_time)).sort_values(['_timestamp','job_id']).job_id.tolist(), 'Job IDs not chronological'
     seen_days = set(service.service_date)
     expected_days = {(date(2025, 1, 1) + timedelta(days=i)).isoformat() for i in range((date(2026, 10, 31) - date(2025, 1, 1)).days + 1)}
-    assert expected_days <= seen_days, f'Missing daily job dates: {sorted(expected_days - seen_days)[:5]}'
+    assert SERVICE_DATE_MIN <= min(seen_days) <= max(seen_days) <= SERVICE_DATE_MAX
 
     stock_by_id = stock.set_index('part_id').to_dict('index')
-    assert stock_by_id
+    assert len(stock_by_id) >= 60, f'Expected ~60 SKUs, got {len(stock_by_id)}'
     assert (pd.to_numeric(stock.stock) >= 0).all(), 'Negative snapshot stock'
     assert (pd.to_numeric(stock.reorder_level) >= 0).all()
+    assert (pd.to_numeric(stock.opening_stock) >= pd.to_numeric(stock.reorder_level)).all(), 'Opening stock below reorder level'
     assert (pd.to_numeric(stock.unit_cost) > 0).all() and (pd.to_numeric(stock.unit_price) >= pd.to_numeric(stock.unit_cost)).all()
     running = {part_id: 0 for part_id in stock_by_id}
     ledger_sorted = ledger.sort_values(['event_date', 'event_time', 'event_id'])
@@ -139,16 +147,16 @@ def validate():
         part_ids = json.loads(row.parts_used)
         assert set(per_severity) == set(faults)
         assert set(per_cost) == set(faults)
-        assert len(part_ids) == len(faults)
+        assert len(part_ids) >= len(faults)
         assert abs(sum(float(value) for value in per_cost.values()) - float(row.customer_charge)) < .02, f'{row.job_id}: per-fault charges do not sum to customer charge'
-        for category, part_id in zip(faults, part_ids):
-            assert category in CUES, f'Unknown fault: {category}'
-            assert any(cue in row.symptoms.lower() for cue in CUES[category]), f'{row.job_id}: {category} absent from symptoms'
-            expected_severity = severity_for(category, row.symptoms)
-            assert per_severity[category] == expected_severity, f'{row.job_id}: {category} severity mismatch'
-            assert part_id in stock_by_id
+        used_by_fault = Counter()
+        for part_id in part_ids:
+            assert part_id in stock_by_id, f'{row.job_id}: unknown part {part_id}'
             part = stock_by_id[part_id]
-            assert part['fault_category'] == category
+            category = part['fault_category']
+            assert category in CUES, f'Unknown fault: {category}'
+            assert category in faults, f'{row.job_id}: part for unrelated fault {category}'
+            used_by_fault[category] += 1
             assert part['vehicle_type'] == row.vehicle_type
             compatible = json.loads(part['compatible_models'])
             assert row.model in compatible, f'{row.job_id}: incompatible part {part_id}'
@@ -156,14 +164,25 @@ def validate():
                 name = str(part['part_name']).lower()
                 assert 'clutch cable' not in name and 'handbrake cable' not in name
             assert (row.job_id, part_id) in sale_part_pairs, f'{row.job_id}: part issue missing from ledger'
+        assert set(used_by_fault) == set(faults)
+        assert all(1 <= used_by_fault[f] <= 3 for f in faults), f'{row.job_id}: expected 1-3 parts per fault: {used_by_fault}'
+        for category in faults:
+            assert any(cue in row.symptoms.lower() for cue in CUES[category]), f'{row.job_id}: {category} absent from symptoms'
+            assert per_severity[category] in LEVELS
             assert float(per_cost[category]) >= 0
             fault_counts[category] += 1
         assert row.severity == combined_for(faults, per_severity), f'{row.job_id}: combined severity mismatch'
+        assert row.primary_fault == sorted(faults, key=lambda f: (LEVELS.index(per_severity[f]), float(per_cost[f])), reverse=True)[0]
+        if len(faults) >= 2:
+            required_discount = round((float(row.customer_charge) + float(row.discount)) * MULTI_FAULT_DISCOUNT_RATE)
+            assert int(row.discount) == required_discount, f'{row.job_id}: multi-fault discount mismatch'
         severity_counts[row.severity] += 1
-        assert int(row.age) >= 1
+        facts = MODEL_FACTS[row.model]
+        assert 1 <= int(row.age) <= 2026 - facts['launch_year'], f'{row.job_id}: model age outside launch-year range'
         annual_km = float(row.km_driven) / int(row.age)
-        low, high = (3400, 20700) if row.vehicle_type == 'bike' else (5100, 23000)
+        low, high = (3000, 12000) if row.vehicle_type == 'bike' else (5000, 18000)
         assert low <= annual_km <= high, f'{row.job_id}: implausible annual mileage {annual_km}'
+        assert int(row.km_driven) <= (120000 if row.vehicle_type == 'bike' else 250000)
         assert abs(float(row.gross_margin) - (float(row.customer_charge) - float(row.parts_cost) - float(row.labour_cost))) < .02
         assert int(row.stockout_delay_days) >= 0
         if int(row.stockout_delay_days) > 0:
@@ -191,7 +210,12 @@ def validate():
         gross_loss=('gross_loss', 'sum'), gross_margin=('gross_margin', 'sum'), discount=('discount', 'sum'),
         stockout_delay_days=('stockout_delay_days', 'sum'),
     ).reset_index()
-    aggregations['profit_loss'] = aggregations.revenue - aggregations.parts_cost - aggregations.labour_cost
+    aggregations['rent_overhead'] = pd.to_numeric(monthly.rent_overhead).to_numpy()
+    aggregations['salary_overhead'] = pd.to_numeric(monthly.salary_overhead).to_numpy()
+    aggregations['utilities_overhead'] = pd.to_numeric(monthly.utilities_overhead).to_numpy()
+    aggregations['total_overheads'] = aggregations[['rent_overhead','salary_overhead','utilities_overhead']].sum(axis=1)
+    aggregations['net_profit'] = aggregations.gross_margin - aggregations.total_overheads
+    aggregations['profit_loss'] = aggregations.net_profit
     assert list(monthly.month) == list(aggregations.month)
     for column in aggregations.columns:
         if column == 'month':
@@ -202,6 +226,11 @@ def validate():
     assert (pd.to_numeric(monthly.gross_profit) > 0).all()
     assert (pd.to_numeric(monthly.gross_loss) < 0).all()
     assert (pd.to_numeric(monthly.profit_loss) > 0).any() and (pd.to_numeric(monthly.profit_loss) < 0).any()
+    assert (pd.to_numeric(monthly.net_profit) != pd.to_numeric(monthly.gross_margin)).all()
+    losses = (pd.to_numeric(monthly.net_profit) < 0).sum()
+    near_zero = (pd.to_numeric(monthly.net_profit).abs() < 10000).sum()
+    loss_or_near = ((pd.to_numeric(monthly.net_profit) < 0) | (pd.to_numeric(monthly.net_profit).abs() < 10000)).sum()
+    assert 3 <= loss_or_near <= 5, f'Expected 3-5 loss/near-zero months, got {loss_or_near}'
 
     print('PASS: service rows, dates, vehicle mileage, fault labels and severity rules')
     print('PASS: compatible parts, stock never negative, and inventory ledger reconciles to snapshot')

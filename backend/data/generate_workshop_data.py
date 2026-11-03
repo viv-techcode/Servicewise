@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from collections import Counter, defaultdict
 from datetime import date, datetime, time, timedelta
 from itertools import combinations
@@ -10,8 +11,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from backend.vehicles import MODEL_FACTS, VEHICLES
 from backend.ml.severity import SEVERITY_RULE_TABLE, combined_severity, severity_for_fault
+from backend.discount_rules import MULTI_FAULT_DISCOUNT_RATE
 
 SEASONAL = {
     1: 0.88, 2: 0.86, 3: 0.91, 4: 1.00, 5: 1.10, 6: 1.17,
@@ -19,7 +22,7 @@ SEASONAL = {
 }
 SEASONAL_FAULT = {
     'Battery/Electrical': {12: 2.0, 1: 2.1, 2: 1.9, 7: 1.2, 8: 1.15},
-    'Starting System': {12: 1.9, 1: 2.1, 2: 1.9},
+    'Starting System': {12: 3.0, 1: 3.2, 2: 2.8},
     'Cooling System': {1: .55, 2: .60, 3: .75, 4: 3.2, 5: 4.8, 6: 4.5},
     'Tyres/Wheels': {6: 1.25, 7: 1.55, 8: 1.5, 9: 1.25},
     'Brake System': {6: 1.2, 7: 1.35, 8: 1.3, 9: 1.15},
@@ -40,8 +43,14 @@ CATEGORIES = [
     'Battery/Electrical', 'Brake System', 'Cooling System', 'Engine', 'Fuel System',
     'General Maintenance', 'Starting System', 'Suspension', 'Transmission', 'Tyres/Wheels',
 ]
+PRICE_FACTORS = {
+    'Brake System': {'bike': .135, 'car': .73},
+    'Cooling System': {'bike': .51, 'car': .42},
+    'Fuel System': {'bike': .26, 'car': .24},
+    'Transmission': {'bike': .275, 'car': .220},
+}
 FAULT_WEIGHTS = {
-    'General Maintenance': .23, 'Tyres/Wheels': .11, 'Brake System': .12,
+    'General Maintenance': .30, 'Tyres/Wheels': .13, 'Brake System': .12,
     'Battery/Electrical': .12, 'Cooling System': .07, 'Engine': .07,
     'Fuel System': .071, 'Starting System': .071, 'Suspension': .068,
     'Transmission': .068,
@@ -155,7 +164,8 @@ def part_catalog():
                 for tier, factor in (('budget', .78), ('standard', 1.0), ('premium', 1.32)):
                     vehicle_factor = 1.0 if vtype == 'bike' else 2.0
                     model_factor = sum(1.18 if MODEL_FACTS[m]['price_tier'] == 'mid' else .92 for m in group) / len(group)
-                    cost = int(round(((low + high) / 2) * vehicle_factor * model_factor * factor / 10) * 10)
+                    class_price_factor = PRICE_FACTORS.get(category, {}).get(vtype, 1.0)
+                    cost = int(round(((low + high) / 2) * vehicle_factor * model_factor * factor * class_price_factor / 10) * 10)
                     retail = int(round(cost * 1.28 / 10) * 10)
                     label = name
                     if category == 'Transmission' and vtype == 'bike':
@@ -273,13 +283,16 @@ def phrase_for(category, day, rng, vtype, model):
     # template IDs preserve a leakage-safe split key.
     openings = ['', 'Lately, ', 'During the last few trips, ', 'At normal road speed, ', 'After the morning start, ', 'In stop-and-go traffic, ', 'On the recent commute, ', 'Over the past week, ']
     endings = ['', ' The issue is intermittent.', ' It is more noticeable under load.', ' It happens on most trips.', ' The owner noticed it this week.', ' The symptom is getting more frequent.', ' No repair has been attempted yet.', ' It remains after restarting the vehicle.']
-    phrase = str(rng.choice(openings)) + phrase
-    phrase += str(rng.choice(endings))
+    opening_index = int(rng.integers(0,len(openings))); ending_index = int(rng.integers(0,len(endings)))
+    if opening_index:
+        phrase = phrase[0].lower() + phrase[1:]
+    phrase = openings[opening_index] + phrase + endings[ending_index]
     if day.month in (6, 7, 8, 9) and category in ('Tyres/Wheels', 'Brake System', 'Battery/Electrical'):
         phrase += ' Water spray has made the issue more noticeable.'
     if day.month in (4, 5, 6) and category == 'Cooling System':
         phrase += ' It happens most often in afternoon traffic.'
-    if rng.random() < .08:
+    is_hinglish = rng.random() < .08
+    if is_hinglish:
         phrase = {
             'Brake System': 'brake nahi lag raha, stopping feels weak.',
             'Battery/Electrical': 'headlight dim ho rahi hai.',
@@ -290,7 +303,7 @@ def phrase_for(category, day, rng, vtype, model):
             'Tyres/Wheels': 'tyre hawa slowly kam ho rahi hai.',
         }[category]
         if facts['body'] == 'scooter' and category == 'Transmission': phrase = 'automatic drive feels rough.'
-    template_id = f"{category.replace('/', '_').replace(' ', '_')}:{facts['body']}:{phrase_index}:{len(phrase)}"
+    template_id = f"{category.replace('/', '_').replace(' ', '_')}:{facts['body']}:hinglish" if is_hinglish else f"{category.replace('/', '_').replace(' ', '_')}:{facts['body']}:{phrase_index}:{opening_index}:{ending_index}"
     return phrase, template_id
 
 
@@ -304,7 +317,7 @@ def generate():
     rng = np.random.default_rng(SEED)
     dates = [START + timedelta(days=offset) for offset in range((END - START).days + 1)]
     closed = {'2025-01-26','2025-03-14','2025-08-15','2025-10-02','2025-10-20','2025-10-21','2025-11-05','2026-01-26','2026-03-04','2026-08-15','2026-10-02','2026-10-20'}
-    daily_counts = {day: (0 if day.weekday()==6 or day.isoformat() in closed else max(1, int(rng.poisson(day_factor(day))))) for day in dates}
+    daily_counts = {day: (0 if day.weekday()==6 or day.isoformat() in closed or (day > END-timedelta(days=6) and day != END) else (1 if day == END else max(1, int(rng.poisson(day_factor(day)))))) for day in dates}
     total_jobs = sum(daily_counts.values())
     n_faults = np.asarray(rng.choice([1, 2, 3], size=total_jobs, p=[.69, .27, .04]), dtype=int)
     parts = part_catalog()
@@ -317,14 +330,14 @@ def generate():
     multi_number = 0
     for day in dates:
         for _ in range(daily_counts[day]):
-            count = int(n_faults[row_idx])
+            count = 1 if day == END else int(n_faults[row_idx])
             if count > 1:
                 multi_number += 1
-            vague_general = rng.random() < .03
+            vague_general = count == 1 and rng.random() < .045
             if vague_general:
                 count = 1
             faults = make_job_faults(count, day, rng, multi_number)
-            if vague_general: faults = ['General Maintenance']
+            if vague_general or day == END: faults = ['General Maintenance']
             vtype, brand, model, age, km = choose_vehicle(rng)
             phrased = {category: phrase_for(category, day, rng, vtype, model) for category in faults}
             symptom_by_fault = {category: value[0] for category,value in phrased.items()}
@@ -340,18 +353,23 @@ def generate():
             parts_by_fault = [find_part(parts_by_key, category, vtype, model, rng) for category in faults]
             part_rows = [part for group in parts_by_fault for part in group]
             base_parts = sum(part['unit_cost'] for part in part_rows)
-            labor_costs = [int(rng.integers(160, 960) * (1.18 if vtype == 'car' else .78)) for _ in faults]
+            labor_costs = [int(rng.integers(160, 960) * (1.18 if vtype == 'car' else .78) * PRICE_FACTORS.get(category, {}).get(vtype, 1.0)) for category in faults]
             labor_total = sum(labor_costs)
             invoice_by_fault = [sum(part['unit_price'] for part in group) + labor for group, labor in zip(parts_by_fault, labor_costs)]
             invoice = sum(invoice_by_fault)
-            warranty = rng.random() < .018
+            warranty = count == 1 and rng.random() < .018
             # A limited February voucher campaign creates a few modest loss
             # jobs and one negative month without overwhelming the whole file.
             loss_month_discount = day.strftime('%Y-%m') == '2025-02' and not warranty and rng.random() < .42
-            discount = invoice if warranty else (
-                int(round(invoice * .50)) if loss_month_discount else
-                (int(round(invoice * rng.uniform(.04, .12))) if rng.random() < .12 else 0)
-            )
+            if count >= 2:
+                discount = int(round(invoice * MULTI_FAULT_DISCOUNT_RATE))
+                warranty = False
+                loss_month_discount = False
+            else:
+                discount = invoice if warranty else (
+                    int(round(invoice * .50)) if loss_month_discount else
+                    (int(round(invoice * rng.uniform(.04, .12))) if rng.random() < .12 else 0)
+                )
             charge = max(0, invoice - discount)
             # Allocate the final customer charge by each fault's invoice share.
             # This remains exact for full warranty write-offs, where an equal
@@ -389,7 +407,9 @@ def generate():
         by_month[job['planned_date'].strftime('%Y-%m')].append(job)
     for month_jobs in by_month.values():
         if not any(job['warranty'] for job in month_jobs):
-            job = month_jobs[int(rng.integers(0, len(month_jobs)))]
+            single_jobs = [job for job in month_jobs if job['fault_count'] == 1]
+            if not single_jobs: continue
+            job = single_jobs[int(rng.integers(0, len(single_jobs)))]
             job['warranty'] = True
             job['status'] = 'warranty_rework'
             job['discount'] = job['invoice']
@@ -471,21 +491,11 @@ def generate():
             complete_job(job, day)
             waiting.remove(job)
 
-    # Close the reporting window with expedited supplier deliveries for the
-    # rare jobs still waiting at month end; no unfulfilled job is hidden.
+    # Finish lead-time-compliant orders inside the data window. The final
+    # supplier lead-time buffer above prevents synthetic instant deliveries.
     receive_due(END)
-    for job in list(waiting):
-        for part_id in [part['part_id'] for part in job['parts']]:
-            if stock[part_id] < 1:
-                pending[part_id] = [order for order in pending[part_id] if order[0] <= END]
-                receive_due(END)
-            if stock[part_id] < 1:
-                part = part_by_id[part_id]
-                quantity = max(int(part['reorder_level']) * 2, 2)
-                stock[part_id] += quantity
-                log_event(END, 'restock', part_id, quantity, job['job_id'], 'Expedited month-end delivery')
-        complete_job(job, END)
-        waiting.remove(job)
+    if waiting:
+        raise AssertionError(f'Jobs still waiting beyond data window: {len(waiting)}')
     # Keep deliveries inside the snapshot boundary; future purchase orders are
     # not current stock or completed stock movements.
     ledger = [row for row in ledger if date.fromisoformat(row['event_date']) <= END]
@@ -543,8 +553,16 @@ def generate():
     finance_rows = services.assign(gross_profit=services.gross_margin.clip(lower=0), gross_loss=services.gross_margin.clip(upper=0))
     pnl = finance_rows.groupby('month').agg(gross_profit=('gross_profit', 'sum'), gross_loss=('gross_loss', 'sum')).reset_index()
     summary = summary.merge(pnl, on='month', how='left')
-    summary['profit_loss'] = summary.revenue - summary.parts_cost - summary.labour_cost
-    summary = summary[['month', 'jobs', 'revenue', 'parts_cost', 'labour_cost', 'gross_profit', 'gross_loss', 'gross_margin', 'discount', 'stockout_delay_days', 'profit_loss']]
+    summary['rent_overhead'] = 30000
+    summary['salary_overhead'] = 45000
+    summary['utilities_overhead'] = 10000
+    summary['total_overheads'] = summary[['rent_overhead','salary_overhead','utilities_overhead']].sum(axis=1)
+    summary['net_profit'] = summary.gross_margin - summary.total_overheads
+    summary['profit_loss'] = summary.net_profit
+    summary['mom_change_pct'] = summary.net_profit.pct_change() * 100
+    summary['mom_change_pct'] = summary.mom_change_pct.replace([np.inf,-np.inf], np.nan).fillna(0).round(2)
+    summary['trend'] = np.where(summary.mom_change_pct >= 3, 'growth', np.where(summary.mom_change_pct <= -3, 'dip', 'stable'))
+    summary = summary[['month', 'jobs', 'revenue', 'parts_cost', 'labour_cost', 'gross_profit', 'gross_loss', 'gross_margin', 'rent_overhead', 'salary_overhead', 'utilities_overhead', 'total_overheads', 'net_profit', 'mom_change_pct', 'trend', 'discount', 'stockout_delay_days', 'profit_loss']]
     services.drop(columns=['month'], inplace=True)
 
     services.to_csv(ROOT / 'service_records.csv', index=False)

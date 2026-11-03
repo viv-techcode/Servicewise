@@ -9,6 +9,7 @@ import pandas as pd
 
 from backend.ml.fault_text import prepare_classifier_text
 from backend.ml.severity import combined_severity, severity_for_fault
+from backend.discount_rules import MULTI_FAULT_DISCOUNT_RATE
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(BASE_DIR, '..', 'data', 'service_records.csv')
@@ -120,7 +121,7 @@ class Predictor:
                 'price_reference': None,
             })
 
-        discount_rate = .10 if len(breakdown) > 1 else 0.0
+        discount_rate = MULTI_FAULT_DISCOUNT_RATE if len(breakdown) > 1 else 0.0
         raw_min = sum(item['estimated_cost_min'] for item in breakdown)
         raw_max = sum(item['estimated_cost_max'] for item in breakdown)
         median_estimate = sum(item['estimated_cost_median'] for item in breakdown)
